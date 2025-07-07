@@ -42,6 +42,7 @@ under the License.
             <class name="io.ballerina.servicemodelgenerator.extension.GetFunctionModelFromSourceTest"/>
             <class name="io.ballerina.servicemodelgenerator.extension.ResourcePathDiagnosticsTests"/>
             <class name="io.ballerina.servicemodelgenerator.extension.ServiceDesignerDiagnosticsTest"/>
+            <class name="io.ballerina.servicemodelgenerator.extension.ServiceValidatorTest"/>
         </classes>
     </test>
 </suite>
