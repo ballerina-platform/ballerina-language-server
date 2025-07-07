@@ -23,10 +23,10 @@ import com.google.gson.JsonElement;
 /**
  * Service designer diagnostic request.
  *
- * @param request the request sending to service designer apis
+ * @param request the request sending to service designer api
  * @param operation the operation name
  *
- * @since 2.0.0
+ * @since 1.1.0
  */
 public record ServiceDesignerDiagnosticRequest(JsonElement request, String operation) {
 }

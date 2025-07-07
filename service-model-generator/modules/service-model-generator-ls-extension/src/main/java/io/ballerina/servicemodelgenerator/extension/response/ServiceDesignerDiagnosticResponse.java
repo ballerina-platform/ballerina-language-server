@@ -26,10 +26,10 @@ import java.util.Arrays;
  * Service designer diagnostic response.
  *
  * @param response the input model enriched with diagnostic information
- * @param errorMsg error message
+ * @param errorMsg error message if any
  * @param stacktrace stack trace of the error
  *
- * @since 2.3.0
+ * @since 1.1.0
  */
 public record ServiceDesignerDiagnosticResponse(JsonElement response, String errorMsg, String stacktrace) {
 
