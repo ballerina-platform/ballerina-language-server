@@ -59,7 +59,7 @@ import static io.ballerina.servicemodelgenerator.extension.diagnostics.ServiceVa
 /**
  * Diagnostics handler for the service model generator.
  *
- * @since 2.3.0
+ * @since 1.1.0
  */
 public class DiagnosticsHandler {
 

@@ -100,17 +100,6 @@ public class ServiceDesignerDiagnosticsTest extends AbstractLSTest {
         }
     }
 
-    @Override
-    protected String[] skipList() {
-        // TODO: Enable this once the default value issue is resolved
-        return new String[]{
-                "http_resource_add_test_1.json",
-                "http_resource_add_test_2.json",
-                "http_resource_add_test_3.json",
-                "http_resource_update_test1.json"
-        };
-    }
-
     private JsonElement composeServiceSourceRequest(TestConfig testConfig) {
         JsonObject jsonMap = new JsonObject();
         Path filePath = sourceDir.resolve(testConfig.filePath());

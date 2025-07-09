@@ -52,6 +52,11 @@ import java.util.Set;
 
 import static io.ballerina.servicemodelgenerator.extension.diagnostics.ReservedKeywords.KEYWORD_LIST;
 
+/**
+ * Validator for HTTP resource forms in a service.
+ *
+ * @since 1.0.0
+ */
 public class HttpResourceFormValidator {
 
     private final Context ctx;
