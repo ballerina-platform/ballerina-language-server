@@ -36,20 +36,28 @@ import java.util.Objects;
 public class ServiceValidator {
 
     protected static void validateBasePath(Service service) {
-        if ("http".equals(service.getType()) && Objects.nonNull(service.getOpenAPISpec())) {
-            Value basePath = service.getBasePath();
-            if (Objects.nonNull(basePath) && basePath.isEnabledWithValue()) {
-                ServiceValidator.validHttpBasePath(basePath, service.getType());
-            }
-            Value stringLiteral = service.getStringLiteralProperty();
-            if (Objects.nonNull(stringLiteral) && stringLiteral.isEnabledWithValue()) {
-                ServiceValidator.validHttpBasePath(stringLiteral, service.getType());
-            }
+        if ("http".equals(service.getType()) && Objects.isNull(service.getOpenAPISpec())) {
+            validateHttpGraphqlBasePath(service);
+        }
+
+        if ("graphql".equals(service.getType())) {
+            validateHttpGraphqlBasePath(service);
         }
     }
 
-    public static boolean validHttpBasePath(@NonNull Value basePath, String type) {
-        if (type.equals("http") || type.equals("graphql")) {
+    private static void validateHttpGraphqlBasePath(Service service) {
+        Value basePath = service.getBasePath();
+        if (Objects.nonNull(basePath) && basePath.isEnabledWithValue()) {
+            ServiceValidator.validateHttpGraphqlBasePath(basePath, service.getType());
+        }
+        Value stringLiteral = service.getStringLiteralProperty();
+        if (Objects.nonNull(stringLiteral) && stringLiteral.isEnabledWithValue()) {
+            ServiceValidator.validateHttpGraphqlBasePath(stringLiteral, service.getType());
+        }
+    }
+
+    public static boolean validateHttpGraphqlBasePath(@NonNull Value basePath, String type) {
+        if (!(type.equals("http") || type.equals("graphql"))) {
             return true;
         }
 

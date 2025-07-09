@@ -1,0 +1,219 @@
+{
+  "filePath": "add_service/main.bal",
+  "description": "Test a http service request invalid base path",
+  "operation": "addService",
+  "requestModel": {
+    "id": "0",
+    "name": "HTTP Service",
+    "type": "http",
+    "displayAnnotation": {
+      "label": "HTTP Service",
+      "iconPath": "http://localhost:8080/icons/http.png"
+    },
+    "moduleName": "http",
+    "orgName": "ballerina",
+    "version": "2.12.0",
+    "packageName": "http",
+    "listenerProtocol": "http",
+    "icon": "http://localhost:8080/icons/http.png",
+    "properties": {
+      "listener": {
+        "metadata": {
+          "label": "Listeners",
+          "description": "The Listeners to be bound with the service"
+        },
+        "enabled": true,
+        "editable": true,
+        "value": "",
+        "values": [
+          "(+) Create and use the default HTTP listener (port: 9090)"
+        ],
+        "valueType": "MULTIPLE_SELECT",
+        "valueTypeConstraint": "http:Listener",
+        "isType": false,
+        "placeholder": "",
+        "optional": false,
+        "advanced": false,
+        "items": [
+          "(+) Create and use the default HTTP listener (port: 9090)"
+        ],
+        "codedata": {
+          "inListenerInit": false,
+          "isBasePath": false,
+          "inDisplayAnnotation": false,
+          "type": "LISTENER"
+        },
+        "addNewButton": true,
+        "imports": {}
+      },
+      "annotServiceConfig": {
+        "metadata": {
+          "label": "Service Configuration",
+          "description": "Configurations for the Http service"
+        },
+        "enabled": true,
+        "editable": true,
+        "value": "",
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "http:HttpServiceConfig",
+        "isType": false,
+        "placeholder": "{}",
+        "optional": true,
+        "advanced": true,
+        "codedata": {
+          "inListenerInit": false,
+          "isBasePath": false,
+          "inDisplayAnnotation": false,
+          "type": "ANNOTATION_ATTACHMENT",
+          "originalName": "ServiceConfig"
+        },
+        "addNewButton": false,
+        "typeMembers": [
+          {
+            "type": "HttpServiceConfig",
+            "packageInfo": "ballerina:http:2.12.2",
+            "kind": "RECORD_TYPE",
+            "selected": true
+          }
+        ],
+        "imports": {}
+      },
+      "basePath": {
+        "metadata": {
+          "label": "Service Base Path",
+          "description": "The base path for the service"
+        },
+        "enabled": true,
+        "editable": true,
+        "value": "/api/service",
+        "valueType": "IDENTIFIER",
+        "valueTypeConstraint": "string",
+        "isType": false,
+        "placeholder": "",
+        "optional": false,
+        "advanced": false,
+        "codedata": {
+          "inListenerInit": false,
+          "isBasePath": false,
+          "inDisplayAnnotation": false,
+          "type": "SERVICE_BASEPATH"
+        },
+        "addNewButton": false,
+        "imports": {}
+      }
+    },
+    "functions": []
+  },
+  "codedata": {},
+  "response": {
+    "id": "0",
+    "name": "HTTP Service",
+    "type": "http",
+    "displayAnnotation": {
+      "label": "HTTP Service",
+      "iconPath": "http://localhost:8080/icons/http.png"
+    },
+    "moduleName": "http",
+    "orgName": "ballerina",
+    "version": "2.12.0",
+    "packageName": "http",
+    "listenerProtocol": "http",
+    "icon": "http://localhost:8080/icons/http.png",
+    "properties": {
+      "listener": {
+        "metadata": {
+          "label": "Listeners",
+          "description": "The Listeners to be bound with the service"
+        },
+        "enabled": true,
+        "editable": true,
+        "value": "",
+        "values": [
+          "(+) Create and use the default HTTP listener (port: 9090)"
+        ],
+        "valueType": "MULTIPLE_SELECT",
+        "valueTypeConstraint": "http:Listener",
+        "isType": false,
+        "placeholder": "",
+        "optional": false,
+        "advanced": false,
+        "items": [
+          "(+) Create and use the default HTTP listener (port: 9090)"
+        ],
+        "codedata": {
+          "inListenerInit": false,
+          "isBasePath": false,
+          "inDisplayAnnotation": false,
+          "type": "LISTENER"
+        },
+        "addNewButton": true,
+        "imports": {}
+      },
+      "annotServiceConfig": {
+        "metadata": {
+          "label": "Service Configuration",
+          "description": "Configurations for the Http service"
+        },
+        "enabled": true,
+        "editable": true,
+        "value": "",
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "http:HttpServiceConfig",
+        "isType": false,
+        "placeholder": "{}",
+        "optional": true,
+        "advanced": true,
+        "codedata": {
+          "inListenerInit": false,
+          "isBasePath": false,
+          "inDisplayAnnotation": false,
+          "type": "ANNOTATION_ATTACHMENT",
+          "originalName": "ServiceConfig"
+        },
+        "addNewButton": false,
+        "typeMembers": [
+          {
+            "type": "HttpServiceConfig",
+            "packageInfo": "ballerina:http:2.12.2",
+            "kind": "RECORD_TYPE",
+            "selected": true
+          }
+        ],
+        "imports": {}
+      },
+      "basePath": {
+        "metadata": {
+          "label": "Service Base Path",
+          "description": "The base path for the service"
+        },
+        "enabled": true,
+        "editable": true,
+        "value": "/api/service",
+        "valueType": "IDENTIFIER",
+        "valueTypeConstraint": "string",
+        "isType": false,
+        "placeholder": "",
+        "optional": false,
+        "advanced": false,
+        "codedata": {
+          "inListenerInit": false,
+          "isBasePath": false,
+          "inDisplayAnnotation": false,
+          "type": "SERVICE_BASEPATH"
+        },
+        "addNewButton": false,
+        "imports": {},
+        "diagnostics": {
+          "hasDiagnostics": true,
+          "diagnostics": [
+            {
+              "severity": "ERROR",
+              "message": "usage of reserved keyword: 'service'"
+            }
+          ]
+        }
+      }
+    },
+    "functions": []
+  }
+}

@@ -35,37 +35,37 @@ public class ServiceValidatorTest {
     public void testHttpServiceBasePath() {
         String path = "/hello";
         Value value = new Value.ValueBuilder().value(path).build();
-        boolean isValid = ServiceValidator.validHttpBasePath(value, "http");
+        boolean isValid = ServiceValidator.validateHttpGraphqlBasePath(value, "http");
         Assert.assertTrue(isValid);
 
         path = "/api/hello";
         value = new Value.ValueBuilder().value(path).build();
-        isValid = ServiceValidator.validHttpBasePath(value, "http");
+        isValid = ServiceValidator.validateHttpGraphqlBasePath(value, "http");
         Assert.assertTrue(isValid);
 
         path = "/api/v2\\.1";
         value = new Value.ValueBuilder().value(path).build();
-        isValid = ServiceValidator.validHttpBasePath(value, "http");
+        isValid = ServiceValidator.validateHttpGraphqlBasePath(value, "http");
         Assert.assertTrue(isValid);
 
         path = "/'from";
         value = new Value.ValueBuilder().value(path).build();
-        isValid = ServiceValidator.validHttpBasePath(value, "http");
+        isValid = ServiceValidator.validateHttpGraphqlBasePath(value, "http");
         Assert.assertTrue(isValid);
 
         path = "/api/hello\\-world";
         value = new Value.ValueBuilder().value(path).build();
-        isValid = ServiceValidator.validHttpBasePath(value, "http");
+        isValid = ServiceValidator.validateHttpGraphqlBasePath(value, "http");
         Assert.assertTrue(isValid);
 
         path = "/api/hello\\ world";
         value = new Value.ValueBuilder().value(path).build();
-        isValid = ServiceValidator.validHttpBasePath(value, "http");
+        isValid = ServiceValidator.validateHttpGraphqlBasePath(value, "http");
         Assert.assertTrue(isValid);
 
         path = "\"\"";
         value = new Value.ValueBuilder().value(path).build();
-        isValid = ServiceValidator.validHttpBasePath(value, "http");
+        isValid = ServiceValidator.validateHttpGraphqlBasePath(value, "http");
         Assert.assertTrue(isValid);
     }
 
@@ -73,7 +73,7 @@ public class ServiceValidatorTest {
     public void testUsageOfReservedKeyword() {
         String path = "/from";
         Value value = new Value.ValueBuilder().value(path).build();
-        boolean isValid = ServiceValidator.validHttpBasePath(value, "http");
+        boolean isValid = ServiceValidator.validateHttpGraphqlBasePath(value, "http");
         Assert.assertFalse(isValid);
         Diagnostics diagnostics = value.getDiagnostics();
         Assert.assertEquals(diagnostics.diagnostics().size(), 1);
@@ -84,7 +84,7 @@ public class ServiceValidatorTest {
     public void testEmptyBasePath() {
         String path = "";
         Value value = new Value.ValueBuilder().value(path).build();
-        boolean isValid = ServiceValidator.validHttpBasePath(value, "http");
+        boolean isValid = ServiceValidator.validateHttpGraphqlBasePath(value, "http");
         Assert.assertFalse(isValid);
         Diagnostics diagnostics = value.getDiagnostics();
         Assert.assertEquals(diagnostics.diagnostics().size(), 1);
@@ -95,7 +95,7 @@ public class ServiceValidatorTest {
     public void testBasePathStartWithoutSlash() {
         String path = "foo";
         Value value = new Value.ValueBuilder().value(path).build();
-        boolean isValid = ServiceValidator.validHttpBasePath(value, "http");
+        boolean isValid = ServiceValidator.validateHttpGraphqlBasePath(value, "http");
         Assert.assertFalse(isValid);
         Diagnostics diagnostics = value.getDiagnostics();
         Assert.assertEquals(diagnostics.diagnostics().size(), 1);
@@ -103,10 +103,43 @@ public class ServiceValidatorTest {
     }
 
     @Test
+    public void testBasePathWithDotCharacter() {
+        String path = "/api/v1.0";
+        Value value = new Value.ValueBuilder().value(path).build();
+        boolean isValid = ServiceValidator.validateHttpGraphqlBasePath(value, "http");
+        Assert.assertFalse(isValid);
+        Diagnostics diagnostics = value.getDiagnostics();
+        Assert.assertEquals(diagnostics.diagnostics().size(), 1);
+        Assert.assertEquals(diagnostics.diagnostics().getFirst().message(), "invalid character: '.'");
+    }
+
+    @Test
+    public void testBasePathWithDashCharacter() {
+        String path = "/api/v1-0";
+        Value value = new Value.ValueBuilder().value(path).build();
+        boolean isValid = ServiceValidator.validateHttpGraphqlBasePath(value, "http");
+        Assert.assertFalse(isValid);
+        Diagnostics diagnostics = value.getDiagnostics();
+        Assert.assertEquals(diagnostics.diagnostics().size(), 1);
+        Assert.assertEquals(diagnostics.diagnostics().getFirst().message(), "invalid character: '-'");
+    }
+
+    @Test
+    public void testBasePathWithSpaceCharacter() {
+        String path = "/api/v1 0";
+        Value value = new Value.ValueBuilder().value(path).build();
+        boolean isValid = ServiceValidator.validateHttpGraphqlBasePath(value, "http");
+        Assert.assertFalse(isValid);
+        Diagnostics diagnostics = value.getDiagnostics();
+        Assert.assertEquals(diagnostics.diagnostics().size(), 1);
+        Assert.assertEquals(diagnostics.diagnostics().getFirst().message(), "invalid character: ' '");
+    }
+
+    @Test
     public void testInvalidStringLiteral() {
         String path = "\"";
         Value value = new Value.ValueBuilder().value(path).build();
-        boolean isValid = ServiceValidator.validHttpBasePath(value, "http");
+        boolean isValid = ServiceValidator.validateHttpGraphqlBasePath(value, "http");
         Assert.assertFalse(isValid);
         Diagnostics diagnostics = value.getDiagnostics();
         Assert.assertEquals(diagnostics.diagnostics().size(), 1);
@@ -114,7 +147,7 @@ public class ServiceValidatorTest {
 
         path = "\"hello";
         value = new Value.ValueBuilder().value(path).build();
-        isValid = ServiceValidator.validHttpBasePath(value, "http");
+        isValid = ServiceValidator.validateHttpGraphqlBasePath(value, "http");
         Assert.assertFalse(isValid);
         diagnostics = value.getDiagnostics();
         Assert.assertEquals(diagnostics.diagnostics().size(), 1);
@@ -122,7 +155,7 @@ public class ServiceValidatorTest {
 
         path = "\"he\"llo\"";
         value = new Value.ValueBuilder().value(path).build();
-        isValid = ServiceValidator.validHttpBasePath(value, "http");
+        isValid = ServiceValidator.validateHttpGraphqlBasePath(value, "http");
         Assert.assertFalse(isValid);
         diagnostics = value.getDiagnostics();
         Assert.assertEquals(diagnostics.diagnostics().size(), 1);
@@ -131,7 +164,7 @@ public class ServiceValidatorTest {
 
         path = "\"he\\ llo\"";
         value = new Value.ValueBuilder().value(path).build();
-        isValid = ServiceValidator.validHttpBasePath(value, "http");
+        isValid = ServiceValidator.validateHttpGraphqlBasePath(value, "http");
         Assert.assertFalse(isValid);
         diagnostics = value.getDiagnostics();
         Assert.assertEquals(diagnostics.diagnostics().size(), 1);
@@ -140,7 +173,7 @@ public class ServiceValidatorTest {
 
         path = "\"he\\\"";
         value = new Value.ValueBuilder().value(path).build();
-        isValid = ServiceValidator.validHttpBasePath(value, "http");
+        isValid = ServiceValidator.validateHttpGraphqlBasePath(value, "http");
         Assert.assertFalse(isValid);
         diagnostics = value.getDiagnostics();
         Assert.assertEquals(diagnostics.diagnostics().size(), 1);
