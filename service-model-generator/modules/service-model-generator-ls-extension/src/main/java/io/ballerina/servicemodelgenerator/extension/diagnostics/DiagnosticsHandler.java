@@ -74,13 +74,8 @@ public class DiagnosticsHandler {
     public JsonElement getDiagnostics(ServiceDesignerDiagnosticRequest request) throws WorkspaceDocumentException,
             EventSyncException {
         switch (request.operation()) {
-            case "addService" -> {
+            case "addService", "updateService" -> {
                 ServiceSourceRequest serviceRequest = gson.fromJson(request.request(), ServiceSourceRequest.class);
-                validateBasePath(serviceRequest.service());
-                return gson.toJsonTree(serviceRequest.service());
-            }
-            case "updateService" -> {
-                ServiceModifierRequest serviceRequest = gson.fromJson(request.request(), ServiceModifierRequest.class);
                 validateBasePath(serviceRequest.service());
                 return gson.toJsonTree(serviceRequest.service());
             }

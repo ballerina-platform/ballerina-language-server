@@ -120,6 +120,12 @@ public class ServiceValidator {
                 basePathValue.substring(1));
         for (ResourcePathParser.SegmentPart segment : segments) {
             String value = segment.value();
+            if (value.isEmpty()) {
+                diagnostics.add(new Diagnostics.Info(DiagnosticSeverity.ERROR,
+                        "base path cannot contain consecutive slashes"));
+                basePath.setDiagnostics(new Diagnostics(true, diagnostics));
+                return false;
+            }
             if (!HttpResourceFormValidator.validIdentifier(validator, value, diagnostics)) {
                 basePath.setDiagnostics(new Diagnostics(true, diagnostics));
                 return false;

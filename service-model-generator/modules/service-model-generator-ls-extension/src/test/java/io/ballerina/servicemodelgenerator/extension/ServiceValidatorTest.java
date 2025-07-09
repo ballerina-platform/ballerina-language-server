@@ -136,6 +136,18 @@ public class ServiceValidatorTest {
     }
 
     @Test
+    public void testBasePathWithTwoSlashes() {
+        String path = "//";
+        Value value = new Value.ValueBuilder().value(path).build();
+        boolean isValid = ServiceValidator.validateHttpGraphqlBasePath(value, "graphql");
+        Assert.assertFalse(isValid);
+        Diagnostics diagnostics = value.getDiagnostics();
+        Assert.assertEquals(diagnostics.diagnostics().size(), 1);
+        Assert.assertEquals(diagnostics.diagnostics().getFirst().message(),
+                "base path cannot contain consecutive slashes");
+    }
+
+    @Test
     public void testInvalidStringLiteral() {
         String path = "\"";
         Value value = new Value.ValueBuilder().value(path).build();

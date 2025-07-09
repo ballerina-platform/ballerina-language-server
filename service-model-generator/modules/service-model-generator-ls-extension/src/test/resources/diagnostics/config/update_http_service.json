@@ -1,23 +1,21 @@
 {
-  "filePath": "add_service/main.bal",
-  "description": "Test a graphql service request invalid base path",
-  "operation": "addService",
+  "filePath": "update_service/main.bal",
+  "description": "Test a update http service request with invalid base path",
+  "operation": "updateService",
   "requestModel": {
-    "id": "2",
-    "name": "GraphQL Service",
-    "type": "graphql",
-    "displayName": "GraphQL Service",
-    "description": "Add the service documentation",
+    "id": "0",
+    "name": "HTTP Service",
+    "type": "http",
     "displayAnnotation": {
-      "label": "GraphQL Service",
-      "iconPath": "https://bcentral-packageicons.azureedge.net/images/ballerina_graphql_1.15.0.png"
+      "label": "HTTP Service",
+      "iconPath": "http://localhost:8080/icons/http.png"
     },
-    "moduleName": "graphql",
+    "moduleName": "http",
     "orgName": "ballerina",
-    "version": "1.15.0",
-    "packageName": "graphql",
-    "listenerProtocol": "graphql",
-    "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_graphql_1.15.0.png",
+    "version": "2.12.0",
+    "packageName": "http",
+    "listenerProtocol": "http",
+    "icon": "http://localhost:8080/icons/http.png",
     "properties": {
       "listener": {
         "metadata": {
@@ -25,17 +23,18 @@
           "description": "The Listeners to be bound with the service"
         },
         "enabled": true,
-        "editable": true,
-        "value": "graphQLListener",
+        "editable": false,
+        "value": "httpListener",
         "values": [],
         "valueType": "MULTIPLE_SELECT",
-        "valueTypeConstraint": "graphql:Listener",
+        "valueTypeConstraint": "http:Listener",
         "isType": false,
         "placeholder": "",
         "optional": false,
         "advanced": false,
         "items": [
-          "graphQLListener"
+          "httpListener",
+          "(+) Create and use the default HTTP listener (port: 8080)"
         ],
         "codedata": {
           "inListenerInit": false,
@@ -45,66 +44,38 @@
         },
         "addNewButton": true
       },
-      "serviceType": {
-        "metadata": {
-          "label": "GraphQL Service Type",
-          "description": "The name of the service contract type"
-        },
-        "enabled": false,
-        "editable": true,
-        "value": "Service",
-        "valueType": "SINGLE_SELECT",
-        "valueTypeConstraint": "string",
-        "isType": false,
-        "placeholder": "Service",
-        "optional": false,
-        "advanced": false,
-        "items": [
-          "",
-          "Service"
-        ],
-        "codedata": {
-          "inListenerInit": false,
-          "isBasePath": false,
-          "inDisplayAnnotation": false,
-          "type": "SERVICE_TYPE"
-        },
-        "addNewButton": false
-      },
       "basePath": {
         "metadata": {
           "label": "Service Base Path",
-          "description": "The base path of the service"
+          "description": "The base path for the service"
         },
         "enabled": true,
         "editable": true,
-        "value": "/graphql-v2",
-        "values": [],
+        "value": "//",
         "valueType": "IDENTIFIER",
         "valueTypeConstraint": "string",
         "isType": false,
-        "placeholder": "/graphql-v2",
+        "placeholder": "",
         "optional": false,
         "advanced": false,
         "codedata": {
           "inListenerInit": false,
           "isBasePath": false,
           "inDisplayAnnotation": false,
-          "type": "SERVICE_BASE_PATH"
+          "type": "SERVICE_BASEPATH"
         },
         "addNewButton": false
       },
       "annotServiceConfig": {
         "metadata": {
           "label": "Service Configuration",
-          "description": "Configurations for the Graphql service"
+          "description": "Configurations for the Http service"
         },
         "enabled": true,
         "editable": true,
-        "value": "{\n    introspection: false\n}",
-        "values": [],
+        "value": "{\n    host: \"b7a.localhost\"\n}",
         "valueType": "EXPRESSION",
-        "valueTypeConstraint": "graphql:GraphqlServiceConfig",
+        "valueTypeConstraint": "http:HttpServiceConfig",
         "isType": false,
         "placeholder": "{}",
         "optional": true,
@@ -119,8 +90,8 @@
         "addNewButton": false,
         "typeMembers": [
           {
-            "type": "GraphqlServiceConfig",
-            "packageInfo": "ballerina:graphql:1.15.0",
+            "type": "HttpServiceConfig",
+            "packageInfo": "ballerina:http:2.12.2",
             "kind": "RECORD_TYPE",
             "selected": true
           }
@@ -131,11 +102,11 @@
       "lineRange": {
         "fileName": "main.bal",
         "startLine": {
-          "line": 17,
+          "line": 4,
           "offset": 0
         },
         "endLine": {
-          "line": 59,
+          "line": 9,
           "offset": 1
         }
       },
@@ -147,21 +118,19 @@
   },
   "codedata": {},
   "response": {
-    "id": "2",
-    "name": "GraphQL Service",
-    "type": "graphql",
-    "displayName": "GraphQL Service",
-    "description": "Add the service documentation",
+    "id": "0",
+    "name": "HTTP Service",
+    "type": "http",
     "displayAnnotation": {
-      "label": "GraphQL Service",
-      "iconPath": "https://bcentral-packageicons.azureedge.net/images/ballerina_graphql_1.15.0.png"
+      "label": "HTTP Service",
+      "iconPath": "http://localhost:8080/icons/http.png"
     },
-    "moduleName": "graphql",
+    "moduleName": "http",
     "orgName": "ballerina",
-    "version": "1.15.0",
-    "packageName": "graphql",
-    "listenerProtocol": "graphql",
-    "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_graphql_1.15.0.png",
+    "version": "2.12.0",
+    "packageName": "http",
+    "listenerProtocol": "http",
+    "icon": "http://localhost:8080/icons/http.png",
     "properties": {
       "listener": {
         "metadata": {
@@ -169,17 +138,18 @@
           "description": "The Listeners to be bound with the service"
         },
         "enabled": true,
-        "editable": true,
-        "value": "graphQLListener",
+        "editable": false,
+        "value": "httpListener",
         "values": [],
         "valueType": "MULTIPLE_SELECT",
-        "valueTypeConstraint": "graphql:Listener",
+        "valueTypeConstraint": "http:Listener",
         "isType": false,
         "placeholder": "",
         "optional": false,
         "advanced": false,
         "items": [
-          "graphQLListener"
+          "httpListener",
+          "(+) Create and use the default HTTP listener (port: 8080)"
         ],
         "codedata": {
           "inListenerInit": false,
@@ -190,53 +160,25 @@
         "addNewButton": true,
         "imports": {}
       },
-      "serviceType": {
-        "metadata": {
-          "label": "GraphQL Service Type",
-          "description": "The name of the service contract type"
-        },
-        "enabled": false,
-        "editable": true,
-        "value": "Service",
-        "valueType": "SINGLE_SELECT",
-        "valueTypeConstraint": "string",
-        "isType": false,
-        "placeholder": "Service",
-        "optional": false,
-        "advanced": false,
-        "items": [
-          "",
-          "Service"
-        ],
-        "codedata": {
-          "inListenerInit": false,
-          "isBasePath": false,
-          "inDisplayAnnotation": false,
-          "type": "SERVICE_TYPE"
-        },
-        "addNewButton": false,
-        "imports": {}
-      },
       "basePath": {
         "metadata": {
           "label": "Service Base Path",
-          "description": "The base path of the service"
+          "description": "The base path for the service"
         },
         "enabled": true,
         "editable": true,
-        "value": "/graphql-v2",
-        "values": [],
+        "value": "//",
         "valueType": "IDENTIFIER",
         "valueTypeConstraint": "string",
         "isType": false,
-        "placeholder": "/graphql-v2",
+        "placeholder": "",
         "optional": false,
         "advanced": false,
         "codedata": {
           "inListenerInit": false,
           "isBasePath": false,
           "inDisplayAnnotation": false,
-          "type": "SERVICE_BASE_PATH"
+          "type": "SERVICE_BASEPATH"
         },
         "addNewButton": false,
         "imports": {},
@@ -245,7 +187,7 @@
           "diagnostics": [
             {
               "severity": "ERROR",
-              "message": "invalid character: '-'"
+              "message": "base path cannot contain consecutive slashes"
             }
           ]
         }
@@ -253,14 +195,13 @@
       "annotServiceConfig": {
         "metadata": {
           "label": "Service Configuration",
-          "description": "Configurations for the Graphql service"
+          "description": "Configurations for the Http service"
         },
         "enabled": true,
         "editable": true,
-        "value": "{\n    introspection: false\n}",
-        "values": [],
+        "value": "{\n    host: \"b7a.localhost\"\n}",
         "valueType": "EXPRESSION",
-        "valueTypeConstraint": "graphql:GraphqlServiceConfig",
+        "valueTypeConstraint": "http:HttpServiceConfig",
         "isType": false,
         "placeholder": "{}",
         "optional": true,
@@ -275,8 +216,8 @@
         "addNewButton": false,
         "typeMembers": [
           {
-            "type": "GraphqlServiceConfig",
-            "packageInfo": "ballerina:graphql:1.15.0",
+            "type": "HttpServiceConfig",
+            "packageInfo": "ballerina:http:2.12.2",
             "kind": "RECORD_TYPE",
             "selected": true
           }
@@ -288,11 +229,11 @@
       "lineRange": {
         "fileName": "main.bal",
         "startLine": {
-          "line": 17,
+          "line": 4,
           "offset": 0
         },
         "endLine": {
-          "line": 59,
+          "line": 9,
           "offset": 1
         }
       },

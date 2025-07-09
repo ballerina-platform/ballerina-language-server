@@ -90,7 +90,7 @@ public class ServiceDesignerDiagnosticsTest extends AbstractLSTest {
             case "updateFunction" -> {
                 return composeFunctionModifierRequest(config);
             }
-            case "addService" -> {
+            case "addService", "updateService" -> {
                 return composeServiceSourceRequest(config);
             }
             default -> {
