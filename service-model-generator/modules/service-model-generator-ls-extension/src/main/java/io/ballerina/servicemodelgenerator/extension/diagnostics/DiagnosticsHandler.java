@@ -63,15 +63,10 @@ import static io.ballerina.servicemodelgenerator.extension.diagnostics.ServiceVa
  */
 public class DiagnosticsHandler {
 
-    final Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
+    private static final Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
 
-    private final WorkspaceManager workspaceManager;
-
-    public DiagnosticsHandler(WorkspaceManager workspaceManager) {
-        this.workspaceManager = workspaceManager;
-    }
-
-    public JsonElement getDiagnostics(ServiceDesignerDiagnosticRequest request) throws WorkspaceDocumentException,
+    public static JsonElement getDiagnostics(ServiceDesignerDiagnosticRequest request,
+                                             WorkspaceManager workspaceManager) throws WorkspaceDocumentException,
             EventSyncException {
         switch (request.operation()) {
             case "addService", "updateService" -> {
@@ -82,8 +77,8 @@ public class DiagnosticsHandler {
             case "addResource" -> {
                 FunctionSourceRequest function = gson.fromJson(request.request(), FunctionSourceRequest.class);
                 Path filePath = Path.of(function.filePath());
-                Project project = this.workspaceManager.loadProject(filePath);
-                Optional<Document> document = this.workspaceManager.document(filePath);
+                Project project = workspaceManager.loadProject(filePath);
+                Optional<Document> document = workspaceManager.document(filePath);
                 if (document.isEmpty()) {
                     return gson.toJsonTree(function.function());
                 }
@@ -105,8 +100,8 @@ public class DiagnosticsHandler {
             case "updateFunction" -> {
                 FunctionModifierRequest function = gson.fromJson(request.request(), FunctionModifierRequest.class);
                 Path filePath = Path.of(function.filePath());
-                Project project = this.workspaceManager.loadProject(filePath);
-                Optional<Document> document = this.workspaceManager.document(filePath);
+                Project project = workspaceManager.loadProject(filePath);
+                Optional<Document> document = workspaceManager.document(filePath);
                 if (document.isEmpty()) {
                     return gson.toJsonTree(function.function());
                 }

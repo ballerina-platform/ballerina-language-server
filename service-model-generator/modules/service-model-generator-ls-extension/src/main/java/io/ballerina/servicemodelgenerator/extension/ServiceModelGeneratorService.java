@@ -54,6 +54,8 @@ import io.ballerina.projects.ModuleId;
 import io.ballerina.projects.ModuleName;
 import io.ballerina.projects.Package;
 import io.ballerina.projects.Project;
+import io.ballerina.servicemodelgenerator.extension.diagnostics.DebouncedDiagnosticRequest;
+import io.ballerina.servicemodelgenerator.extension.diagnostics.Debouncer;
 import io.ballerina.servicemodelgenerator.extension.diagnostics.DiagnosticsHandler;
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
@@ -1185,15 +1187,7 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
      */
     @JsonRequest
     public CompletableFuture<ServiceDesignerDiagnosticResponse> diagnostics(ServiceDesignerDiagnosticRequest request) {
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                DiagnosticsHandler diagnosticsHandler = new DiagnosticsHandler(workspaceManager);
-                JsonElement diagnostics = diagnosticsHandler.getDiagnostics(request);
-                return new ServiceDesignerDiagnosticResponse(diagnostics);
-            } catch (Throwable e) {
-                return new ServiceDesignerDiagnosticResponse(e);
-            }
-        });
+        return Debouncer.getInstance().debounce(new DebouncedDiagnosticRequest(this.workspaceManager, request));
     }
 
     public static ModuleAndServiceType deriveServiceType(ServiceDeclarationNode serviceNode,
