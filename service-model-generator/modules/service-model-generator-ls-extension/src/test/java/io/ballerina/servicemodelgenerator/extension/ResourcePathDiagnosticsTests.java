@@ -32,7 +32,7 @@ import org.ballerinalang.langserver.BallerinaLanguageServer;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.lang.reflect.Method;
@@ -56,24 +56,24 @@ public class ResourcePathDiagnosticsTests {
     private HttpResourceFormValidator validator;
     private Method validateResourcePath;
 
-    @BeforeClass
+    @BeforeMethod
     public final void init() throws Exception {
         Path sourceDir = Paths.get("src/test/resources").resolve("diagnostics")
                 .resolve("source").toAbsolutePath();
         WorkspaceManager workspaceManager = new BallerinaLanguageServer().getWorkspaceManager();
         Path projectPath = sourceDir.resolve("sample1");
         Project project = workspaceManager.loadProject(projectPath);
+        Path mainBal = projectPath.resolve("main.bal");
+        Optional<Document> document = workspaceManager.document(mainBal);
+        if (document.isEmpty()) {
+            throw new Exception("Unable to get the document");
+        }
 
         Package currentPackage = project.currentPackage();
         Module module = currentPackage.module(ModuleName.from(currentPackage.packageName()));
         ModuleId moduleId = module.moduleId();
         SemanticModel semanticModel = PackageUtil.getCompilation(currentPackage).getSemanticModel(moduleId);
 
-        Path mainBal = projectPath.resolve("main.bal");
-        Optional<Document> document = workspaceManager.document(mainBal);
-        if (document.isEmpty()) {
-            throw new Exception("Unable to get the semantic model or document");
-        }
         this.validator = new HttpResourceFormValidator(ADD, semanticModel, document.get());
 
         this.validateResourcePath = HttpResourceFormValidator.class.getDeclaredMethod("validateResourcePath",

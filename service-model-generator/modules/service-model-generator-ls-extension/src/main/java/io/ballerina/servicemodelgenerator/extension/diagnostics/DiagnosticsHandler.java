@@ -40,7 +40,6 @@ import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.request.FunctionModifierRequest;
 import io.ballerina.servicemodelgenerator.extension.request.FunctionSourceRequest;
 import io.ballerina.servicemodelgenerator.extension.request.ServiceDesignerDiagnosticRequest;
-import io.ballerina.servicemodelgenerator.extension.request.ServiceModifierRequest;
 import io.ballerina.servicemodelgenerator.extension.request.ServiceSourceRequest;
 import io.ballerina.tools.text.LineRange;
 import io.ballerina.tools.text.TextDocument;

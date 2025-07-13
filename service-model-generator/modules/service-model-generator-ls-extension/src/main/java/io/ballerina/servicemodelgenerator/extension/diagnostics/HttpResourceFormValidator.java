@@ -325,7 +325,7 @@ public class HttpResourceFormValidator {
                                    IdentifierValidator identifierValidator) {
         String paramName = paramSegment.getParamName();
         String type = paramSegment.getTypeDescriptor();
-        if (!validPathParamType(diagnostics, type, paramName)){
+        if (!validPathParamType(diagnostics, type, paramName)) {
             return false;
         }
 

@@ -19,7 +19,6 @@
 package io.ballerina.servicemodelgenerator.extension;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonElement;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import io.ballerina.compiler.api.SemanticModel;
@@ -56,7 +55,6 @@ import io.ballerina.projects.Package;
 import io.ballerina.projects.Project;
 import io.ballerina.servicemodelgenerator.extension.diagnostics.DebouncedDiagnosticRequest;
 import io.ballerina.servicemodelgenerator.extension.diagnostics.Debouncer;
-import io.ballerina.servicemodelgenerator.extension.diagnostics.DiagnosticsHandler;
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.Listener;

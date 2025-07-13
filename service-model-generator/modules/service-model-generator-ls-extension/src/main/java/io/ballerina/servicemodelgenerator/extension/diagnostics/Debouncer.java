@@ -18,7 +18,6 @@
 
 package io.ballerina.servicemodelgenerator.extension.diagnostics;
 
-import com.google.gson.JsonElement;
 import io.ballerina.servicemodelgenerator.extension.response.ServiceDesignerDiagnosticResponse;
 
 import java.util.concurrent.CancellationException;

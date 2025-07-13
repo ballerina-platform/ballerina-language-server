@@ -39,11 +39,15 @@ public class IdentifierValidator {
 
             if (c == '\\') {
                 int escapeLength = parseEscapeSequence(input, index, length);
-                if (escapeLength == -1) return false;
+                if (escapeLength == -1) {
+                    return false;
+                }
                 index += escapeLength;
                 hasContent = true;
             } else {
-                if (!isValidFollowingChar(c)) return false;
+                if (!isValidFollowingChar(c)) {
+                    return false;
+                }
                 index++;
                 hasContent = true;
             }
@@ -97,7 +101,9 @@ public class IdentifierValidator {
     }
 
     private static int parseEscapeSequence(String input, int index, int maxPos) {
-        if (index + 1 >= maxPos) return -1;
+        if (index + 1 >= maxPos) {
+            return -1;
+        }
 
         char nextChar = input.charAt(index + 1);
         if (nextChar == 'u') {
@@ -118,11 +124,15 @@ public class IdentifierValidator {
         }
 
         String hex = input.substring(index + 3, endIndex);
-        if (!isValidHex(hex)) return -1;
+        if (!isValidHex(hex)) {
+            return -1;
+        }
 
         try {
             int codePoint = Integer.parseInt(hex, 16);
-            if (codePoint < 0 || codePoint > 0x10FFFF) return -1;
+            if (codePoint < 0 || codePoint > 0x10FFFF) {
+                return -1;
+            }
         } catch (NumberFormatException e) {
             return -1;
         }
@@ -163,9 +173,7 @@ public class IdentifierValidator {
 
     private static boolean isValidUnicodeChar(char c) {
         // Check private use areas
-        if ((c >= 0xE000 && c <= 0xF8FF) ||
-                (c >= 0xF0000 && c <= 0xFFFFD) ||
-                (c >= 0x100000 && c <= 0x10FFFD)) {
+        if (c >= 0xE000 && c <= 0xF8FF) {
             return false;
         }
 

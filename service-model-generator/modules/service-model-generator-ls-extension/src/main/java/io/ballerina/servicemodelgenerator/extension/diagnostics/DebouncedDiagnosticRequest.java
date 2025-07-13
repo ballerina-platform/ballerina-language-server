@@ -1,6 +1,5 @@
 package io.ballerina.servicemodelgenerator.extension.diagnostics;
 
-import com.google.gson.JsonElement;
 import io.ballerina.servicemodelgenerator.extension.request.ServiceDesignerDiagnosticRequest;
 import io.ballerina.servicemodelgenerator.extension.response.ServiceDesignerDiagnosticResponse;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
