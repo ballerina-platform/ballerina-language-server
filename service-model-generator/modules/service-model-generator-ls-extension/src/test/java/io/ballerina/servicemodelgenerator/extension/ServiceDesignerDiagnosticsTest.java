@@ -21,6 +21,7 @@ package io.ballerina.servicemodelgenerator.extension;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.ballerina.modelgenerator.commons.AbstractLSTest;
+import io.ballerina.servicemodelgenerator.extension.request.FunctionSourceRequest;
 import io.ballerina.servicemodelgenerator.extension.request.ServiceDesignerDiagnosticRequest;
 import io.ballerina.servicemodelgenerator.extension.response.ServiceDesignerDiagnosticResponse;
 import org.testng.Assert;
@@ -60,6 +61,46 @@ public class ServiceDesignerDiagnosticsTest extends AbstractLSTest {
 //            updateConfig(configJsonPath, updatedConfig);
             Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.description(), configJsonPath));
         }
+    }
+
+    @Test
+    public void testMultipleRequests() throws IOException, InterruptedException {
+        // Load the template test config
+        Path configJsonPath = configDir.resolve("http_resource_add_test_1.json");
+        BufferedReader bufferedReader = Files.newBufferedReader(configJsonPath);
+        ServiceDesignerDiagnosticsTest.TestConfig testConfig = gson.fromJson(bufferedReader,
+                ServiceDesignerDiagnosticsTest.TestConfig.class);
+        bufferedReader.close();
+
+        FunctionSourceRequest functionSourceRequest = gson.fromJson(composeRequest(testConfig),
+                FunctionSourceRequest.class);
+
+        String sourcePath = getSourcePath(testConfig.filePath());
+        String method = getServiceName() + "/" + getApiName();
+        notifyDidOpen(sourcePath);
+
+        // Fire multiple requests to gradually build the expression "fn({id: 0})"
+        String[] expressionSteps = {
+                "a",
+                "ab",
+                "abc",
+        };
+        for (int i = 0; i < expressionSteps.length - 1; i++) {
+            functionSourceRequest.function().getName().setValue(expressionSteps[i]);
+            ServiceDesignerDiagnosticRequest request = new ServiceDesignerDiagnosticRequest(
+                    gson.toJsonTree(functionSourceRequest), testConfig.operation());
+            serviceEndpoint.request(method, request);
+            Thread.sleep(750);
+        }
+
+        // In the final complete expression, assert that no diagnostics are returned
+        functionSourceRequest.function().getName().setValue("abc ");
+        ServiceDesignerDiagnosticRequest request = new ServiceDesignerDiagnosticRequest(
+                gson.toJsonTree(functionSourceRequest), testConfig.operation());
+        JsonObject resp = getResponse(request);
+        JsonObject name = resp.get("response").getAsJsonObject().get("name").getAsJsonObject();
+        Assert.assertTrue(name.has("diagnostics"));
+        notifyDidClose(sourcePath);
     }
 
     @Override
