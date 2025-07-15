@@ -24,6 +24,7 @@ import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.AnnotationAttachPoint;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
+import io.ballerina.modelgenerator.commons.Annotation;
 import io.ballerina.modelgenerator.commons.AnnotationAttachment;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.ServiceDatabaseManager;
@@ -94,10 +95,13 @@ public class ServiceModelUtils {
         }
 
         boolean isGraphql = serviceModel.getModuleName().equals(ServiceModelGeneratorConstants.GRAPHQL);
+        ServiceDatabaseManager databaseManager = ServiceDatabaseManager.getInstance();
+        List<Annotation> annotationAttachments = databaseManager.
+                getAnnotationAttachments(serviceModel.getOrgName(), serviceModel.getPackageName(), "OBJECT_METHOD");
         List<Function> functionsInSource = serviceNode.members().stream()
                 .filter(member -> member instanceof FunctionDefinitionNode)
                 .map(member -> getFunctionModel((FunctionDefinitionNode) member, semanticModel, false,
-                        isGraphql, Map.of()))
+                        isGraphql, Function.createAnnotationsMap(annotationAttachments)))
                 .toList();
 
         updateServiceInfoNew(serviceModel, functionsInSource);

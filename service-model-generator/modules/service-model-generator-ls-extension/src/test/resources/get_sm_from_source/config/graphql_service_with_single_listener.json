@@ -104,6 +104,39 @@
         },
         "addNewButton": false,
         "imports": {}
+      },
+      "annotServiceConfig": {
+        "metadata": {
+          "label": "Service Configuration",
+          "description": "Define service configurations such as maximum query depth."
+        },
+        "enabled": true,
+        "editable": true,
+        "value": "{\n    introspection: false\n}",
+        "values": [],
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "graphql:GraphqlServiceConfig",
+        "isType": false,
+        "placeholder": "{}",
+        "optional": true,
+        "advanced": true,
+        "codedata": {
+          "inListenerInit": false,
+          "isBasePath": false,
+          "inDisplayAnnotation": false,
+          "type": "ANNOTATION_ATTACHMENT",
+          "originalName": "ServiceConfig"
+        },
+        "addNewButton": false,
+        "typeMembers": [
+          {
+            "type": "GraphqlServiceConfig",
+            "packageInfo": "ballerina:graphql:1.16.0",
+            "kind": "RECORD_TYPE",
+            "selected": true
+          }
+        ],
+        "imports": {}
       }
     },
     "codedata": {
@@ -114,7 +147,7 @@
           "offset": 0
         },
         "endLine": {
-          "line": 59,
+          "line": 64,
           "offset": 1
         }
       },
@@ -243,8 +276,7 @@
           "inListenerInit": false,
           "isBasePath": false,
           "inDisplayAnnotation": false
-        },
-        "annotations": {}
+        }
       },
       {
         "metadata": {
@@ -416,7 +448,7 @@
               "offset": 4
             },
             "endLine": {
-              "line": 34,
+              "line": 39,
               "offset": 5
             }
           },
@@ -424,7 +456,42 @@
           "isBasePath": false,
           "inDisplayAnnotation": false
         },
-        "annotations": {}
+        "annotations": {
+          "annotResourceConfig": {
+            "metadata": {
+              "label": "Resource Configuration",
+              "description": "Define resource configurations such as field level cache."
+            },
+            "enabled": true,
+            "editable": true,
+            "value": "{\n        cacheConfig: {\n            enabled: true\n        }\n    }",
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "graphql:GraphqlResourceConfig",
+            "isType": false,
+            "placeholder": "{}",
+            "optional": true,
+            "advanced": true,
+            "codedata": {
+              "inListenerInit": false,
+              "isBasePath": false,
+              "inDisplayAnnotation": false,
+              "type": "ANNOTATION_ATTACHMENT",
+              "originalName": "ResourceConfig",
+              "orgName": "ballerina",
+              "moduleName": "graphql"
+            },
+            "addNewButton": false,
+            "typeMembers": [
+              {
+                "type": "GraphqlResourceConfig",
+                "packageInfo": "ballerina:graphql:1.16.0",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              }
+            ],
+            "imports": {}
+          }
+        }
       },
       {
         "metadata": {
@@ -646,11 +713,11 @@
           "lineRange": {
             "fileName": "main.bal",
             "startLine": {
-              "line": 37,
+              "line": 42,
               "offset": 4
             },
             "endLine": {
-              "line": 49,
+              "line": 54,
               "offset": 5
             }
           },
@@ -658,7 +725,41 @@
           "isBasePath": false,
           "inDisplayAnnotation": false
         },
-        "annotations": {}
+        "annotations": {
+          "annotResourceConfig": {
+            "metadata": {
+              "label": "Resource Configuration",
+              "description": "Define resource configurations such as field level cache."
+            },
+            "enabled": true,
+            "editable": true,
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "graphql:GraphqlResourceConfig",
+            "isType": false,
+            "placeholder": "{}",
+            "optional": true,
+            "advanced": true,
+            "codedata": {
+              "inListenerInit": false,
+              "isBasePath": false,
+              "inDisplayAnnotation": false,
+              "type": "ANNOTATION_ATTACHMENT",
+              "originalName": "ResourceConfig",
+              "orgName": "ballerina",
+              "moduleName": "graphql"
+            },
+            "addNewButton": false,
+            "typeMembers": [
+              {
+                "type": "GraphqlResourceConfig",
+                "packageInfo": "ballerina:graphql:1.16.0",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              }
+            ],
+            "imports": {}
+          }
+        }
       },
       {
         "metadata": {
@@ -770,11 +871,11 @@
           "lineRange": {
             "fileName": "main.bal",
             "startLine": {
-              "line": 52,
+              "line": 57,
               "offset": 4
             },
             "endLine": {
-              "line": 58,
+              "line": 63,
               "offset": 5
             }
           },
@@ -782,7 +883,41 @@
           "isBasePath": false,
           "inDisplayAnnotation": false
         },
-        "annotations": {}
+        "annotations": {
+          "annotResourceConfig": {
+            "metadata": {
+              "label": "Resource Configuration",
+              "description": "Define resource configurations such as field level cache."
+            },
+            "enabled": true,
+            "editable": true,
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "graphql:GraphqlResourceConfig",
+            "isType": false,
+            "placeholder": "{}",
+            "optional": true,
+            "advanced": true,
+            "codedata": {
+              "inListenerInit": false,
+              "isBasePath": false,
+              "inDisplayAnnotation": false,
+              "type": "ANNOTATION_ATTACHMENT",
+              "originalName": "ResourceConfig",
+              "orgName": "ballerina",
+              "moduleName": "graphql"
+            },
+            "addNewButton": false,
+            "typeMembers": [
+              {
+                "type": "GraphqlResourceConfig",
+                "packageInfo": "ballerina:graphql:1.16.0",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              }
+            ],
+            "imports": {}
+          }
+        }
       }
     ]
   }

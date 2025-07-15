@@ -330,12 +330,11 @@ public final class HttpUtil {
         ServiceDatabaseManager databaseManager = ServiceDatabaseManager.getInstance();
         List<Annotation> annotationAttachments = databaseManager.
                 getAnnotationAttachments("ballerina", "http", "OBJECT_METHOD");
-        Map<String, Value> annotations = Function.createAnnotationsMap(annotationAttachments);
         Service serviceModel = Service.getEmptyServiceModel();
         serviceDeclarationNode.members().forEach(member -> {
             if (member instanceof FunctionDefinitionNode functionDefinitionNode) {
                 Function functionModel = getFunctionModel(functionDefinitionNode, semanticModel, true, false,
-                        annotations);
+                        Function.createAnnotationsMap(annotationAttachments));
                 functionModel.setEditable(true);
                 serviceModel.getFunctions().add(functionModel);
             }

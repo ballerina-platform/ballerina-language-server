@@ -275,10 +275,10 @@ public final class Utils {
         ServiceClassUtil.ServiceClassContext context = deriveContext(isGraphQL, isHttp, isInit);
 
         Function functionModel = Function.getNewFunctionModel(context);
-        functionModel.setAnnotations(annotations);
-
         if (isInit) {
             functionModel.setKind(KIND_DEFAULT);
+        } else {
+            functionModel.setAnnotations(annotations);
         }
 
         Value functionName = functionModel.getName();

@@ -30,6 +30,11 @@ service /graphql on graphQLListener {
     }
 
     // GraphQL `Query`
+    @graphql:ResourceConfig {
+        cacheConfig: {
+            enabled: true
+        }
+    }
     resource function get greeting(string name) returns string {
             return string `Hello, ${name}`;
     }

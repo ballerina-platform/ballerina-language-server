@@ -96,6 +96,38 @@
             "type": "SERVICE_BASE_PATH"
           },
           "addNewButton": false
+        },
+        "annotServiceConfig": {
+          "metadata": {
+            "label": "Service Configuration",
+            "description": "Define service configurations such as maximum query depth."
+          },
+          "enabled": true,
+          "editable": true,
+          "value": "",
+          "values": [],
+          "valueType": "EXPRESSION",
+          "valueTypeConstraint": "graphql:GraphqlServiceConfig",
+          "isType": false,
+          "placeholder": "{}",
+          "optional": true,
+          "advanced": true,
+          "codedata": {
+            "inListenerInit": false,
+            "isBasePath": false,
+            "inDisplayAnnotation": false,
+            "type": "ANNOTATION_ATTACHMENT",
+            "originalName": "ServiceConfig"
+          },
+          "addNewButton": false,
+          "typeMembers": [
+            {
+              "type": "GraphqlServiceConfig",
+              "packageInfo": "ballerina:graphql:1.16.0",
+              "kind": "RECORD_TYPE",
+              "selected": true
+            }
+          ]
         }
       },
       "functions": []

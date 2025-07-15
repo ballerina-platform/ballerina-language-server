@@ -26,6 +26,8 @@ import io.ballerina.compiler.syntax.tree.ParameterNode;
 import io.ballerina.compiler.syntax.tree.ReturnTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
 import io.ballerina.compiler.syntax.tree.Token;
+import io.ballerina.modelgenerator.commons.Annotation;
+import io.ballerina.modelgenerator.commons.ServiceDatabaseManager;
 import io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants;
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Field;
@@ -45,6 +47,7 @@ import java.util.Optional;
 
 import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.FUNCTION_NAME_METADATA;
 import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.FUNCTION_RETURN_TYPE_METADATA;
+import static io.ballerina.servicemodelgenerator.extension.util.Utils.updateAnnotationAttachmentProperty;
 
 /**
  * Util class for service class related operations.
@@ -138,6 +141,13 @@ public class ServiceClassUtil {
         }
 
         if (kind.equals(FunctionKind.RESOURCE)) {
+            if (context.equals(ServiceClassContext.GRAPHQL_DIAGRAM)) {
+                ServiceDatabaseManager databaseManager = ServiceDatabaseManager.getInstance();
+                List<Annotation> annotationAttachments = databaseManager.
+                        getAnnotationAttachments("ballerina", "graphql", "OBJECT_METHOD");
+                functionModel.setAnnotations(Function.createAnnotationsMap(annotationAttachments));
+                updateAnnotationAttachmentProperty(functionDef, functionModel);
+            }
             functionModel.getAccessor().setValue(functionDef.functionName().text().trim());
             setFunctionNameAndLineRange(functionModel.getName(), Utils.getPath(functionDef.relativeResourcePath()),
                     functionDef.functionName().lineRange());

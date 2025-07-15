@@ -3,8 +3,15 @@
     {
       "name": "http",
       "version": "2.14.0",
-      "serviceTypeSkipList": ["Service", "ServiceContract", "RequestInterceptor", "ResponseInterceptor",
-        "RequestErrorInterceptor", "ResponseErrorInterceptor", "InterceptableService"],
+      "serviceTypeSkipList": [
+        "Service",
+        "ServiceContract",
+        "RequestInterceptor",
+        "ResponseInterceptor",
+        "RequestErrorInterceptor",
+        "ResponseErrorInterceptor",
+        "InterceptableService"
+      ],
       "serviceDeclaration": {
         "displayName": "HTTP Service",
         "optionalTypeDescriptor": 1,
@@ -72,6 +79,20 @@
           "name": "Service",
           "description": "",
           "functions": []
+        }
+      },
+      "annotations": {
+        "ServiceConfig": {
+          "attachmentPoints": ["SERVICE"],
+          "displayName": "Service Configuration",
+          "description": "Define service configurations such as maximum query depth.",
+          "typeConstrain": "graphql:GraphqlServiceConfig"
+        },
+        "ResourceConfig": {
+          "attachmentPoints": ["OBJECT_METHOD"],
+          "displayName": "Resource Configuration",
+          "description": "Define resource configurations such as field level caching.",
+          "typeConstrain": "graphql:GraphqlResourceConfig"
         }
       }
     },
