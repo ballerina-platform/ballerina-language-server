@@ -50,7 +50,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
-import static io.ballerina.servicemodelgenerator.extension.diagnostics.ReservedKeywords.KEYWORD_LIST;
+import static io.ballerina.modelgenerator.commons.ReservedKeywords.KEYWORD_LIST;
 
 /**
  * Validator for HTTP resource forms in a service.

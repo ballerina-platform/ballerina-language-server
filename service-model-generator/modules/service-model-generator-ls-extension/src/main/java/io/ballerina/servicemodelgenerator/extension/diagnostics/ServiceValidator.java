@@ -31,7 +31,7 @@ import java.util.Objects;
 /**
  * Validate the service adding and updating.
  *
- * @since 2.5.0
+ * @since 1.20
  */
 public class ServiceValidator {
 

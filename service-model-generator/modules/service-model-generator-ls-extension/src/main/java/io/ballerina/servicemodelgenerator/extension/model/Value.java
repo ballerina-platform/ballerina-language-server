@@ -71,7 +71,7 @@ public class Value {
 
     public Value(Object value, String valueType, boolean isEnabled, boolean editable, boolean optional) {
         this(null, isEnabled, editable, value, valueType, null, false, null,
-                optional, false, null, null, null, new HashMap<>());
+                optional, false, null, null, null, new HashMap<>(), null);
     }
 
     public Value(MetaData metadata, boolean enabled, boolean editable, Object value, String valueType,

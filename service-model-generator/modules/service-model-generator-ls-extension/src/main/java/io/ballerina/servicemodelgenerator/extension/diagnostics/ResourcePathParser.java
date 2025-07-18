@@ -25,7 +25,7 @@ import java.util.List;
 /**
  * Parser for resource paths in Ballerina.
  *
- * @since 2.3.0
+ * @since 1.2.0
  */
 public class ResourcePathParser {
 
