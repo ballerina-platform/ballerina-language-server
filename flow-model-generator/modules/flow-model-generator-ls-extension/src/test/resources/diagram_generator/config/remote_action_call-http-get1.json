@@ -15,7 +15,12 @@
       {
         "id": "60672",
         "metadata": {
-          "label": "Start"
+          "label": "Start",
+          "data": {
+            "kind": "Resource",
+            "label": "pears",
+            "accessor": "get"
+          }
         },
         "codedata": {
           "node": "EVENT_START",
@@ -185,7 +190,7 @@
           },
           "type": {
             "metadata": {
-              "label": "Variable Type",
+              "label": "Result Type",
               "description": "Type of the variable"
             },
             "valueType": "TYPE",
@@ -350,7 +355,7 @@
           },
           "type": {
             "metadata": {
-              "label": "Variable Type",
+              "label": "Result Type",
               "description": "Type of the variable"
             },
             "valueType": "TYPE",

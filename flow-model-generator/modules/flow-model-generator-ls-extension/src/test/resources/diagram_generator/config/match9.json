@@ -17,6 +17,9 @@
         "metadata": {
           "label": "Start",
           "data": {
+            "kind": "Resource",
+            "label": "strawberries",
+            "accessor": "get",
             "parameters": [
               "int quantity",
               "string season"
@@ -102,7 +105,8 @@
                     "optional": false,
                     "editable": true,
                     "advanced": false,
-                    "hidden": false
+                    "hidden": false,
+                    "comment": {}
                   }
                 ],
                 "optional": false,
@@ -184,7 +188,8 @@
                             "optional": false,
                             "editable": true,
                             "advanced": false,
-                            "hidden": false
+                            "hidden": false,
+                            "comment": {}
                           }
                         ],
                         "optional": false,
@@ -271,7 +276,8 @@
                             "optional": false,
                             "editable": true,
                             "advanced": false,
-                            "hidden": false
+                            "hidden": false,
+                            "comment": {}
                           }
                         ],
                         "optional": false,
@@ -378,7 +384,8 @@
                     "optional": false,
                     "editable": true,
                     "advanced": false,
-                    "hidden": false
+                    "hidden": false,
+                    "comment": {}
                   }
                 ],
                 "optional": false,
@@ -448,7 +455,8 @@
                             "optional": false,
                             "editable": true,
                             "advanced": false,
-                            "hidden": false
+                            "hidden": false,
+                            "comment": {}
                           }
                         ],
                         "optional": false,
@@ -535,7 +543,8 @@
                             "optional": false,
                             "editable": true,
                             "advanced": false,
-                            "hidden": false
+                            "hidden": false,
+                            "comment": {}
                           }
                         ],
                         "optional": false,

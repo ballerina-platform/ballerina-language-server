@@ -424,7 +424,7 @@ public class ServiceModelUtils {
         if (serviceTypes.size() == 1) {
             value = serviceTypes.getFirst();
         }
-        List<String> items = new ArrayList<>();
+        List<Object> items = new ArrayList<>();
         items.add("");
         items.addAll(serviceTypes);
 
@@ -614,7 +614,7 @@ public class ServiceModelUtils {
         }
         Value listener = serviceModel.getListener();
         if (!listeners.isEmpty()) {
-            listener.setItems(listeners.stream().toList());
+            listener.setItems(listeners.stream().map(l -> (Object) l).toList());
         }
     }
 }

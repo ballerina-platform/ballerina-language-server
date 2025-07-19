@@ -17,6 +17,9 @@
         "metadata": {
           "label": "Start",
           "data": {
+            "kind": "Resource",
+            "label": "bananas",
+            "accessor": "post",
             "return": "json|http:ClientError"
           }
         },
@@ -261,7 +264,7 @@
           },
           "type": {
             "metadata": {
-              "label": "Variable Type",
+              "label": "Result Type",
               "description": "Type of the variable"
             },
             "valueType": "TYPE",

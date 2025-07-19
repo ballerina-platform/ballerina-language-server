@@ -17,6 +17,9 @@
         "metadata": {
           "label": "Start",
           "data": {
+            "kind": "Resource",
+            "label": "tomatoes",
+            "accessor": "get",
             "parameters": [
               "any quantity"
             ],
@@ -236,7 +239,8 @@
                             "optional": false,
                             "editable": true,
                             "advanced": false,
-                            "hidden": false
+                            "hidden": false,
+                            "comment": {}
                           }
                         ],
                         "optional": false,
@@ -335,7 +339,8 @@
                             "optional": false,
                             "editable": true,
                             "advanced": false,
-                            "hidden": false
+                            "hidden": false,
+                            "comment": {}
                           }
                         ],
                         "optional": false,
@@ -417,7 +422,8 @@
                                     "optional": false,
                                     "editable": true,
                                     "advanced": false,
-                                    "hidden": false
+                                    "hidden": false,
+                                    "comment": {}
                                   }
                                 ],
                                 "optional": false,
@@ -516,7 +522,8 @@
                                     "optional": false,
                                     "editable": true,
                                     "advanced": false,
-                                    "hidden": false
+                                    "hidden": false,
+                                    "comment": {}
                                   }
                                 ],
                                 "optional": false,
@@ -615,7 +622,8 @@
                                     "optional": false,
                                     "editable": true,
                                     "advanced": false,
-                                    "hidden": false
+                                    "hidden": false,
+                                    "comment": {}
                                   }
                                 ],
                                 "optional": false,
@@ -722,7 +730,8 @@
                             "optional": false,
                             "editable": true,
                             "advanced": false,
-                            "hidden": false
+                            "hidden": false,
+                            "comment": {}
                           }
                         ],
                         "optional": false,

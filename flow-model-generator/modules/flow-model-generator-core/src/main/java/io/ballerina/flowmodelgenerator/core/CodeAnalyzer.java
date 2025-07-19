@@ -119,6 +119,7 @@ import io.ballerina.compiler.syntax.tree.WaitFieldNode;
 import io.ballerina.compiler.syntax.tree.WaitFieldsListNode;
 import io.ballerina.compiler.syntax.tree.WhileStatementNode;
 import io.ballerina.flowmodelgenerator.core.model.Branch;
+import io.ballerina.flowmodelgenerator.core.model.CommentProperty;
 import io.ballerina.flowmodelgenerator.core.model.FlowNode;
 import io.ballerina.flowmodelgenerator.core.model.FormBuilder;
 import io.ballerina.flowmodelgenerator.core.model.NodeBuilder;
@@ -219,11 +220,33 @@ public class CodeAnalyzer extends NodeVisitor {
         if (symbol.isEmpty()) {
             return;
         }
-        // Create the start event node
         FunctionBodyNode functionBodyNode = functionDefinitionNode.functionBody();
+
+        // Set the function kind to display in the flow model
+        FunctionKind kind;
+        String functionName = functionDefinitionNode.functionName().text();
+        String accessor = null;
+        if (functionDefinitionNode.kind() == SyntaxKind.RESOURCE_ACCESSOR_DEFINITION) {
+            accessor = functionName;
+            functionName = getPathString(functionDefinitionNode.relativeResourcePath());
+            ServiceDeclarationNode serviceDeclarationNode = getParentServiceDeclaration(functionDefinitionNode);
+            kind = isAgent(serviceDeclarationNode) ? FunctionKind.AI_CHAT_AGENT : FunctionKind.RESOURCE;
+        } else if (hasQualifier(functionDefinitionNode.qualifierList(), SyntaxKind.REMOTE_KEYWORD)) {
+            kind = FunctionKind.REMOTE_FUNCTION;
+        } else {
+            kind = FunctionKind.FUNCTION;
+        }
+
         startNode(NodeKind.EVENT_START, functionDefinitionNode).codedata()
                 .lineRange(functionBodyNode.lineRange())
                 .sourceCode(functionDefinitionNode.toSourceCode().strip());
+
+        nodeBuilder.metadata()
+                .addData("kind", kind.getValue())
+                .addData("label", functionName);
+        if (accessor != null) {
+            nodeBuilder.metadata().addData("accessor", accessor);
+        }
 
         // Add the function signature to the metadata
         FunctionSignatureNode functionSignatureNode = functionDefinitionNode.functionSignature();
@@ -825,8 +848,12 @@ public class CodeAnalyzer extends NodeVisitor {
                 }
                 Property.Builder<FormBuilder<NodeBuilder>> customPropBuilder =
                         nodeBuilder.properties().custom();
-                String escapedParamName = CommonUtil.escapeReservedKeyword(restParamSymbol.getName().get());
+                String escapedParamName = restParamSymbol.getName().get();
                 ParameterData restParamResult = funcParamMap.get(escapedParamName);
+                if (restParamResult == null) {
+                    restParamResult = funcParamMap.get(CommonUtil.escapeReservedKeyword(
+                            restParamSymbol.getName().get()));
+                }
                 funcParamMap.remove(restParamSymbol.getName().get());
                 String unescapedParamName = ParamUtils.removeLeadingSingleQuote(restParamResult.name());
                 customPropBuilder
@@ -862,12 +889,14 @@ public class CodeAnalyzer extends NodeVisitor {
             final List<LinkedHashMap<String, String>> includedRecordRestArgs = new ArrayList<>();
             for (int i = 0; i < paramsList.size(); i++) {
                 ParameterSymbol parameterSymbol = paramsList.get(i);
-                String escapedParamName = CommonUtil.escapeReservedKeyword(parameterSymbol.getName().get());
-                ParameterData paramResult = funcParamMap.get(escapedParamName);
-                if (paramResult == null) {
-                    continue;
+                String escapedParamName = parameterSymbol.getName().get();
+                if (!funcParamMap.containsKey(escapedParamName)) {
+                    escapedParamName = CommonUtil.escapeReservedKeyword(escapedParamName);
+                    if (!funcParamMap.containsKey(escapedParamName)) {
+                        continue;
+                    }
                 }
-                paramResult = funcParamMap.get(escapedParamName);
+                ParameterData paramResult = funcParamMap.get(escapedParamName);
                 Node paramValue;
                 if (i < argCount) {
                     paramValue = positionalArgs.poll();
@@ -1390,12 +1419,12 @@ public class CodeAnalyzer extends NodeVisitor {
                             NewConnectionBuilder.CONNECTION_TYPE_LABEL, false, new HashSet<>(), true);
         } else if (nodeBuilder instanceof RemoteActionCallBuilder || nodeBuilder instanceof ResourceActionCallBuilder) {
             nodeBuilder.properties()
-                    .dataVariable(this.typedBindingPatternNode, Property.RESULT_NAME, Property.TYPE_LABEL,
+                    .dataVariable(this.typedBindingPatternNode, Property.RESULT_NAME, Property.RESULT_TYPE_LABEL,
                             Property.RESULT_DOC, false, new HashSet<>(), true);
         } else if (nodeBuilder instanceof FunctionCall || nodeBuilder instanceof MethodCall) {
             nodeBuilder.properties()
-                    .dataVariable(this.typedBindingPatternNode, Property.VARIABLE_NAME, Property.TYPE_LABEL, false,
-                            new HashSet<>(), false);
+                    .dataVariable(this.typedBindingPatternNode, Property.RESULT_NAME, Property.RESULT_TYPE_LABEL,
+                            Property.RESULT_DOC, false, new HashSet<>(), false);
         } else {
             nodeBuilder.properties().dataVariable(this.typedBindingPatternNode, implicit, new HashSet<>());
         }
@@ -1993,16 +2022,18 @@ public class CodeAnalyzer extends NodeVisitor {
         NodeList<MatchClauseNode> matchClauseNodes = matchStatementNode.matchClauses();
         for (MatchClauseNode matchClauseNode : matchClauseNodes) {
             Optional<MatchGuardNode> matchGuardNode = matchClauseNode.matchGuard();
-            String label = matchClauseNode.matchPatterns().stream()
-                    .map(node -> node.toSourceCode().strip())
+            CommentProperty commentProperty = new CommentProperty();
+            String pattern = matchClauseNode.matchPatterns().stream()
+                    .map(p -> removeLeadingAndTrailingMinutiae(p, commentProperty))
                     .collect(Collectors.joining("|"));
+            String label = pattern;
             if (matchGuardNode.isPresent()) {
                 label += " " + matchGuardNode.get().toSourceCode().strip();
             }
 
             Branch.Builder branchBuilder = startBranch(label, NodeKind.CONDITIONAL, Branch.BranchKind.BLOCK,
                     Branch.Repeatable.ONE_OR_MORE)
-                    .properties().patterns(matchClauseNode.matchPatterns()).stepOut();
+                    .properties().patterns(matchClauseNode, pattern, commentProperty).stepOut();
 
             matchGuardNode.ifPresent(guard -> branchBuilder.properties()
                     .expression(guard.expression(), Property.GUARD_KEY, Property.GUARD_DOC));
@@ -2289,5 +2320,84 @@ public class CodeAnalyzer extends NodeVisitor {
     // TODO: Update data based on requirements
     private record MemoryManagerData(String type, String size) {
 
+    }
+
+    private String removeLeadingAndTrailingMinutiae(Node node, CommentProperty commentProperty) {
+        String sourceCode = node.toSourceCode().strip();
+        String leadingMinutiae = node.leadingMinutiae().toString();
+        if (leadingMinutiae.contains("//")) {
+            commentProperty.setLeadingComment(leadingMinutiae.substring(leadingMinutiae.indexOf("//")));
+        }
+        sourceCode = sourceCode.replace(leadingMinutiae.strip(), "");
+
+        String trailingMinutiae = node.trailingMinutiae().toString();
+        if (trailingMinutiae.contains("//")) {
+            commentProperty.setTrailingComment(trailingMinutiae.substring(trailingMinutiae.indexOf("//")));
+        }
+        sourceCode = sourceCode.replace(trailingMinutiae.strip(), "");
+        return sourceCode.strip();
+    }
+
+    private static String getPathString(NodeList<Node> nodes) {
+        return nodes.stream()
+                .map(node -> node.toString().trim())
+                .collect(Collectors.joining());
+    }
+
+    private static boolean hasQualifier(NodeList<Token> qualifierList, SyntaxKind kind) {
+        return qualifierList.stream().anyMatch(qualifier -> qualifier.kind() == kind);
+    }
+
+    private boolean isAgent(ServiceDeclarationNode serviceDeclarationNode) {
+        SeparatedNodeList<ExpressionNode> expressions = serviceDeclarationNode.expressions();
+        if (expressions.isEmpty()) {
+            return false;
+        }
+
+        ExpressionNode listenerExpression = expressions.get(0);
+        Optional<TypeSymbol> typeSymbol = semanticModel.typeOf(listenerExpression);
+        if (typeSymbol.isEmpty()) {
+            return false;
+        }
+
+        TypeSymbol listenerTypeSymbol = getListenerTypeSymbol(typeSymbol.get());
+        if (listenerTypeSymbol == null) {
+            return false;
+        }
+
+        Optional<ModuleSymbol> module = listenerTypeSymbol.getModule();
+        return module.isPresent() && AI_AGENT.equals(module.get().id().moduleName());
+    }
+
+    private TypeSymbol getListenerTypeSymbol(TypeSymbol typeSymbol) {
+        if (typeSymbol.typeKind() == TypeDescKind.UNION) {
+            UnionTypeSymbol unionTypeSymbol = (UnionTypeSymbol) typeSymbol;
+            return unionTypeSymbol.memberTypeDescriptors().stream()
+                    .filter(member -> !member.subtypeOf(semanticModel.types().ERROR))
+                    .findFirst().orElse(null);
+        }
+        return typeSymbol;
+    }
+
+    /**
+     * Represents the function kind to display in the flow model.
+     *
+     * @since 1.0.1
+     */
+    public enum FunctionKind {
+        FUNCTION("Function"),
+        REMOTE_FUNCTION("Remote Function"),
+        RESOURCE("Resource"),
+        AI_CHAT_AGENT("AI Chat Agent");
+
+        private final String value;
+
+        FunctionKind(String value) {
+            this.value = value;
+        }
+
+        public String getValue() {
+            return value;
+        }
     }
 }

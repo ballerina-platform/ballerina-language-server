@@ -17,6 +17,9 @@
         "metadata": {
           "label": "Start",
           "data": {
+            "kind": "Resource",
+            "label": "pineapples",
+            "accessor": "get",
             "parameters": [
               "int count",
               "int retries"
@@ -401,7 +404,7 @@
                   },
                   "type": {
                     "metadata": {
-                      "label": "Variable Type",
+                      "label": "Result Type",
                       "description": "Type of the variable"
                     },
                     "valueType": "TYPE",
@@ -1730,7 +1733,7 @@
                           },
                           "type": {
                             "metadata": {
-                              "label": "Variable Type",
+                              "label": "Result Type",
                               "description": "Type of the variable"
                             },
                             "valueType": "TYPE",

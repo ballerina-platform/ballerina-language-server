@@ -15,7 +15,11 @@
       {
         "id": "35341",
         "metadata": {
-          "label": "Start"
+          "label": "Start",
+          "data": {
+            "kind": "Function",
+            "label": "name"
+          }
         },
         "codedata": {
           "node": "EVENT_START",
@@ -293,8 +297,8 @@
           },
           "variable": {
             "metadata": {
-              "label": "Variable Name",
-              "description": "Name of the variable"
+              "label": "Result",
+              "description": "Name of the result variable"
             },
             "valueType": "IDENTIFIER",
             "value": "randomId",
@@ -318,7 +322,7 @@
           },
           "type": {
             "metadata": {
-              "label": "Variable Type",
+              "label": "Result Type",
               "description": "Type of the variable"
             },
             "valueType": "TYPE",

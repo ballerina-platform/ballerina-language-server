@@ -17,6 +17,9 @@
         "metadata": {
           "label": "Start",
           "data": {
+            "kind": "Resource",
+            "label": "avocados",
+            "accessor": "get",
             "parameters": [
               "int quantity",
               "int ripeness"
@@ -102,7 +105,8 @@
                     "optional": false,
                     "editable": true,
                     "advanced": false,
-                    "hidden": false
+                    "hidden": false,
+                    "comment": {}
                   }
                 ],
                 "optional": false,
@@ -201,7 +205,8 @@
                     "optional": false,
                     "editable": true,
                     "advanced": false,
-                    "hidden": false
+                    "hidden": false,
+                    "comment": {}
                   }
                 ],
                 "optional": false,
@@ -283,7 +288,8 @@
                             "optional": false,
                             "editable": true,
                             "advanced": false,
-                            "hidden": false
+                            "hidden": false,
+                            "comment": {}
                           }
                         ],
                         "optional": false,
@@ -370,7 +376,8 @@
                             "optional": false,
                             "editable": true,
                             "advanced": false,
-                            "hidden": false
+                            "hidden": false,
+                            "comment": {}
                           }
                         ],
                         "optional": false,
@@ -457,7 +464,8 @@
                             "optional": false,
                             "editable": true,
                             "advanced": false,
-                            "hidden": false
+                            "hidden": false,
+                            "comment": {}
                           }
                         ],
                         "optional": false,
@@ -564,7 +572,8 @@
                     "optional": false,
                     "editable": true,
                     "advanced": false,
-                    "hidden": false
+                    "hidden": false,
+                    "comment": {}
                   }
                 ],
                 "optional": false,
@@ -663,7 +672,8 @@
                     "optional": false,
                     "editable": true,
                     "advanced": false,
-                    "hidden": false
+                    "hidden": false,
+                    "comment": {}
                   }
                 ],
                 "optional": false,

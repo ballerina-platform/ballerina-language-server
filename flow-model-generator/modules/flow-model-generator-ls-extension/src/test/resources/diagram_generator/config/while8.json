@@ -17,6 +17,9 @@
         "metadata": {
           "label": "Start",
           "data": {
+            "kind": "Resource",
+            "label": "watermelons",
+            "accessor": "get",
             "parameters": [
               "int count"
             ]
@@ -387,7 +390,7 @@
                   },
                   "type": {
                     "metadata": {
-                      "label": "Variable Type",
+                      "label": "Result Type",
                       "description": "Type of the variable"
                     },
                     "valueType": "TYPE",

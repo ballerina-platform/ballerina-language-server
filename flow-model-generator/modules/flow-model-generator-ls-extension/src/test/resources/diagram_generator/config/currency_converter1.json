@@ -17,6 +17,9 @@
         "metadata": {
           "label": "Start",
           "data": {
+            "kind": "Resource",
+            "label": "converter",
+            "accessor": "get",
             "parameters": [
               "string 'from",
               "string to",
@@ -326,6 +329,7 @@
                     },
                     "valueType": "EXPRESSION",
                     "valueTypeConstraint": "string",
+                    "value": "key",
                     "placeholder": "\"\"",
                     "optional": false,
                     "editable": true,
@@ -341,7 +345,7 @@
                         "packageInfo": "",
                         "packageName": "",
                         "kind": "BASIC_TYPE",
-                        "selected": false
+                        "selected": true
                       }
                     ]
                   },
@@ -384,7 +388,7 @@
                   },
                   "type": {
                     "metadata": {
-                      "label": "Variable Type",
+                      "label": "Result Type",
                       "description": "Type of the variable"
                     },
                     "valueType": "TYPE",
@@ -908,7 +912,7 @@
                           },
                           "type": {
                             "metadata": {
-                              "label": "Variable Type",
+                              "label": "Result Type",
                               "description": "Type of the variable"
                             },
                             "valueType": "TYPE",
@@ -1113,11 +1117,11 @@
                             "value": {
                               "fileName": "main.bal",
                               "startLine": {
-                                "line": 59,
+                                "line": 63,
                                 "offset": 0
                               },
                               "endLine": {
-                                "line": 60,
+                                "line": 64,
                                 "offset": 53
                               }
                             },
@@ -1192,8 +1196,8 @@
                           },
                           "variable": {
                             "metadata": {
-                              "label": "Variable Name",
-                              "description": "Name of the variable"
+                              "label": "Result",
+                              "description": "Name of the result variable"
                             },
                             "valueType": "IDENTIFIER",
                             "value": "convertedAmount",
@@ -1217,7 +1221,7 @@
                           },
                           "type": {
                             "metadata": {
-                              "label": "Variable Type",
+                              "label": "Result Type",
                               "description": "Type of the variable"
                             },
                             "valueType": "TYPE",
@@ -1312,6 +1316,33 @@
                             "advanced": false,
                             "hidden": true
                           },
+                          "key": {
+                            "metadata": {
+                              "label": "Key",
+                              "description": "Key referring to a value"
+                            },
+                            "valueType": "EXPRESSION",
+                            "valueTypeConstraint": "string",
+                            "value": "key",
+                            "placeholder": "\"\"",
+                            "optional": false,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false,
+                            "codedata": {
+                              "kind": "REQUIRED",
+                              "originalName": "key"
+                            },
+                            "typeMembers": [
+                              {
+                                "type": "string",
+                                "packageInfo": "",
+                                "packageName": "",
+                                "kind": "BASIC_TYPE",
+                                "selected": true
+                              }
+                            ]
+                          },
                           "value": {
                             "metadata": {
                               "label": "Value",
@@ -1319,7 +1350,7 @@
                             },
                             "valueType": "EXPRESSION",
                             "valueTypeConstraint": "string",
-                            "value": "key",
+                            "value": "convertedAmount.toString()",
                             "placeholder": "\"\"",
                             "optional": false,
                             "editable": true,
@@ -1336,32 +1367,6 @@
                                 "packageName": "",
                                 "kind": "BASIC_TYPE",
                                 "selected": true
-                              }
-                            ]
-                          },
-                          "key": {
-                            "metadata": {
-                              "label": "Key",
-                              "description": "Key referring to a value"
-                            },
-                            "valueType": "EXPRESSION",
-                            "valueTypeConstraint": "string",
-                            "placeholder": "\"\"",
-                            "optional": false,
-                            "editable": true,
-                            "advanced": false,
-                            "hidden": false,
-                            "codedata": {
-                              "kind": "REQUIRED",
-                              "originalName": "key"
-                            },
-                            "typeMembers": [
-                              {
-                                "type": "string",
-                                "packageInfo": "",
-                                "packageName": "",
-                                "kind": "BASIC_TYPE",
-                                "selected": false
                               }
                             ]
                           },
