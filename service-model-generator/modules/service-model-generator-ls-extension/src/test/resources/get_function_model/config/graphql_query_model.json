@@ -110,7 +110,7 @@
       "annotResourceConfig": {
         "metadata": {
           "label": "Resource Configuration",
-          "description": "Define resource configurations such as field level caching."
+          "description": "Define resource configurations such as field level cache."
         },
         "enabled": true,
         "editable": true,

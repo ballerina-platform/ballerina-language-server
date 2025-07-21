@@ -8,7 +8,7 @@ public service class Book {
             self.id = "";
             self.name = name;
         } on fail error err {
-            // hanlde error
+            // handle error
         }
     }
 
@@ -28,7 +28,7 @@ public service class Book {
             }
             check error("Author not found!");
         } on fail error err {
-            // hanlde error
+            // handle error
             return err;
         }
     }
@@ -42,7 +42,7 @@ public service class Book {
         do {
             self.authors.push(author);
         } on fail error err {
-            // hanlde error
+            // handle error
         }
     }
 }
