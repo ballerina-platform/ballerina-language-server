@@ -21,22 +21,28 @@ package io.ballerina.servicemodelgenerator.extension.util;
 import com.google.gson.Gson;
 import com.google.gson.stream.JsonReader;
 import io.ballerina.compiler.api.SemanticModel;
-import io.ballerina.compiler.api.symbols.AnnotationAttachPoint;
+import io.ballerina.compiler.api.symbols.ModuleSymbol;
+import io.ballerina.compiler.api.symbols.Symbol;
+import io.ballerina.compiler.api.symbols.TypeSymbol;
+import io.ballerina.compiler.api.symbols.VariableSymbol;
+import io.ballerina.compiler.syntax.tree.ExplicitNewExpressionNode;
+import io.ballerina.compiler.syntax.tree.ExpressionNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
+import io.ballerina.compiler.syntax.tree.NameReferenceNode;
+import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
+import io.ballerina.compiler.syntax.tree.TypeDescriptorNode;
 import io.ballerina.modelgenerator.commons.AnnotationAttachment;
-import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.ServiceDatabaseManager;
 import io.ballerina.modelgenerator.commons.ServiceDeclaration;
 import io.ballerina.modelgenerator.commons.ServiceTypeFunction;
 import io.ballerina.projects.Project;
 import io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants;
-import io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorService;
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
-import io.ballerina.servicemodelgenerator.extension.model.DisplayAnnotation;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.FunctionReturnType;
 import io.ballerina.servicemodelgenerator.extension.model.MetaData;
+import io.ballerina.servicemodelgenerator.extension.model.ModuleAndServiceType;
 import io.ballerina.servicemodelgenerator.extension.model.Parameter;
 import io.ballerina.servicemodelgenerator.extension.model.PropertyTypeMemberInfo;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
@@ -48,7 +54,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -545,12 +550,52 @@ public class ServiceModelUtils {
         }
     }
 
-    public static String serviceTypeWithoutPrefix(ServiceModelGeneratorService.ModuleAndServiceType moduleAndServiceType) {
-        String[] serviceTypeNames = moduleAndServiceType.serviceType().split(":");
-        String serviceType = "Service";
+    public static String serviceTypeWithoutPrefix(String serviceType) {
+        String[] serviceTypeNames = serviceType.split(":");
+        String actualServiceType = "Service";
         if (serviceTypeNames.length > 1) {
-            serviceType = serviceTypeNames[1];
+            actualServiceType = serviceTypeNames[1];
         }
-        return serviceType;
+        return actualServiceType;
+    }
+
+    public static ModuleAndServiceType deriveServiceType(ServiceDeclarationNode serviceNode,
+                                                         SemanticModel semanticModel) {
+        Optional<TypeDescriptorNode> serviceTypeDesc = serviceNode.typeDescriptor();
+        Optional<ModuleSymbol> module = Optional.empty();
+        String serviceType = "Service";
+        if (serviceTypeDesc.isPresent()) {
+            TypeDescriptorNode typeDescriptorNode = serviceTypeDesc.get();
+            serviceType = typeDescriptorNode.toString().trim();
+            Optional<TypeSymbol> typeSymbol = semanticModel.typeOf(typeDescriptorNode);
+            if (typeSymbol.isPresent()) {
+                module = typeSymbol.get().getModule();
+            }
+        }
+
+        if (module.isEmpty()) {
+            SeparatedNodeList<ExpressionNode> expressions = serviceNode.expressions();
+            if (expressions.isEmpty()) {
+                return new ModuleAndServiceType(null, serviceType);
+            }
+            ExpressionNode expressionNode = expressions.get(0);
+            if (expressionNode instanceof ExplicitNewExpressionNode explicitNewExpressionNode) {
+                Optional<Symbol> symbol = semanticModel.symbol(explicitNewExpressionNode.typeDescriptor());
+                if (symbol.isEmpty()) {
+                    return new ModuleAndServiceType(null, serviceType);
+                }
+                module = symbol.get().getModule();
+            } else if (expressionNode instanceof NameReferenceNode nameReferenceNode) {
+                Optional<Symbol> symbol = semanticModel.symbol(nameReferenceNode);
+                if (symbol.isPresent() && symbol.get() instanceof VariableSymbol variableSymbol) {
+                    module = variableSymbol.typeDescriptor().getModule();
+                }
+            }
+        }
+
+        if (module.isEmpty()) {
+            return new ModuleAndServiceType(null, serviceType);
+        }
+        return new ModuleAndServiceType(module.get().getName().orElse(null), serviceType);
     }
 }

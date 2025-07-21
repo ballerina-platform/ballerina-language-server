@@ -20,14 +20,18 @@ package io.ballerina.servicemodelgenerator.extension.service;
 
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.syntax.tree.Node;
+import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.projects.Project;
 import io.ballerina.servicemodelgenerator.extension.model.ModelFromSourceContext;
+import io.ballerina.servicemodelgenerator.extension.model.ModuleAndServiceType;
 import io.ballerina.servicemodelgenerator.extension.model.NodeBuilder;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
+import io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -47,11 +51,17 @@ public class ServiceBuilderRouter {
 
     }
 
-    public static Service getServiceFromSource(String protocol, Node node, Project project,
+    public static Service getServiceFromSource(Node node, Project project,
                                                SemanticModel semanticModel,
                                                WorkspaceManager workspaceManager) {
-        NodeBuilder<?> serviceBuilder = getServiceBuilder(protocol);
-        ModelFromSourceContext context = new ModelFromSourceContext(node, project, semanticModel, workspaceManager);
+        ModuleAndServiceType moduleAndServiceType = ServiceModelUtils.deriveServiceType(
+                (ServiceDeclarationNode) node, semanticModel);
+        if (Objects.isNull(moduleAndServiceType.moduleName())) {
+            return null;
+        }
+        NodeBuilder<?> serviceBuilder = getServiceBuilder(moduleAndServiceType.moduleName());
+        ModelFromSourceContext context = new ModelFromSourceContext(node, project, semanticModel,
+                workspaceManager, moduleAndServiceType.moduleName(), moduleAndServiceType.serviceType());
         return (Service) serviceBuilder.getModelFromSource(context);
     }
 }

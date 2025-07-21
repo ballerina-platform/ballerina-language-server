@@ -23,7 +23,6 @@ import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.projects.Project;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 
-
 public record ModelFromSourceContext(Node node, Project project, SemanticModel semanticModel,
-                                                     WorkspaceManager workspaceManager) {
+                                     WorkspaceManager workspaceManager, String moduleName, String serviceType) {
 }

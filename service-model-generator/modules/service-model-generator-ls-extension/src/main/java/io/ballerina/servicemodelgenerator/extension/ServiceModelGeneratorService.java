@@ -22,27 +22,18 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import io.ballerina.compiler.api.SemanticModel;
-import io.ballerina.compiler.api.symbols.ModuleSymbol;
-import io.ballerina.compiler.api.symbols.Symbol;
-import io.ballerina.compiler.api.symbols.TypeSymbol;
-import io.ballerina.compiler.api.symbols.VariableSymbol;
 import io.ballerina.compiler.syntax.tree.ClassDefinitionNode;
-import io.ballerina.compiler.syntax.tree.ExplicitNewExpressionNode;
 import io.ballerina.compiler.syntax.tree.ExpressionNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.ListenerDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
-import io.ballerina.compiler.syntax.tree.NameReferenceNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.NonTerminalNode;
 import io.ballerina.compiler.syntax.tree.ObjectFieldNode;
-import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
-import io.ballerina.compiler.syntax.tree.TypeDefinitionNode;
-import io.ballerina.compiler.syntax.tree.TypeDescriptorNode;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.modelgenerator.commons.ServiceDatabaseManager;
@@ -56,7 +47,6 @@ import io.ballerina.projects.Project;
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.Listener;
-import io.ballerina.servicemodelgenerator.extension.model.NodeBuilder;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
 import io.ballerina.servicemodelgenerator.extension.model.ServiceClass;
 import io.ballerina.servicemodelgenerator.extension.model.TriggerBasicInfo;
@@ -96,7 +86,6 @@ import io.ballerina.servicemodelgenerator.extension.response.TypeResponse;
 import io.ballerina.servicemodelgenerator.extension.service.ServiceBuilderRouter;
 import io.ballerina.servicemodelgenerator.extension.util.ListenerUtil;
 import io.ballerina.servicemodelgenerator.extension.util.ServiceClassUtil;
-import io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils;
 import io.ballerina.servicemodelgenerator.extension.util.TypeCompletionGenerator;
 import io.ballerina.servicemodelgenerator.extension.util.Utils;
 import io.ballerina.tools.text.LinePosition;
@@ -128,20 +117,15 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
-import static io.ballerina.compiler.syntax.tree.SyntaxKind.OBJECT_TYPE_DESC;
 import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.KIND_MUTATION;
 import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.KIND_REMOTE;
 import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.NEW_LINE;
 import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.NEW_LINE_WITH_TAB;
 import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.TWO_NEW_LINES;
 import static io.ballerina.servicemodelgenerator.extension.util.HttpUtil.getFunctionFromFunctionDef;
-import static io.ballerina.servicemodelgenerator.extension.util.HttpUtil.updateHttpServiceContractModel;
-import static io.ballerina.servicemodelgenerator.extension.util.HttpUtil.updateHttpServiceModel;
 import static io.ballerina.servicemodelgenerator.extension.util.ListenerUtil.getDefaultListenerDeclarationStmt;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getProtocol;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.populateRequiredFunctionsForServiceType;
-import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.updateGenericServiceModel;
-import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.updateListenerItems;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionAddContext.RESOURCE_ADD;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionAddContext.TCP_SERVICE_ADD;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionSignatureContext.FUNCTION_ADD;
@@ -152,7 +136,6 @@ import static io.ballerina.servicemodelgenerator.extension.util.Utils.expectsTri
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.filterTriggers;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.generateFunctionDefSource;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.generateFunctionSignatureSource;
-import static io.ballerina.servicemodelgenerator.extension.util.Utils.getHttpServiceContractSym;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getImportStmt;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getListenerExpression;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getPath;
@@ -576,14 +559,8 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
             }
             ServiceDeclarationNode serviceNode = (ServiceDeclarationNode) node;
             SemanticModel semanticModel = semanticModelOp.get();
-
-            ModuleAndServiceType moduleAndServiceType = deriveServiceType(serviceNode, semanticModel);
-            if (Objects.isNull(moduleAndServiceType.moduleName())) {
-                return new ServiceFromSourceResponse();
-            }
-            String moduleName = moduleAndServiceType.moduleName();
-            Service service = ServiceBuilderRouter.getServiceFromSource(moduleName, serviceNode, project,
-                    semanticModel, workspaceManager);
+            Service service = ServiceBuilderRouter.getServiceFromSource(serviceNode, project, semanticModel,
+                    workspaceManager);
             return new ServiceFromSourceResponse(service);
         });
     }
@@ -621,15 +598,6 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
             Function function = getFunctionFromFunctionDef(functionDefinitionNode, semanticModelOp.get());
             return new FunctionFromSourceResponse(function);
         });
-    }
-
-    private static String serviceTypeWithoutPrefix(ModuleAndServiceType moduleAndServiceType) {
-        String[] serviceTypeNames = moduleAndServiceType.serviceType().split(":");
-        String serviceType = "Service";
-        if (serviceTypeNames.length > 1) {
-            serviceType = serviceTypeNames[1];
-        }
-        return serviceType;
     }
 
     /**
@@ -1131,49 +1099,6 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
                 return new TypeResponse(Collections.emptyList());
             }
         });
-    }
-
-    public static ModuleAndServiceType deriveServiceType(ServiceDeclarationNode serviceNode,
-                                                         SemanticModel semanticModel) {
-        Optional<TypeDescriptorNode> serviceTypeDesc = serviceNode.typeDescriptor();
-        Optional<ModuleSymbol> module = Optional.empty();
-        String serviceType = "Service";
-        if (serviceTypeDesc.isPresent()) {
-            TypeDescriptorNode typeDescriptorNode = serviceTypeDesc.get();
-            serviceType = typeDescriptorNode.toString().trim();
-            Optional<TypeSymbol> typeSymbol = semanticModel.typeOf(typeDescriptorNode);
-            if (typeSymbol.isPresent()) {
-                module = typeSymbol.get().getModule();
-            }
-        }
-
-        if (module.isEmpty()) {
-            SeparatedNodeList<ExpressionNode> expressions = serviceNode.expressions();
-            if (expressions.isEmpty()) {
-                return new ModuleAndServiceType(null, serviceType);
-            }
-            ExpressionNode expressionNode = expressions.get(0);
-            if (expressionNode instanceof ExplicitNewExpressionNode explicitNewExpressionNode) {
-                Optional<Symbol> symbol = semanticModel.symbol(explicitNewExpressionNode.typeDescriptor());
-                if (symbol.isEmpty()) {
-                    return new ModuleAndServiceType(null, serviceType);
-                }
-                module = symbol.get().getModule();
-            } else if (expressionNode instanceof NameReferenceNode nameReferenceNode) {
-                Optional<Symbol> symbol = semanticModel.symbol(nameReferenceNode);
-                if (symbol.isPresent() && symbol.get() instanceof VariableSymbol variableSymbol) {
-                    module = variableSymbol.typeDescriptor().getModule();
-                }
-            }
-        }
-
-        if (module.isEmpty()) {
-            return new ModuleAndServiceType(null, serviceType);
-        }
-        return new ModuleAndServiceType(module.get().getName().orElse(null), serviceType);
-    }
-
-    public record ModuleAndServiceType(String moduleName, String serviceType) {
     }
 
     private Optional<TriggerBasicInfo> getTriggerBasicInfoByName(String name) {

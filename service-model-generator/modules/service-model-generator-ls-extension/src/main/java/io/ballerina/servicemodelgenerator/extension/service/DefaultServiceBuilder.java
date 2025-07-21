@@ -24,7 +24,6 @@ import io.ballerina.modelgenerator.commons.AnnotationAttachment;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.ServiceDatabaseManager;
 import io.ballerina.modelgenerator.commons.ServiceDeclaration;
-import io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorService;
 import io.ballerina.servicemodelgenerator.extension.model.DisplayAnnotation;
 import io.ballerina.servicemodelgenerator.extension.model.ModelFromSourceContext;
 import io.ballerina.servicemodelgenerator.extension.model.NodeBuilder;
@@ -51,8 +50,6 @@ import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtil
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.updateListenerItems;
 
 public class DefaultServiceBuilder implements NodeBuilder<Service> {
-
-    private ServiceModelGeneratorService.ModuleAndServiceType moduleAndServiceType;
 
     @Override
     public Optional<Service> getModelTemplate(String moduleName) {
@@ -129,26 +126,23 @@ public class DefaultServiceBuilder implements NodeBuilder<Service> {
 
     @Override
     public Service getModelFromSource(ModelFromSourceContext context) {
-        if (Objects.isNull(moduleAndServiceType.moduleName())) {
+        if (Objects.isNull(context.moduleName())) {
             return null;
         }
-        String serviceType = serviceTypeWithoutPrefix(moduleAndServiceType);
-        Optional<Service> service = ServiceModelUtils.getServiceModelWithFunctions("moduleName", serviceType);
+        String serviceType = serviceTypeWithoutPrefix(context.serviceType());
+        Optional<Service> service = ServiceModelUtils.getServiceModelWithFunctions(context.moduleName(), serviceType);
         if (service.isEmpty()) {
             return null;
         }
         Service serviceModel = service.get();
         updateGenericServiceModel(serviceModel, (ServiceDeclarationNode) context.node(), context.semanticModel());
-        updateListenerItems("moduleName", context.semanticModel(), context.project(), serviceModel);
-        return null;
+        updateListenerItems(context.moduleName(), context.semanticModel(), context.project(), serviceModel);
+        return serviceModel;
     }
 
     @Override
     public String kind() {
         return "default";
-    }
-
-    public record ModuleAndServiceType(String moduleName, String serviceType) {
     }
 }
 

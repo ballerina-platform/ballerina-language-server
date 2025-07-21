@@ -42,6 +42,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.OBJECT_TYPE_DESC;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.HTTP;
 import static io.ballerina.servicemodelgenerator.extension.util.HttpUtil.updateHttpServiceContractModel;
 import static io.ballerina.servicemodelgenerator.extension.util.HttpUtil.updateHttpServiceModel;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.updateListenerItems;
@@ -49,7 +50,6 @@ import static io.ballerina.servicemodelgenerator.extension.util.Utils.getHttpSer
 
 public final class HttpServiceBuilder extends DefaultServiceBuilder {
 
-    private static final String PROTOCOL = "http";
     private static final String HTTP_SERVICE_MODEL_LOCATION = "services/http.json";
 
     public HttpServiceBuilder() {
@@ -64,7 +64,8 @@ public final class HttpServiceBuilder extends DefaultServiceBuilder {
         }
 
         try (JsonReader reader = new JsonReader(new InputStreamReader(resourceStream, StandardCharsets.UTF_8))) {
-            return new Gson().fromJson(reader, Service.class);
+            Service service = new Gson().fromJson(reader, Service.class);
+            return Optional.of(service);
         } catch (IOException e) {
             return Optional.empty();
         }
@@ -82,7 +83,7 @@ public final class HttpServiceBuilder extends DefaultServiceBuilder {
 
     @Override
     public Service getModelFromSource(ModelFromSourceContext context) {
-        Optional<Service> service = getModelTemplate(PROTOCOL);
+        Optional<Service> service = getModelTemplate(HTTP);
         if (service.isEmpty()) {
             return null;
         }
@@ -117,12 +118,12 @@ public final class HttpServiceBuilder extends DefaultServiceBuilder {
             updateHttpServiceModel(serviceModel, serviceNode);
         }
 
-        updateListenerItems(PROTOCOL, semanticModel, context.project(), serviceModel);
-        return super.getModelFromSource(context);
+        updateListenerItems(HTTP, semanticModel, context.project(), serviceModel);
+        return serviceModel;
     }
 
     @Override
     public String kind() {
-        return PROTOCOL;
+        return HTTP;
     }
 }

@@ -31,7 +31,7 @@ public interface NodeBuilder<T> {
      *
      * @return the model template
      */
-    public Optional<T> getModelTemplate(String moduleName);
+    Optional<T> getModelTemplate(String moduleName);
 
     /**
      * Get the list of text edits for the given model for addition.
@@ -39,7 +39,7 @@ public interface NodeBuilder<T> {
      * @param filePath the file path where the model will be added
      * @return a map of file paths to lists of text edits
      */
-    public Map<String, List<TextEdit>> addModel(T model, String filePath);
+    Map<String, List<TextEdit>> addModel(T model, String filePath);
 
     /**
      * Get the list of text edits for the given model for updating.
@@ -48,16 +48,15 @@ public interface NodeBuilder<T> {
      * @param model the model to be added
      * @return a map of file paths to lists of text edits
      */
-    public Map<String, List<TextEdit>> updateModel(T model, String filePath);
+    Map<String, List<TextEdit>> updateModel(T model, String filePath);
 
     /**
      * Get the model from the source code.
      *
-     * @param codedata the codedata containing the source code
-     * @param filePath the file path where the model will be added
+     * @param context the context information for extracting the model
      * @return the model extracted from the source code
      */
-    public T getModelFromSource(ModelFromSourceContext context);
+    T getModelFromSource(ModelFromSourceContext context);
 
-    public String kind();
+    String kind();
 }
