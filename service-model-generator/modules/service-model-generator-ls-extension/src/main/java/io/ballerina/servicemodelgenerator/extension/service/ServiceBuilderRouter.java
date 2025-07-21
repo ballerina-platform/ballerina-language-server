@@ -21,24 +21,36 @@ package io.ballerina.servicemodelgenerator.extension.service;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
+import io.ballerina.projects.Document;
 import io.ballerina.projects.Project;
+import io.ballerina.servicemodelgenerator.extension.model.AddModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.ModelFromSourceContext;
 import io.ballerina.servicemodelgenerator.extension.model.ModuleAndServiceType;
 import io.ballerina.servicemodelgenerator.extension.model.NodeBuilder;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
 import io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
+import org.eclipse.lsp4j.TextEdit;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
 
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.AI;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.HTTP;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.TCP;
+
 public class ServiceBuilderRouter {
 
+    public static final NodeBuilder<Service> DEFAULT_SERVICE_BUILDER = new DefaultServiceBuilder();
+
     private static final Map<String, Supplier<? extends NodeBuilder<Service>>> CONSTRUCTOR_MAP = new HashMap<>() {{
-        put("http", HttpServiceBuilder::new);
+        put(HTTP, HttpServiceBuilder::new);
+        put(AI, AiChatServiceBuilder::new);
+        put(TCP, TCPServiceBuilder::new);
     }};
 
     public static NodeBuilder<?> getServiceBuilder(String protocol) {
@@ -47,8 +59,11 @@ public class ServiceBuilderRouter {
 
     public static Optional<Service> getModelTemplate(String moduleName) {
         NodeBuilder<?> serviceBuilder = getServiceBuilder(moduleName);
-        return (Optional<Service>) serviceBuilder.getModelTemplate(moduleName);
-
+        Optional<?> modelTemplate = serviceBuilder.getModelTemplate(moduleName);
+        if (modelTemplate.isEmpty() || !(modelTemplate.get() instanceof Service)) {
+            return Optional.empty();
+        }
+        return Optional.of((Service) modelTemplate.get());
     }
 
     public static Service getServiceFromSource(Node node, Project project,
@@ -63,5 +78,15 @@ public class ServiceBuilderRouter {
         ModelFromSourceContext context = new ModelFromSourceContext(node, project, semanticModel,
                 workspaceManager, moduleAndServiceType.moduleName(), moduleAndServiceType.serviceType());
         return (Service) serviceBuilder.getModelFromSource(context);
+    }
+
+    public static Map<String, List<TextEdit>> addService(Service service,
+                                                         SemanticModel semanticModel, Project project,
+                                                         WorkspaceManager workspaceManager,
+                                                         String filePath, Document document) throws Exception {
+        NodeBuilder<?> serviceBuilder = getServiceBuilder(service.getModuleName());
+        AddModelContext context = new AddModelContext(service, null, semanticModel, project,
+                workspaceManager, filePath, document);
+        return serviceBuilder.addModel(context);
     }
 }

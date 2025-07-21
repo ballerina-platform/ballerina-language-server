@@ -663,7 +663,7 @@ public final class Utils {
         String annotEdit = String.join(System.lineSeparator(), annots);
 
         Optional<MetadataNode> metadata = serviceNode.metadata();
-        if (metadata.isEmpty()) { // metadata is empty and service model has annotations
+        if (metadata.isEmpty()) { // metadata is empty and service ser has annotations
             if (!annotEdit.isEmpty()) {
                 annotEdit += System.lineSeparator();
                 edits.add(new TextEdit(toRange(serviceKeyword.lineRange().startLine()), annotEdit));
@@ -705,7 +705,7 @@ public final class Utils {
         String annotEdit = String.join(System.lineSeparator(), annots);
 
         Optional<MetadataNode> metadata = functionDef.metadata();
-        if (metadata.isEmpty()) { // metadata is empty and service model has annotations
+        if (metadata.isEmpty()) { // metadata is empty and service ser has annotations
             if (!annotEdit.isEmpty()) {
                 annotEdit += System.lineSeparator();
                 edits.add(new TextEdit(toRange(firstToken.lineRange().startLine()), annotEdit));

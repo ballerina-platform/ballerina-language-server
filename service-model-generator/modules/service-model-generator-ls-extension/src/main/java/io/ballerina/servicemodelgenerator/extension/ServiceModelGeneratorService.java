@@ -109,7 +109,6 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -125,9 +124,7 @@ import static io.ballerina.servicemodelgenerator.extension.ServiceModelGenerator
 import static io.ballerina.servicemodelgenerator.extension.util.HttpUtil.getFunctionFromFunctionDef;
 import static io.ballerina.servicemodelgenerator.extension.util.ListenerUtil.getDefaultListenerDeclarationStmt;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getProtocol;
-import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.populateRequiredFunctionsForServiceType;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionAddContext.RESOURCE_ADD;
-import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionAddContext.TCP_SERVICE_ADD;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionSignatureContext.FUNCTION_ADD;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionSignatureContext.FUNCTION_UPDATE;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionSignatureContext.HTTP_RESOURCE_ADD;
@@ -139,10 +136,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Utils.generateFu
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getImportStmt;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getListenerExpression;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getPath;
-import static io.ballerina.servicemodelgenerator.extension.util.Utils.getServiceDeclarationNode;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.importExists;
-import static io.ballerina.servicemodelgenerator.extension.util.Utils.isAiAgentModule;
-import static io.ballerina.servicemodelgenerator.extension.util.Utils.populateRequiredFuncsDesignApproachAndServiceType;
 
 /**
  * Represents the extended language server service for the trigger model generator service.
@@ -359,76 +353,15 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
         return CompletableFuture.supplyAsync(() -> {
             try {
                 Path filePath = Path.of(request.filePath());
-                Project project = this.workspaceManager.loadProject(filePath);
-                Optional<Document> document = this.workspaceManager.document(filePath);
-                Optional<SemanticModel> semanticModel = this.workspaceManager.semanticModel(filePath);
+                Project project = workspaceManager.loadProject(filePath);
+                Optional<Document> document = workspaceManager.document(filePath);
+                Optional<SemanticModel> semanticModel = workspaceManager.semanticModel(filePath);
                 if (document.isEmpty() || semanticModel.isEmpty()) {
                     return new CommonSourceResponse();
                 }
-                ModulePartNode node = document.get().syntaxTree().rootNode();
-                LineRange lineRange = node.lineRange();
-                Service service = request.service();
-                populateRequiredFuncsDesignApproachAndServiceType(service);
-
-                ListenerUtil.DefaultListener defaultListener = ListenerUtil.getDefaultListener(
-                        service.getListener(), semanticModel.get(), document.get(), node, service.getModuleName());
-                if (Objects.nonNull(service.getOpenAPISpec())) {
-                    OpenApiServiceGenerator oasSvcGenerator = new OpenApiServiceGenerator(
-                            Path.of(service.getOpenAPISpec().getValue()), project.sourceRoot(), workspaceManager);
-                    return new CommonSourceResponse(oasSvcGenerator.generateService(service, defaultListener));
-                }
-
-                Set<String> importStmts = new HashSet<>();
-                if (isAiAgentModule(service.getOrgName(), service.getModuleName()) &&
-                        !importExists(node, "ballerina", "http")) {
-                    importStmts.add(Utils.getImportStmt("ballerina", "http"));
-                }
-
-                if (!importExists(node, service.getOrgName(), service.getModuleName())) {
-                    importStmts.add(Utils.getImportStmt(service.getOrgName(), service.getModuleName()));
-                }
-
-                List<TextEdit> edits = new ArrayList<>();
-                if (Objects.nonNull(defaultListener)) {
-                    String stmt = getDefaultListenerDeclarationStmt(defaultListener);
-                    edits.add(new TextEdit(Utils.toRange(defaultListener.linePosition()), stmt));
-                }
-
-                Utils.FunctionAddContext context = Utils.getTriggerAddContext(service.getOrgName(),
-                        service.getPackageName());
-                if (context.equals(TCP_SERVICE_ADD)) {
-                    String serviceName = Utils.generateTypeIdentifier(semanticModel.get(), document.get(),
-                            lineRange.endLine(), "TcpEchoService");
-                    service.getProperties().put("returningServiceClass", Value.getTcpValue(serviceName));
-                }
-
-                populateRequiredFunctionsForServiceType(service);
-                Map<String, String> imports = new HashMap<>();
-                String serviceDeclaration = getServiceDeclarationNode(service, context, imports);
-                edits.add(new TextEdit(Utils.toRange(lineRange.endLine()), NEW_LINE + serviceDeclaration));
-
-                ModulePartNode rootNode = document.get().syntaxTree().rootNode();
-                imports.values().forEach(moduleId -> {
-                    String[] importParts = moduleId.split("/");
-                    String orgName = importParts[0];
-                    String moduleName = importParts[1].split(":")[0];
-                    if (!importExists(rootNode, orgName, moduleName)) {
-                        importStmts.add(getImportStmt(orgName, moduleName));
-                    }
-                });
-
-                if (!importStmts.isEmpty()) {
-                    String importsStmts = String.join(NEW_LINE, importStmts);
-                    edits.addFirst(new TextEdit(Utils.toRange(rootNode.lineRange().startLine()), importsStmts));
-                }
-
-                if (context.equals(TCP_SERVICE_ADD)) {
-                    String serviceName = service.getProperties().get("returningServiceClass").getValue();
-                    String serviceClass = ServiceClassUtil.getTcpConnectionServiceTemplate().formatted(serviceName);
-                    edits.add(new TextEdit(Utils.toRange(lineRange.endLine()), serviceClass));
-                }
-
-                return new CommonSourceResponse(Map.of(request.filePath(), edits));
+                Map<String, List<TextEdit>> textEdits = ServiceBuilderRouter.addService(request.service(),
+                        semanticModel.get(), project, workspaceManager, filePath.toString(), document.get());
+                return new CommonSourceResponse(textEdits);
             } catch (Throwable e) {
                 return new CommonSourceResponse(e);
             }

@@ -27,8 +27,13 @@ import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.TypeDefinitionNode;
 import io.ballerina.projects.Document;
+import io.ballerina.servicemodelgenerator.extension.OpenApiServiceGenerator;
+import io.ballerina.servicemodelgenerator.extension.model.AddModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.ModelFromSourceContext;
+import io.ballerina.servicemodelgenerator.extension.model.NodeBuilder;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
+import io.ballerina.servicemodelgenerator.extension.util.ListenerUtil;
+import io.ballerina.servicemodelgenerator.extension.util.Utils;
 import org.eclipse.lsp4j.TextEdit;
 
 import java.io.IOException;
@@ -37,18 +42,30 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.OBJECT_TYPE_DESC;
+import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.NEW_LINE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.HTTP;
 import static io.ballerina.servicemodelgenerator.extension.util.HttpUtil.updateHttpServiceContractModel;
 import static io.ballerina.servicemodelgenerator.extension.util.HttpUtil.updateHttpServiceModel;
+import static io.ballerina.servicemodelgenerator.extension.util.ListenerUtil.getDefaultListenerDeclarationStmt;
+import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.populateRequiredFunctionsForServiceType;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.updateListenerItems;
+import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionAddContext.HTTP_SERVICE_ADD;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getHttpServiceContractSym;
+import static io.ballerina.servicemodelgenerator.extension.util.Utils.getImportStmt;
+import static io.ballerina.servicemodelgenerator.extension.util.Utils.getServiceDeclarationNode;
+import static io.ballerina.servicemodelgenerator.extension.util.Utils.importExists;
+import static io.ballerina.servicemodelgenerator.extension.util.Utils.populateRequiredFuncsDesignApproachAndServiceType;
 
-public final class HttpServiceBuilder extends DefaultServiceBuilder {
+public final class HttpServiceBuilder implements NodeBuilder<Service> {
 
     private static final String HTTP_SERVICE_MODEL_LOCATION = "services/http.json";
 
@@ -72,8 +89,48 @@ public final class HttpServiceBuilder extends DefaultServiceBuilder {
     }
 
     @Override
-    public Map<String, List<TextEdit>> addModel(Service model, String filePath) {
-        return Map.of();
+    public Map<String, List<TextEdit>> addModel(AddModelContext context) throws Exception {
+        ListenerUtil.DefaultListener defaultListener = ListenerUtil.getDefaultListener(context);
+        if (Objects.nonNull(context.service().getOpenAPISpec())) {
+            return new OpenApiServiceGenerator(Path.of(context.service().getOpenAPISpec().getValue()),
+                    context.project().sourceRoot(), context.workspaceManager())
+                    .generateService(context.service(), defaultListener);
+        }
+        List<TextEdit> edits = new ArrayList<>();
+        if (Objects.nonNull(defaultListener)) {
+            String stmt = getDefaultListenerDeclarationStmt(defaultListener);
+            edits.add(new TextEdit(Utils.toRange(defaultListener.linePosition()), stmt));
+        }
+
+        Service service = context.service();
+        populateRequiredFuncsDesignApproachAndServiceType(service);
+        populateRequiredFunctionsForServiceType(service);
+
+        Map<String, String> imports = new HashMap<>();
+        String serviceDeclaration = getServiceDeclarationNode(service, HTTP_SERVICE_ADD, imports);
+
+        ModulePartNode rootNode = context.document().syntaxTree().rootNode();
+        edits.add(new TextEdit(Utils.toRange(rootNode.lineRange().endLine()), NEW_LINE + serviceDeclaration));
+
+        Set<String> importStmts = new HashSet<>();
+        if (!importExists(rootNode, service.getOrgName(), service.getModuleName())) {
+            importStmts.add(Utils.getImportStmt(service.getOrgName(), service.getModuleName()));
+        }
+        imports.values().forEach(moduleId -> {
+            String[] importParts = moduleId.split("/");
+            String orgName = importParts[0];
+            String moduleName = importParts[1].split(":")[0];
+            if (!importExists(rootNode, orgName, moduleName)) {
+                importStmts.add(getImportStmt(orgName, moduleName));
+            }
+        });
+
+        if (!importStmts.isEmpty()) {
+            String importsStmts = String.join(NEW_LINE, importStmts);
+            edits.addFirst(new TextEdit(Utils.toRange(rootNode.lineRange().startLine()), importsStmts));
+        }
+
+        return Map.of(context.filePath(), edits);
     }
 
     @Override

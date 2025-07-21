@@ -19,35 +19,50 @@
 package io.ballerina.servicemodelgenerator.extension.service;
 
 import io.ballerina.compiler.api.symbols.AnnotationAttachPoint;
+import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.modelgenerator.commons.AnnotationAttachment;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.ServiceDatabaseManager;
 import io.ballerina.modelgenerator.commons.ServiceDeclaration;
+import io.ballerina.servicemodelgenerator.extension.model.AddModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.DisplayAnnotation;
 import io.ballerina.servicemodelgenerator.extension.model.ModelFromSourceContext;
 import io.ballerina.servicemodelgenerator.extension.model.NodeBuilder;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
+import io.ballerina.servicemodelgenerator.extension.util.ListenerUtil;
 import io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils;
+import io.ballerina.servicemodelgenerator.extension.util.Utils;
 import org.eclipse.lsp4j.TextEdit;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 
+import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.NEW_LINE;
+import static io.ballerina.servicemodelgenerator.extension.util.ListenerUtil.getDefaultListenerDeclarationStmt;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getAnnotationAttachmentProperty;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getBasePathProperty;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getListenersProperty;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getProtocol;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getStringLiteral;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getTypeDescriptorProperty;
+import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.populateRequiredFunctionsForServiceType;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.serviceTypeWithoutPrefix;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.updateGenericServiceModel;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.updateListenerItems;
+import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionAddContext.TRIGGER_ADD;
+import static io.ballerina.servicemodelgenerator.extension.util.Utils.getImportStmt;
+import static io.ballerina.servicemodelgenerator.extension.util.Utils.getServiceDeclarationNode;
+import static io.ballerina.servicemodelgenerator.extension.util.Utils.importExists;
+import static io.ballerina.servicemodelgenerator.extension.util.Utils.populateRequiredFuncsDesignApproachAndServiceType;
 
 public class DefaultServiceBuilder implements NodeBuilder<Service> {
 
@@ -115,8 +130,43 @@ public class DefaultServiceBuilder implements NodeBuilder<Service> {
     }
 
     @Override
-    public Map<String, List<TextEdit>> addModel(Service model, String filePath) {
-        return Map.of();
+    public Map<String, List<TextEdit>> addModel(AddModelContext context) throws Exception {
+        ListenerUtil.DefaultListener defaultListener = ListenerUtil.getDefaultListener(context);
+        List<TextEdit> edits = new ArrayList<>();
+        if (Objects.nonNull(defaultListener)) {
+            String stmt = getDefaultListenerDeclarationStmt(defaultListener);
+            edits.add(new TextEdit(Utils.toRange(defaultListener.linePosition()), stmt));
+        }
+
+        Service service = context.service();
+        populateRequiredFuncsDesignApproachAndServiceType(service);
+        populateRequiredFunctionsForServiceType(service);
+
+        Map<String, String> imports = new HashMap<>();
+        String serviceDeclaration = getServiceDeclarationNode(service, TRIGGER_ADD, imports);
+
+        ModulePartNode rootNode = context.document().syntaxTree().rootNode();
+        edits.add(new TextEdit(Utils.toRange(rootNode.lineRange().endLine()), NEW_LINE + serviceDeclaration));
+
+        Set<String> importStmts = new HashSet<>();
+        if (!importExists(rootNode, service.getOrgName(), service.getModuleName())) {
+            importStmts.add(Utils.getImportStmt(service.getOrgName(), service.getModuleName()));
+        }
+        imports.values().forEach(moduleId -> {
+            String[] importParts = moduleId.split("/");
+            String orgName = importParts[0];
+            String moduleName = importParts[1].split(":")[0];
+            if (!importExists(rootNode, orgName, moduleName)) {
+                importStmts.add(getImportStmt(orgName, moduleName));
+            }
+        });
+
+        if (!importStmts.isEmpty()) {
+            String importsStmts = String.join(NEW_LINE, importStmts);
+            edits.addFirst(new TextEdit(Utils.toRange(rootNode.lineRange().startLine()), importsStmts));
+        }
+
+        return Map.of(context.filePath(), edits);
     }
 
     @Override

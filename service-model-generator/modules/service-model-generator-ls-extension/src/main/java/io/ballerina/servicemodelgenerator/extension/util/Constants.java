@@ -8,6 +8,10 @@ public final class Constants {
 
     // protocols and library modules
     public static final String HTTP = "http";
+    public static final String AI = "ai";
+    public static final String TCP = "tcp";
+
+    public static final String DEFAULT = "default";
 
 
     private Constants() {
