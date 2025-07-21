@@ -30,7 +30,6 @@ import io.ballerina.projects.Document;
 import io.ballerina.servicemodelgenerator.extension.OpenApiServiceGenerator;
 import io.ballerina.servicemodelgenerator.extension.model.AddModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.ModelFromSourceContext;
-import io.ballerina.servicemodelgenerator.extension.model.NodeBuilder;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
 import io.ballerina.servicemodelgenerator.extension.util.ListenerUtil;
 import io.ballerina.servicemodelgenerator.extension.util.Utils;
@@ -65,7 +64,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Utils.getService
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.importExists;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.populateRequiredFuncsDesignApproachAndServiceType;
 
-public final class HttpServiceBuilder implements NodeBuilder<Service> {
+public final class HttpServiceBuilder extends AbstractServiceBuilder {
 
     private static final String HTTP_SERVICE_MODEL_LOCATION = "services/http.json";
 
@@ -131,11 +130,6 @@ public final class HttpServiceBuilder implements NodeBuilder<Service> {
         }
 
         return Map.of(context.filePath(), edits);
-    }
-
-    @Override
-    public Map<String, List<TextEdit>> updateModel(Service model, String filePath) {
-        return Map.of();
     }
 
     @Override

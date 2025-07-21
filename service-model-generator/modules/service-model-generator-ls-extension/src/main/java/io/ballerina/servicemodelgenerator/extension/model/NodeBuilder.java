@@ -36,7 +36,7 @@ public interface NodeBuilder<T> {
     /**
      * Get the list of text edits for the given model for addition.
      *
-     * @param context the context information for adding the ser
+     * @param context the context information for adding the service
      * @return a map of file paths to lists of text edits
      */
     Map<String, List<TextEdit>> addModel(AddModelContext context) throws Exception;
@@ -44,11 +44,10 @@ public interface NodeBuilder<T> {
     /**
      * Get the list of text edits for the given ser for updating.
      *
-     * @param filePath the file path where the ser will be added
-     * @param model the ser to be added
+     * @param context the context information for updating the service
      * @return a map of file paths to lists of text edits
      */
-    Map<String, List<TextEdit>> updateModel(T model, String filePath);
+    Map<String, List<TextEdit>> updateModel(UpdateModelContext context);
 
     /**
      * Get the ser from the source code.

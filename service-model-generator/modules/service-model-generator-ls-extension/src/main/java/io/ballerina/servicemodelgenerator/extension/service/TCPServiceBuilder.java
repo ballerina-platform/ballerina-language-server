@@ -2,8 +2,6 @@ package io.ballerina.servicemodelgenerator.extension.service;
 
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.servicemodelgenerator.extension.model.AddModelContext;
-import io.ballerina.servicemodelgenerator.extension.model.ModelFromSourceContext;
-import io.ballerina.servicemodelgenerator.extension.model.NodeBuilder;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
 import io.ballerina.servicemodelgenerator.extension.util.ListenerUtil;
@@ -17,11 +15,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 
 import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.NEW_LINE;
-import static io.ballerina.servicemodelgenerator.extension.service.ServiceBuilderRouter.DEFAULT_SERVICE_BUILDER;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.BALLERINA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.TCP;
 import static io.ballerina.servicemodelgenerator.extension.util.ListenerUtil.getDefaultListenerDeclarationStmt;
@@ -32,14 +28,9 @@ import static io.ballerina.servicemodelgenerator.extension.util.Utils.getService
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.importExists;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.populateRequiredFuncsDesignApproachAndServiceType;
 
-public class TCPServiceBuilder implements NodeBuilder<Service> {
+public final class TCPServiceBuilder extends AbstractServiceBuilder {
 
     private static final String TCP_SERVICE_CLASS_NAME = "TcpEchoService";
-
-    @Override
-    public Optional<Service> getModelTemplate(String moduleName) {
-        return DEFAULT_SERVICE_BUILDER.getModelTemplate(moduleName);
-    }
 
     @Override
     public Map<String, List<TextEdit>> addModel(AddModelContext context) throws Exception {
@@ -85,16 +76,6 @@ public class TCPServiceBuilder implements NodeBuilder<Service> {
         edits.add(new TextEdit(Utils.toRange(rootNode.lineRange().endLine()), serviceClass));
 
         return Map.of(context.filePath(), edits);
-    }
-
-    @Override
-    public Map<String, List<TextEdit>> updateModel(Service model, String filePath) {
-        return DEFAULT_SERVICE_BUILDER.updateModel(model, filePath);
-    }
-
-    @Override
-    public Service getModelFromSource(ModelFromSourceContext context) {
-        return DEFAULT_SERVICE_BUILDER.getModelFromSource(context);
     }
 
     @Override

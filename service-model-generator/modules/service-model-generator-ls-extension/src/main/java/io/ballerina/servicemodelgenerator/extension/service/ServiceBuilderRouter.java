@@ -28,6 +28,7 @@ import io.ballerina.servicemodelgenerator.extension.model.ModelFromSourceContext
 import io.ballerina.servicemodelgenerator.extension.model.ModuleAndServiceType;
 import io.ballerina.servicemodelgenerator.extension.model.NodeBuilder;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
+import io.ballerina.servicemodelgenerator.extension.model.UpdateModelContext;
 import io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 import org.eclipse.lsp4j.TextEdit;
@@ -44,8 +45,6 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.HTTP;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.TCP;
 
 public class ServiceBuilderRouter {
-
-    public static final NodeBuilder<Service> DEFAULT_SERVICE_BUILDER = new DefaultServiceBuilder();
 
     private static final Map<String, Supplier<? extends NodeBuilder<Service>>> CONSTRUCTOR_MAP = new HashMap<>() {{
         put(HTTP, HttpServiceBuilder::new);
@@ -88,5 +87,16 @@ public class ServiceBuilderRouter {
         AddModelContext context = new AddModelContext(service, null, semanticModel, project,
                 workspaceManager, filePath, document);
         return serviceBuilder.addModel(context);
+    }
+
+    public static Map<String, List<TextEdit>> updateService(Service service,
+                                                            SemanticModel semanticModel,
+                                                            WorkspaceManager workspaceManager,
+                                                            String filePath, Document document,
+                                                            ServiceDeclarationNode serviceNode) throws Exception {
+        NodeBuilder<?> serviceBuilder = getServiceBuilder(service.getModuleName());
+        UpdateModelContext context = new UpdateModelContext(service, null, semanticModel, null,
+                workspaceManager, filePath, document, serviceNode, null);
+        return serviceBuilder.updateModel(context);
     }
 }

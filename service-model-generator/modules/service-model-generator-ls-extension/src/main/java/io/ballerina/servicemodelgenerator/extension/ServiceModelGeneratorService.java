@@ -23,7 +23,6 @@ import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.syntax.tree.ClassDefinitionNode;
-import io.ballerina.compiler.syntax.tree.ExpressionNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.ListenerDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
@@ -128,13 +127,11 @@ import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionAd
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionSignatureContext.FUNCTION_ADD;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionSignatureContext.FUNCTION_UPDATE;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionSignatureContext.HTTP_RESOURCE_ADD;
-import static io.ballerina.servicemodelgenerator.extension.util.Utils.addServiceAnnotationTextEdits;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.expectsTriggerByName;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.filterTriggers;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.generateFunctionDefSource;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.generateFunctionSignatureSource;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getImportStmt;
-import static io.ballerina.servicemodelgenerator.extension.util.Utils.getListenerExpression;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getPath;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.importExists;
 
@@ -753,7 +750,6 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
     public CompletableFuture<CommonSourceResponse> updateService(ServiceModifierRequest request) {
         return CompletableFuture.supplyAsync(() -> {
             try {
-                List<TextEdit> edits = new ArrayList<>();
                 Service service = request.service();
                 Path filePath = Path.of(request.filePath());
                 this.workspaceManager.loadProject(filePath);
@@ -762,65 +758,14 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
                 if (document.isEmpty() || semanticModel.isEmpty()) {
                     return new CommonSourceResponse();
                 }
-                ModulePartNode modulePartNode = document.get().syntaxTree().rootNode();
-                LineRange lineRange = service.getCodedata().getLineRange();
                 NonTerminalNode node = findNonTerminalNode(service.getCodedata(), document.get());
                 if (node.kind() != SyntaxKind.SERVICE_DECLARATION) {
                     return new CommonSourceResponse();
                 }
-
-                ServiceDeclarationNode serviceNode = (ServiceDeclarationNode) node;
-                addServiceAnnotationTextEdits(service, serviceNode, edits);
-
-                Value basePathValue = service.getBasePath();
-                if (Objects.nonNull(basePathValue) && basePathValue.isEnabledWithValue()) {
-                    String basePath = basePathValue.getValue();
-                    NodeList<Node> nodes = serviceNode.absoluteResourcePath();
-                    String currentPath = getPath(nodes);
-                    if (!currentPath.equals(basePath) && !nodes.isEmpty()) {
-                        LinePosition startPos = nodes.get(0).lineRange().startLine();
-                        LinePosition endPos = nodes.get(nodes.size() - 1).lineRange().endLine();
-                        LineRange basePathLineRange = LineRange.from(lineRange.fileName(), startPos, endPos);
-                        TextEdit basePathEdit = new TextEdit(Utils.toRange(basePathLineRange), basePath);
-                        edits.add(basePathEdit);
-                    }
-                }
-
-                Value stringLiteral = service.getStringLiteralProperty();
-                if (Objects.nonNull(stringLiteral) && stringLiteral.isEnabledWithValue()) {
-                    String stringLiteralValue = stringLiteral.getValue();
-                    NodeList<Node> nodes = serviceNode.absoluteResourcePath();
-                    String currentPath = getPath(nodes);
-                    if (!currentPath.equals(stringLiteralValue) && !nodes.isEmpty()) {
-                        LinePosition startPos = nodes.get(0).lineRange().startLine();
-                        LinePosition endPos = nodes.get(nodes.size() - 1).lineRange().endLine();
-                        LineRange basePathLineRange = LineRange.from(lineRange.fileName(), startPos, endPos);
-                        TextEdit basePathEdit = new TextEdit(Utils.toRange(basePathLineRange), stringLiteralValue);
-                        edits.add(basePathEdit);
-                    }
-                }
-
-                Value listener = service.getListener();
-                ListenerUtil.DefaultListener defaultListener = null;
-                if (Objects.nonNull(listener) && listener.isEnabledWithValue()) {
-                    defaultListener = ListenerUtil.getDefaultListener(service.getListener(), semanticModel.get(),
-                            document.get(), modulePartNode, service.getModuleName());
-
-                    String listenerName = listener.getValue();
-                    Optional<ExpressionNode> listenerExpression = getListenerExpression(serviceNode);
-                    if (listenerExpression.isPresent()) {
-                        LineRange listenerLineRange = listenerExpression.get().lineRange();
-                        TextEdit listenerEdit = new TextEdit(Utils.toRange(listenerLineRange), listenerName);
-                        edits.add(listenerEdit);
-                    }
-                }
-
-                if (Objects.nonNull(defaultListener)) {
-                    String stmt = getDefaultListenerDeclarationStmt(defaultListener);
-                    edits.add(new TextEdit(Utils.toRange(defaultListener.linePosition()), stmt));
-                }
-
-                return new CommonSourceResponse(Map.of(request.filePath(), edits));
+                Map<String, List<TextEdit>> textEdits = ServiceBuilderRouter.updateService(service,
+                        semanticModel.get(), workspaceManager, filePath.toString(), document.get(),
+                        (ServiceDeclarationNode) node);
+                return new CommonSourceResponse(textEdits);
             } catch (Throwable e) {
                 return new CommonSourceResponse(e);
             }
