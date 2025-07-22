@@ -29,6 +29,7 @@ import io.ballerina.compiler.syntax.tree.TypeDefinitionNode;
 import io.ballerina.projects.Document;
 import io.ballerina.servicemodelgenerator.extension.OpenApiServiceGenerator;
 import io.ballerina.servicemodelgenerator.extension.model.AddModelContext;
+import io.ballerina.servicemodelgenerator.extension.model.GetModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.ModelFromSourceContext;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
 import io.ballerina.servicemodelgenerator.extension.util.ListenerUtil;
@@ -72,7 +73,7 @@ public final class HttpServiceBuilder extends AbstractServiceBuilder {
     }
 
     @Override
-    public Optional<Service> getModelTemplate(String moduleName) {
+    public Optional<Service> getModelTemplate(GetModelContext context) {
         InputStream resourceStream = HttpServiceBuilder.class.getClassLoader()
                 .getResourceAsStream(HTTP_SERVICE_MODEL_LOCATION);
         if (resourceStream == null) {
@@ -134,7 +135,7 @@ public final class HttpServiceBuilder extends AbstractServiceBuilder {
 
     @Override
     public Service getModelFromSource(ModelFromSourceContext context) {
-        Optional<Service> service = getModelTemplate(HTTP);
+        Optional<Service> service = getModelTemplate(new GetModelContext(HTTP));
         if (service.isEmpty()) {
             return null;
         }

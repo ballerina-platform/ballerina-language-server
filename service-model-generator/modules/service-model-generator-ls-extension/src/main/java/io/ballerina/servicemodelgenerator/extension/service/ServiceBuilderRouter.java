@@ -24,6 +24,7 @@ import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.Project;
 import io.ballerina.servicemodelgenerator.extension.model.AddModelContext;
+import io.ballerina.servicemodelgenerator.extension.model.GetModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.ModelFromSourceContext;
 import io.ballerina.servicemodelgenerator.extension.model.ModuleAndServiceType;
 import io.ballerina.servicemodelgenerator.extension.model.NodeBuilder;
@@ -58,7 +59,8 @@ public class ServiceBuilderRouter {
 
     public static Optional<Service> getModelTemplate(String moduleName) {
         NodeBuilder<?> serviceBuilder = getServiceBuilder(moduleName);
-        Optional<?> modelTemplate = serviceBuilder.getModelTemplate(moduleName);
+        GetModelContext context = new GetModelContext(moduleName);
+        Optional<?> modelTemplate = serviceBuilder.getModelTemplate(context);
         if (modelTemplate.isEmpty() || !(modelTemplate.get() instanceof Service)) {
             return Optional.empty();
         }
