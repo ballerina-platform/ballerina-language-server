@@ -45,6 +45,7 @@ import io.ballerina.projects.Document;
 import io.ballerina.projects.DocumentId;
 import io.ballerina.projects.Project;
 import io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants;
+import io.ballerina.servicemodelgenerator.extension.model.AddModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.DisplayAnnotation;
 import io.ballerina.servicemodelgenerator.extension.model.Listener;
@@ -68,6 +69,7 @@ import java.util.Set;
 import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.ASB;
 import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.ASB_DEFAULT_LISTENER_EXPR;
 import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.DEFAULT_LISTENER_ITEM_LABEL;
+import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.DEFAULT_LISTENER_VAR_NAME;
 import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.FILE;
 import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.FILE_DEFAULT_LISTENER_EXPR;
 import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.FTP;
@@ -78,7 +80,6 @@ import static io.ballerina.servicemodelgenerator.extension.ServiceModelGenerator
 import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.HTTP;
 import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.HTTP_DEFAULT_LISTENER_EXPR;
 import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.HTTP_DEFAULT_LISTENER_ITEM_LABEL;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.DEFAULT_LISTENER_VAR_NAME;
 import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.KAFKA;
 import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.KAFKA_DEFAULT_LISTENER_EXPR;
 import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.MQTT;
@@ -199,6 +200,13 @@ public class ListenerUtil {
         }
 
         return Optional.empty();
+    }
+
+    public static DefaultListener getDefaultListener(AddModelContext context) {
+        Document document = context.document();
+        ModulePartNode node = document.syntaxTree().rootNode();
+        return getDefaultListener(context.service().getListener(), context.semanticModel(),
+                document, node, context.service().getModuleName());
     }
 
     public static DefaultListener getDefaultListener(Value listener, SemanticModel semanticModel,

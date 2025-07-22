@@ -21,32 +21,39 @@ package io.ballerina.servicemodelgenerator.extension.util;
 import com.google.gson.Gson;
 import com.google.gson.stream.JsonReader;
 import io.ballerina.compiler.api.SemanticModel;
-import io.ballerina.compiler.api.symbols.AnnotationAttachPoint;
+import io.ballerina.compiler.api.symbols.ModuleSymbol;
+import io.ballerina.compiler.api.symbols.Symbol;
+import io.ballerina.compiler.api.symbols.TypeSymbol;
+import io.ballerina.compiler.api.symbols.VariableSymbol;
+import io.ballerina.compiler.syntax.tree.ExplicitNewExpressionNode;
+import io.ballerina.compiler.syntax.tree.ExpressionNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
+import io.ballerina.compiler.syntax.tree.NameReferenceNode;
+import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
+import io.ballerina.compiler.syntax.tree.TypeDescriptorNode;
 import io.ballerina.modelgenerator.commons.AnnotationAttachment;
-import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.ServiceDatabaseManager;
 import io.ballerina.modelgenerator.commons.ServiceDeclaration;
 import io.ballerina.modelgenerator.commons.ServiceTypeFunction;
 import io.ballerina.projects.Project;
 import io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants;
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
-import io.ballerina.servicemodelgenerator.extension.model.DisplayAnnotation;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.FunctionReturnType;
 import io.ballerina.servicemodelgenerator.extension.model.MetaData;
+import io.ballerina.servicemodelgenerator.extension.model.ModuleAndServiceType;
 import io.ballerina.servicemodelgenerator.extension.model.Parameter;
 import io.ballerina.servicemodelgenerator.extension.model.PropertyTypeMemberInfo;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
+import io.ballerina.servicemodelgenerator.extension.service.ServiceBuilderRouter;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -208,77 +215,6 @@ public class ServiceModelUtils {
     }
 
     /**
-     * Get the service model of the given module without the function list.
-     *
-     * @param moduleName module name
-     * @return {@link Optional<Service>} service model
-     */
-    public static Optional<Service> getEmptyServiceModel(String moduleName) {
-        if (moduleName.equals("http")) {
-            return getHttpService();
-        }
-        Optional<ServiceDeclaration> serviceDeclaration = ServiceDatabaseManager.getInstance()
-                .getServiceDeclaration(moduleName);
-        if (serviceDeclaration.isEmpty()) {
-            return Optional.empty();
-        }
-        ServiceDeclaration serviceTemplate = serviceDeclaration.get();
-        ServiceDeclaration.Package pkg = serviceTemplate.packageInfo();
-
-        String protocol = getProtocol(moduleName);
-
-        String label = serviceTemplate.displayName();
-        String documentation = "Add the service documentation";
-        String icon = CommonUtils.generateIcon(pkg.org(), pkg.name(), pkg.version());
-
-        Map<String, Value> properties = new LinkedHashMap<>();
-
-        Service.ServiceModelBuilder serviceBuilder = new Service.ServiceModelBuilder();
-        serviceBuilder
-                .setId(String.valueOf(pkg.packageId()))
-                .setName(label)
-                .setType(moduleName)
-                .setDisplayName(label)
-                .setDescription(documentation)
-                .setDisplayAnnotation(new DisplayAnnotation(label, icon))
-                .setModuleName(moduleName)
-                .setOrgName(pkg.org())
-                .setVersion(pkg.version())
-                .setPackageName(pkg.name())
-                .setListenerProtocol(protocol)
-                .setIcon(icon)
-                .setProperties(properties)
-                .setFunctions(new ArrayList<>());
-
-        Service service = serviceBuilder.build();
-        properties.put("listener", getListenersProperty(protocol, serviceTemplate.listenerKind()));
-
-        // type descriptor
-        properties.put("serviceType", getTypeDescriptorProperty(serviceTemplate, pkg.packageId()));
-
-        // base path
-        if (serviceTemplate.optionalAbsoluteResourcePath() == 0) {
-            properties.put("basePath", getBasePathProperty(serviceTemplate));
-        }
-
-        // string literal
-        if (serviceTemplate.optionalStringLiteral() == 0) {
-            properties.put("stringLiteral", getStringLiteral(serviceTemplate));
-        }
-
-        List<AnnotationAttachment> annotationAttachments = ServiceDatabaseManager.getInstance()
-                .getAnnotationAttachments(pkg.packageId());
-        for (AnnotationAttachment annotationAttachment : annotationAttachments) {
-            if (annotationAttachment.attachmentPoints().contains(AnnotationAttachPoint.SERVICE)) {
-                String key = "annot" + annotationAttachment.annotName();
-                properties.put(key, getAnnotationAttachmentProperty(annotationAttachment));
-            }
-        }
-
-        return Optional.of(service);
-    }
-
-    /**
      * Get the service model for a give service type including its functions.
      *
      * @param moduleName module name
@@ -286,7 +222,7 @@ public class ServiceModelUtils {
      * @return {@link Optional<Service>} service model
      */
     public static Optional<Service> getServiceModelWithFunctions(String moduleName, String serviceType) {
-        Optional<Service> serviceOptional = getEmptyServiceModel(moduleName);
+        Optional<Service> serviceOptional = ServiceBuilderRouter.getModelTemplate(moduleName);
         if (serviceOptional.isEmpty() || serviceOptional.get().getPackageName().equals("http")) {
             return serviceOptional;
         }
@@ -414,7 +350,7 @@ public class ServiceModelUtils {
         return parameterBuilder.build();
     }
 
-    private static Value getTypeDescriptorProperty(ServiceDeclaration template, int packageId) {
+    public static Value getTypeDescriptorProperty(ServiceDeclaration template, int packageId) {
         List<String> serviceTypes = ServiceDatabaseManager.getInstance().getServiceTypes(packageId);
         String value = "";
         if (serviceTypes.size() == 1) {
@@ -463,7 +399,7 @@ public class ServiceModelUtils {
         return valueBuilder.build();
     }
 
-    private static Value getStringLiteral(ServiceDeclaration template) {
+    public static Value getStringLiteral(ServiceDeclaration template) {
         Value.ValueBuilder valueBuilder = new Value.ValueBuilder();
         valueBuilder
                 .setMetadata(new MetaData(template.stringLiteralLabel(), template.stringLiteralDescription()))
@@ -503,7 +439,7 @@ public class ServiceModelUtils {
         return valueBuilder.build();
     }
 
-    private static Value getBasePathProperty(ServiceDeclaration template) {
+    public static Value getBasePathProperty(ServiceDeclaration template) {
         Value.ValueBuilder valueBuilder = new Value.ValueBuilder();
         valueBuilder
                 .setMetadata(new MetaData(template.absoluteResourcePathLabel(),
@@ -524,7 +460,7 @@ public class ServiceModelUtils {
         return valueBuilder.build();
     }
 
-    private static Value getAnnotationAttachmentProperty(AnnotationAttachment attachment) {
+    public static Value getAnnotationAttachmentProperty(AnnotationAttachment attachment) {
         String typeName = attachment.typeName();
         String[] split = typeName.split(":");
         if (split.length > 1) {
@@ -554,7 +490,7 @@ public class ServiceModelUtils {
         return valueBuilder.build();
     }
 
-    private static Value getListenersProperty(String protocol, String valueType) {
+    public static Value getListenersProperty(String protocol, String valueType) {
         boolean isMultiple = valueType.equals("MULTIPLE_SELECT");
         MetaData metaData = isMultiple ?
                 new MetaData("Listeners", "The Listeners to be bound with the service")
@@ -612,5 +548,54 @@ public class ServiceModelUtils {
         if (!listeners.isEmpty()) {
             listener.setItems(listeners.stream().map(l -> (Object) l).toList());
         }
+    }
+
+    public static String serviceTypeWithoutPrefix(String serviceType) {
+        String[] serviceTypeNames = serviceType.split(":");
+        String actualServiceType = "Service";
+        if (serviceTypeNames.length > 1) {
+            actualServiceType = serviceTypeNames[1];
+        }
+        return actualServiceType;
+    }
+
+    public static ModuleAndServiceType deriveServiceType(ServiceDeclarationNode serviceNode,
+                                                         SemanticModel semanticModel) {
+        Optional<TypeDescriptorNode> serviceTypeDesc = serviceNode.typeDescriptor();
+        Optional<ModuleSymbol> module = Optional.empty();
+        String serviceType = "Service";
+        if (serviceTypeDesc.isPresent()) {
+            TypeDescriptorNode typeDescriptorNode = serviceTypeDesc.get();
+            serviceType = typeDescriptorNode.toString().trim();
+            Optional<TypeSymbol> typeSymbol = semanticModel.typeOf(typeDescriptorNode);
+            if (typeSymbol.isPresent()) {
+                module = typeSymbol.get().getModule();
+            }
+        }
+
+        if (module.isEmpty()) {
+            SeparatedNodeList<ExpressionNode> expressions = serviceNode.expressions();
+            if (expressions.isEmpty()) {
+                return new ModuleAndServiceType(null, serviceType);
+            }
+            ExpressionNode expressionNode = expressions.get(0);
+            if (expressionNode instanceof ExplicitNewExpressionNode explicitNewExpressionNode) {
+                Optional<Symbol> symbol = semanticModel.symbol(explicitNewExpressionNode.typeDescriptor());
+                if (symbol.isEmpty()) {
+                    return new ModuleAndServiceType(null, serviceType);
+                }
+                module = symbol.get().getModule();
+            } else if (expressionNode instanceof NameReferenceNode nameReferenceNode) {
+                Optional<Symbol> symbol = semanticModel.symbol(nameReferenceNode);
+                if (symbol.isPresent() && symbol.get() instanceof VariableSymbol variableSymbol) {
+                    module = variableSymbol.typeDescriptor().getModule();
+                }
+            }
+        }
+
+        if (module.isEmpty()) {
+            return new ModuleAndServiceType(null, serviceType);
+        }
+        return new ModuleAndServiceType(module.get().getName().orElse(null), serviceType);
     }
 }
