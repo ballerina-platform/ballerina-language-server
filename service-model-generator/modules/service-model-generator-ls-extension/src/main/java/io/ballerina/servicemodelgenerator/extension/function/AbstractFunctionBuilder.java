@@ -32,6 +32,7 @@ import io.ballerina.servicemodelgenerator.extension.model.ModelFromSourceContext
 import io.ballerina.servicemodelgenerator.extension.model.NodeBuilder;
 import io.ballerina.servicemodelgenerator.extension.model.UpdateModelContext;
 import io.ballerina.servicemodelgenerator.extension.util.Utils;
+import io.ballerina.tools.text.LinePosition;
 import io.ballerina.tools.text.LineRange;
 import org.eclipse.lsp4j.TextEdit;
 
@@ -43,13 +44,20 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
+import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.KIND_MUTATION;
+import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.KIND_REMOTE;
 import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.NEW_LINE;
 import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.NEW_LINE_WITH_TAB;
+import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.TWO_NEW_LINES;
+import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionSignatureContext.FUNCTION_UPDATE;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.generateFunctionDefSource;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionSignatureContext.FUNCTION_ADD;
+import static io.ballerina.servicemodelgenerator.extension.util.Utils.generateFunctionSignatureSource;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getImportStmt;
+import static io.ballerina.servicemodelgenerator.extension.util.Utils.getPath;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.importExists;
 
 /**
@@ -140,7 +148,64 @@ public abstract class AbstractFunctionBuilder implements NodeBuilder<Function> {
      */
     @Override
     public Map<String, List<TextEdit>> updateModel(UpdateModelContext context) {
-        return Map.of();
+        List<TextEdit> edits = new ArrayList<>();
+        Utils.addFunctionAnnotationTextEdits(context.function(), context.functionNode(), edits);
+
+        String functionName = context.functionNode().functionName().text().trim();
+        LineRange nameRange = context.functionNode().functionName().lineRange();
+        String functionKind = context.function().getKind();
+        boolean isRemote = functionKind.equals(KIND_REMOTE) || functionKind.equals(KIND_MUTATION);
+        String newFunctionName = context.function().getName().getValue();
+        if (isRemote && !functionName.equals(newFunctionName)) {
+            edits.add(new TextEdit(Utils.toRange(nameRange), newFunctionName));
+        }
+
+        if (!isRemote) {
+            if (!functionName.equals(context.function().getAccessor().getValue())) {
+                edits.add(new TextEdit(Utils.toRange(nameRange), context.function().getAccessor().getValue()));
+            }
+
+            NodeList<Node> path = context.functionNode().relativeResourcePath();
+            if (Objects.nonNull(path) && !newFunctionName.equals(getPath(path))) {
+                LinePosition startPos = path.get(0).lineRange().startLine();
+                LinePosition endPos = path.get(path.size() - 1).lineRange().endLine();
+                LineRange lineRange = context.function().getCodedata().getLineRange();
+                LineRange pathLineRange = LineRange.from(lineRange.fileName(), startPos, endPos);
+                TextEdit pathEdit = new TextEdit(Utils.toRange(pathLineRange), newFunctionName);
+                edits.add(pathEdit);
+            }
+        }
+
+        Map<String, String> imports = new HashMap<>();
+        LineRange signatureRange = context.functionNode().functionSignature().lineRange();
+        List<String> newStatusCodeTypesDef = new ArrayList<>();
+        String functionSignature = generateFunctionSignatureSource(context.function(), newStatusCodeTypesDef,
+                FUNCTION_UPDATE, imports);
+        List<String> importStmts = new ArrayList<>();
+        ModulePartNode rootNode = context.document().syntaxTree().rootNode();
+        imports.values().forEach(moduleId -> {
+            String[] importParts = moduleId.split("/");
+            String orgName = importParts[0];
+            String moduleName = importParts[1].split(":")[0];
+            if (!importExists(rootNode, orgName, moduleName)) {
+                importStmts.add(getImportStmt(orgName, moduleName));
+            }
+        });
+
+        if (!importStmts.isEmpty()) {
+            String importsStmts = String.join(NEW_LINE, importStmts);
+            edits.addFirst(new TextEdit(Utils.toRange(rootNode.lineRange().startLine()), importsStmts));
+        }
+
+        edits.add(new TextEdit(Utils.toRange(signatureRange), functionSignature));
+
+        if (!newStatusCodeTypesDef.isEmpty() &&
+                context.functionNode().parent() instanceof ServiceDeclarationNode serviceNode) {
+            String statusCodeResEdits = String.join(TWO_NEW_LINES, newStatusCodeTypesDef);
+            edits.add(new TextEdit(Utils.toRange(serviceNode.closeBraceToken().lineRange().endLine()),
+                    NEW_LINE + statusCodeResEdits));
+        }
+        return Map.of(context.filePath(), edits);
     }
 
     /**

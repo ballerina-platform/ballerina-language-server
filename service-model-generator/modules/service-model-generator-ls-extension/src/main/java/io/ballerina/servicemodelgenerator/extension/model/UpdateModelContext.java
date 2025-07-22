@@ -9,5 +9,6 @@ import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 
 public record UpdateModelContext(Service service, Function function, SemanticModel semanticModel, Project project,
                                  WorkspaceManager workspaceManager, String filePath, Document document,
-                                 ServiceDeclarationNode serviceNode, FunctionDefinitionNode functionNode) {
+                                 ServiceDeclarationNode serviceNode, FunctionDefinitionNode functionNode
+                                 ) {
 }

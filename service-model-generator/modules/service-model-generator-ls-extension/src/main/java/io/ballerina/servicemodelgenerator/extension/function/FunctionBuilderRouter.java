@@ -18,12 +18,14 @@
 
 package io.ballerina.servicemodelgenerator.extension.function;
 
+import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.NonTerminalNode;
 import io.ballerina.projects.Document;
 import io.ballerina.servicemodelgenerator.extension.model.AddModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.GetModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.NodeBuilder;
+import io.ballerina.servicemodelgenerator.extension.model.UpdateModelContext;
 import org.eclipse.lsp4j.TextEdit;
 
 import java.util.HashMap;
@@ -44,7 +46,7 @@ public class FunctionBuilderRouter {
         put(HTTP, HttpFunctionBuilder::new);
     }};
 
-    public static NodeBuilder<Function> getFunctionBuilder(String protocol) {
+    private static NodeBuilder<Function> getFunctionBuilder(String protocol) {
         return CONSTRUCTOR_MAP.getOrDefault(protocol, DefaultFunctionBuilder::new).get();
     }
 
@@ -60,5 +62,14 @@ public class FunctionBuilderRouter {
         AddModelContext context = new AddModelContext(null, function, null, null, null, filePath,
                 document, node);
         return functionBuilder.addModel(context);
+    }
+
+    public static Map<String, List<TextEdit>> updateFunction(String moduleName, Function function, String filePath,
+                                                             Document document, FunctionDefinitionNode functionNode)
+            throws Exception {
+        NodeBuilder<Function> functionBuilder = getFunctionBuilder(moduleName);
+        UpdateModelContext context = new UpdateModelContext(null, function, null, null, null, filePath,
+                document, null, functionNode);
+        return functionBuilder.updateModel(context);
     }
 }
