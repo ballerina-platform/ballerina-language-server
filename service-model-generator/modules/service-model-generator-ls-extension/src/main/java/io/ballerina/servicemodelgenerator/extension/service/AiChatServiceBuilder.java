@@ -2,6 +2,7 @@ package io.ballerina.servicemodelgenerator.extension.service;
 
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.servicemodelgenerator.extension.model.AddModelContext;
+import io.ballerina.servicemodelgenerator.extension.model.GetModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
 import io.ballerina.servicemodelgenerator.extension.util.ListenerUtil;
 import io.ballerina.servicemodelgenerator.extension.util.Utils;
@@ -31,8 +32,8 @@ import static io.ballerina.servicemodelgenerator.extension.util.Utils.populateRe
 public final class AiChatServiceBuilder extends AbstractServiceBuilder {
 
     @Override
-    public Optional<Service> getModelTemplate(String moduleName) {
-        return super.getModelTemplate(moduleName);
+    public Optional<Service> getModelTemplate(GetModelContext context) {
+        return super.getModelTemplate(context);
     }
 
     @Override

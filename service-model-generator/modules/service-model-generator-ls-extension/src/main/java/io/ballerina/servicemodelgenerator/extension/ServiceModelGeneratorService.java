@@ -43,6 +43,7 @@ import io.ballerina.projects.ModuleId;
 import io.ballerina.projects.ModuleName;
 import io.ballerina.projects.Package;
 import io.ballerina.projects.Project;
+import io.ballerina.servicemodelgenerator.extension.function.FunctionBuilderRouter;
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.Listener;
@@ -392,7 +393,7 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
     public CompletableFuture<FunctionModelResponse> getFunctionModel(FunctionModelRequest request) {
         return CompletableFuture.supplyAsync(() -> {
             try {
-                return Utils.getFunctionModel(request.type(), request.functionName())
+                return FunctionBuilderRouter.getModelTemplate(request.type(), request.functionName())
                         .map(FunctionModelResponse::new)
                         .orElseGet(FunctionModelResponse::new);
             } catch (Throwable e) {

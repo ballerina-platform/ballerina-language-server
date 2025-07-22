@@ -30,6 +30,7 @@ import io.ballerina.modelgenerator.commons.ServiceDatabaseManager;
 import io.ballerina.modelgenerator.commons.ServiceDeclaration;
 import io.ballerina.servicemodelgenerator.extension.model.AddModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.DisplayAnnotation;
+import io.ballerina.servicemodelgenerator.extension.model.GetModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.ModelFromSourceContext;
 import io.ballerina.servicemodelgenerator.extension.model.NodeBuilder;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
@@ -76,16 +77,16 @@ import static io.ballerina.servicemodelgenerator.extension.util.Utils.populateRe
 public abstract class AbstractServiceBuilder implements NodeBuilder<Service> {
 
     @Override
-    public Optional<Service> getModelTemplate(String moduleName) {
+    public Optional<Service> getModelTemplate(GetModelContext context) {
         Optional<ServiceDeclaration> serviceDeclaration = ServiceDatabaseManager.getInstance()
-                .getServiceDeclaration(moduleName);
+                .getServiceDeclaration(context.moduleName());
         if (serviceDeclaration.isEmpty()) {
             return Optional.empty();
         }
         ServiceDeclaration serviceTemplate = serviceDeclaration.get();
         ServiceDeclaration.Package pkg = serviceTemplate.packageInfo();
 
-        String protocol = getProtocol(moduleName);
+        String protocol = getProtocol(context.moduleName());
 
         String label = serviceTemplate.displayName();
         String documentation = "Add the service documentation";
@@ -97,11 +98,11 @@ public abstract class AbstractServiceBuilder implements NodeBuilder<Service> {
         serviceBuilder
                 .setId(String.valueOf(pkg.packageId()))
                 .setName(label)
-                .setType(moduleName)
+                .setType(context.moduleName())
                 .setDisplayName(label)
                 .setDescription(documentation)
                 .setDisplayAnnotation(new DisplayAnnotation(label, icon))
-                .setModuleName(moduleName)
+                .setModuleName(context.moduleName())
                 .setOrgName(pkg.org())
                 .setVersion(pkg.version())
                 .setPackageName(pkg.name())

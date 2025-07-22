@@ -31,7 +31,7 @@ public interface NodeBuilder<T> {
      *
      * @return the model template
      */
-    Optional<T> getModelTemplate(String moduleName);
+    Optional<T> getModelTemplate(GetModelContext context);
 
     /**
      * Get the list of text edits for the given model for addition.
