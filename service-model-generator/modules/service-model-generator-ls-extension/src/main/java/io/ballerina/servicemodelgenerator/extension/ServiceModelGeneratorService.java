@@ -121,11 +121,11 @@ import static io.ballerina.servicemodelgenerator.extension.ServiceModelGenerator
 import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.NEW_LINE;
 import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.NEW_LINE_WITH_TAB;
 import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.TWO_NEW_LINES;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.DEFAULT;
 import static io.ballerina.servicemodelgenerator.extension.util.HttpUtil.getFunctionFromFunctionDef;
 import static io.ballerina.servicemodelgenerator.extension.util.ListenerUtil.getDefaultListenerDeclarationStmt;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getProtocol;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionAddContext.RESOURCE_ADD;
-import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionSignatureContext.FUNCTION_ADD;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionSignatureContext.FUNCTION_UPDATE;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionSignatureContext.HTTP_RESOURCE_ADD;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.expectsTriggerByName;
@@ -598,7 +598,6 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
     public CompletableFuture<CommonSourceResponse> addFunction(FunctionSourceRequest request) {
         return CompletableFuture.supplyAsync(() -> {
             try {
-                List<TextEdit> edits = new ArrayList<>();
                 Path filePath = Path.of(request.filePath());
                 this.workspaceManager.loadProject(filePath);
                 Optional<Document> document = this.workspaceManager.document(filePath);
@@ -609,43 +608,11 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
                 if (!(node instanceof ServiceDeclarationNode || node instanceof ClassDefinitionNode)) {
                     return new CommonSourceResponse();
                 }
-                LineRange functionLineRange;
-                NodeList<Node> members;
-                if (node instanceof ServiceDeclarationNode serviceDeclarationNode) {
-                    functionLineRange = serviceDeclarationNode.openBraceToken().lineRange();
-                    members = serviceDeclarationNode.members();
-                } else {
-                    ClassDefinitionNode classDefinitionNode = (ClassDefinitionNode) node;
-                    functionLineRange = classDefinitionNode.openBrace().lineRange();
-                    members = classDefinitionNode.members();
-                }
-
-                if (!members.isEmpty()) {
-                    functionLineRange = members.get(members.size() - 1).lineRange();
-                }
-                Map<String, String> imports = new HashMap<>();
-                String functionNode = NEW_LINE_WITH_TAB + generateFunctionDefSource(request.function(), List.of(),
-                        Utils.FunctionAddContext.FUNCTION_ADD, FUNCTION_ADD, imports)
-                        .replace(NEW_LINE, NEW_LINE_WITH_TAB);
-
-                List<String> importStmts = new ArrayList<>();
-                ModulePartNode rootNode = document.get().syntaxTree().rootNode();
-                imports.values().forEach(moduleId -> {
-                    String[] importParts = moduleId.split("/");
-                    String orgName = importParts[0];
-                    String moduleName = importParts[1].split(":")[0];
-                    if (!importExists(rootNode, orgName, moduleName)) {
-                        importStmts.add(getImportStmt(orgName, moduleName));
-                    }
-                });
-
-                if (!importStmts.isEmpty()) {
-                    String importsStmts = String.join(NEW_LINE, importStmts);
-                    edits.add(new TextEdit(Utils.toRange(rootNode.lineRange().startLine()), importsStmts));
-                }
-
-                edits.add(new TextEdit(Utils.toRange(functionLineRange.endLine()), functionNode));
-                return new CommonSourceResponse(Map.of(request.filePath(), edits));
+                String moduleName = (request.codedata().getModuleName() != null) ?
+                        request.codedata().getModuleName() : DEFAULT;
+                Map<String, List<TextEdit>> textEdits = FunctionBuilderRouter.addFunction(moduleName,
+                        request.function(), request.filePath(), document.get(), node);
+                return new CommonSourceResponse(textEdits);
             } catch (Throwable e) {
                 return new CommonSourceResponse(e);
             }

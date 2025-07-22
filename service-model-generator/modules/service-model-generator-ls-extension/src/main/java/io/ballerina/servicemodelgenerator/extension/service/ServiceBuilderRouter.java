@@ -87,7 +87,7 @@ public class ServiceBuilderRouter {
                                                          String filePath, Document document) throws Exception {
         NodeBuilder<?> serviceBuilder = getServiceBuilder(service.getModuleName());
         AddModelContext context = new AddModelContext(service, null, semanticModel, project,
-                workspaceManager, filePath, document);
+                workspaceManager, filePath, document, null);
         return serviceBuilder.addModel(context);
     }
 

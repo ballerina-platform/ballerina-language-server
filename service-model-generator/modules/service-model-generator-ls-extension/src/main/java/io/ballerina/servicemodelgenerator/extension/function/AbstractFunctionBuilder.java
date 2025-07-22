@@ -20,6 +20,11 @@ package io.ballerina.servicemodelgenerator.extension.function;
 
 import com.google.gson.Gson;
 import com.google.gson.stream.JsonReader;
+import io.ballerina.compiler.syntax.tree.ClassDefinitionNode;
+import io.ballerina.compiler.syntax.tree.ModulePartNode;
+import io.ballerina.compiler.syntax.tree.Node;
+import io.ballerina.compiler.syntax.tree.NodeList;
+import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.servicemodelgenerator.extension.model.AddModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.GetModelContext;
@@ -27,15 +32,25 @@ import io.ballerina.servicemodelgenerator.extension.model.ModelFromSourceContext
 import io.ballerina.servicemodelgenerator.extension.model.NodeBuilder;
 import io.ballerina.servicemodelgenerator.extension.model.UpdateModelContext;
 import io.ballerina.servicemodelgenerator.extension.util.Utils;
+import io.ballerina.tools.text.LineRange;
 import org.eclipse.lsp4j.TextEdit;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+
+import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.NEW_LINE;
+import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.NEW_LINE_WITH_TAB;
+import static io.ballerina.servicemodelgenerator.extension.util.Utils.generateFunctionDefSource;
+import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionSignatureContext.FUNCTION_ADD;
+import static io.ballerina.servicemodelgenerator.extension.util.Utils.getImportStmt;
+import static io.ballerina.servicemodelgenerator.extension.util.Utils.importExists;
 
 /**
  * Represents the abstract function builder of the service model generator.
@@ -77,7 +92,44 @@ public abstract class AbstractFunctionBuilder implements NodeBuilder<Function> {
      */
     @Override
     public Map<String, List<TextEdit>> addModel(AddModelContext context) throws Exception {
-        return Map.of();
+        List<TextEdit> edits = new ArrayList<>();
+        LineRange functionLineRange;
+        NodeList<Node> members;
+        if (context.node() instanceof ServiceDeclarationNode serviceDeclarationNode) {
+            functionLineRange = serviceDeclarationNode.openBraceToken().lineRange();
+            members = serviceDeclarationNode.members();
+        } else {
+            ClassDefinitionNode classDefinitionNode = (ClassDefinitionNode) context.node();
+            functionLineRange = classDefinitionNode.openBrace().lineRange();
+            members = classDefinitionNode.members();
+        }
+
+        if (!members.isEmpty()) {
+            functionLineRange = members.get(members.size() - 1).lineRange();
+        }
+        Map<String, String> imports = new HashMap<>();
+        String functionNode = NEW_LINE_WITH_TAB + generateFunctionDefSource(context.function(), List.of(),
+                Utils.FunctionAddContext.FUNCTION_ADD, FUNCTION_ADD, imports)
+                .replace(NEW_LINE, NEW_LINE_WITH_TAB);
+
+        List<String> importStmts = new ArrayList<>();
+        ModulePartNode rootNode = context.document().syntaxTree().rootNode();
+        imports.values().forEach(moduleId -> {
+            String[] importParts = moduleId.split("/");
+            String orgName = importParts[0];
+            String moduleName = importParts[1].split(":")[0];
+            if (!importExists(rootNode, orgName, moduleName)) {
+                importStmts.add(getImportStmt(orgName, moduleName));
+            }
+        });
+
+        if (!importStmts.isEmpty()) {
+            String importsStmts = String.join(NEW_LINE, importStmts);
+            edits.add(new TextEdit(Utils.toRange(rootNode.lineRange().startLine()), importsStmts));
+        }
+
+        edits.add(new TextEdit(Utils.toRange(functionLineRange.endLine()), functionNode));
+        return Map.of(context.filePath(), edits);
     }
 
     /**

@@ -18,11 +18,16 @@
 
 package io.ballerina.servicemodelgenerator.extension.function;
 
+import io.ballerina.compiler.syntax.tree.NonTerminalNode;
+import io.ballerina.projects.Document;
+import io.ballerina.servicemodelgenerator.extension.model.AddModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.GetModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.NodeBuilder;
+import org.eclipse.lsp4j.TextEdit;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -47,5 +52,13 @@ public class FunctionBuilderRouter {
         NodeBuilder<Function> functionBuilder = getFunctionBuilder(moduleName);
         GetModelContext context = new GetModelContext(moduleName, functionType);
         return functionBuilder.getModelTemplate(context);
+    }
+
+    public static Map<String, List<TextEdit>> addFunction(String moduleName, Function function, String filePath,
+                                                          Document document, NonTerminalNode node) throws Exception {
+        NodeBuilder<Function> functionBuilder = getFunctionBuilder(moduleName);
+        AddModelContext context = new AddModelContext(null, function, null, null, null, filePath,
+                document, node);
+        return functionBuilder.addModel(context);
     }
 }
