@@ -18,11 +18,21 @@
 
 package io.ballerina.servicemodelgenerator.extension.function;
 
+import io.ballerina.compiler.api.SemanticModel;
+import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
+import io.ballerina.compiler.syntax.tree.Node;
+import io.ballerina.compiler.syntax.tree.NonTerminalNode;
+import io.ballerina.projects.Document;
+import io.ballerina.servicemodelgenerator.extension.model.AddModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.GetModelContext;
+import io.ballerina.servicemodelgenerator.extension.model.ModelFromSourceContext;
 import io.ballerina.servicemodelgenerator.extension.model.NodeBuilder;
+import io.ballerina.servicemodelgenerator.extension.model.UpdateModelContext;
+import org.eclipse.lsp4j.TextEdit;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -39,7 +49,7 @@ public class FunctionBuilderRouter {
         put(HTTP, HttpFunctionBuilder::new);
     }};
 
-    public static NodeBuilder<Function> getFunctionBuilder(String protocol) {
+    private static NodeBuilder<Function> getFunctionBuilder(String protocol) {
         return CONSTRUCTOR_MAP.getOrDefault(protocol, DefaultFunctionBuilder::new).get();
     }
 
@@ -47,5 +57,28 @@ public class FunctionBuilderRouter {
         NodeBuilder<Function> functionBuilder = getFunctionBuilder(moduleName);
         GetModelContext context = new GetModelContext(moduleName, functionType);
         return functionBuilder.getModelTemplate(context);
+    }
+
+    public static Map<String, List<TextEdit>> addFunction(String moduleName, Function function, String filePath,
+                                                          Document document, NonTerminalNode node) throws Exception {
+        NodeBuilder<Function> functionBuilder = getFunctionBuilder(moduleName);
+        AddModelContext context = new AddModelContext(null, function, null, null, null, filePath, document, node);
+        return functionBuilder.addModel(context);
+    }
+
+    public static Map<String, List<TextEdit>> updateFunction(String moduleName, Function function, String filePath,
+                                                             Document document, FunctionDefinitionNode functionNode)
+            throws Exception {
+        NodeBuilder<Function> functionBuilder = getFunctionBuilder(moduleName);
+        UpdateModelContext context = new UpdateModelContext(null, function, null, null, null, filePath,
+                document, null, functionNode);
+        return functionBuilder.updateModel(context);
+    }
+
+    public static Function getFunctionFromSource(String moduleName, SemanticModel semanticModel, Node functionNode) {
+        NodeBuilder<Function> functionBuilder = getFunctionBuilder(moduleName);
+        ModelFromSourceContext context = new ModelFromSourceContext(functionNode, null, semanticModel, null,
+                moduleName, null);
+        return functionBuilder.getModelFromSource(context);
     }
 }

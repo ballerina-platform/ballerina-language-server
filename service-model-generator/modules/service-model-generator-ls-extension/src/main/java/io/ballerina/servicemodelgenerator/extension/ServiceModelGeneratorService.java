@@ -26,8 +26,6 @@ import io.ballerina.compiler.syntax.tree.ClassDefinitionNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.ListenerDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
-import io.ballerina.compiler.syntax.tree.Node;
-import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.NonTerminalNode;
 import io.ballerina.compiler.syntax.tree.ObjectFieldNode;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
@@ -88,7 +86,6 @@ import io.ballerina.servicemodelgenerator.extension.util.ListenerUtil;
 import io.ballerina.servicemodelgenerator.extension.util.ServiceClassUtil;
 import io.ballerina.servicemodelgenerator.extension.util.TypeCompletionGenerator;
 import io.ballerina.servicemodelgenerator.extension.util.Utils;
-import io.ballerina.tools.text.LinePosition;
 import io.ballerina.tools.text.LineRange;
 import io.ballerina.tools.text.TextDocument;
 import io.ballerina.tools.text.TextRange;
@@ -116,24 +113,18 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.KIND_MUTATION;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.KIND_REMOTE;
 import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.NEW_LINE;
 import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.NEW_LINE_WITH_TAB;
 import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.TWO_NEW_LINES;
-import static io.ballerina.servicemodelgenerator.extension.util.HttpUtil.getFunctionFromFunctionDef;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.DEFAULT;
 import static io.ballerina.servicemodelgenerator.extension.util.ListenerUtil.getDefaultListenerDeclarationStmt;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getProtocol;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionAddContext.RESOURCE_ADD;
-import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionSignatureContext.FUNCTION_ADD;
-import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionSignatureContext.FUNCTION_UPDATE;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionSignatureContext.HTTP_RESOURCE_ADD;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.expectsTriggerByName;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.filterTriggers;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.generateFunctionDefSource;
-import static io.ballerina.servicemodelgenerator.extension.util.Utils.generateFunctionSignatureSource;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getImportStmt;
-import static io.ballerina.servicemodelgenerator.extension.util.Utils.getPath;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.importExists;
 
 /**
@@ -525,8 +516,11 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
             if (!(node instanceof FunctionDefinitionNode functionDefinitionNode)) {
                 return new FunctionFromSourceResponse();
             }
-            // TODO: Handle service type functions other than http
-            Function function = getFunctionFromFunctionDef(functionDefinitionNode, semanticModelOp.get());
+
+            String moduleName = (request.codedata().getModuleName() != null) ?
+                    request.codedata().getModuleName() : DEFAULT;
+            Function function = FunctionBuilderRouter.getFunctionFromSource(moduleName, semanticModelOp.get(),
+                    functionDefinitionNode);
             return new FunctionFromSourceResponse(function);
         });
     }
@@ -598,7 +592,6 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
     public CompletableFuture<CommonSourceResponse> addFunction(FunctionSourceRequest request) {
         return CompletableFuture.supplyAsync(() -> {
             try {
-                List<TextEdit> edits = new ArrayList<>();
                 Path filePath = Path.of(request.filePath());
                 this.workspaceManager.loadProject(filePath);
                 Optional<Document> document = this.workspaceManager.document(filePath);
@@ -609,43 +602,11 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
                 if (!(node instanceof ServiceDeclarationNode || node instanceof ClassDefinitionNode)) {
                     return new CommonSourceResponse();
                 }
-                LineRange functionLineRange;
-                NodeList<Node> members;
-                if (node instanceof ServiceDeclarationNode serviceDeclarationNode) {
-                    functionLineRange = serviceDeclarationNode.openBraceToken().lineRange();
-                    members = serviceDeclarationNode.members();
-                } else {
-                    ClassDefinitionNode classDefinitionNode = (ClassDefinitionNode) node;
-                    functionLineRange = classDefinitionNode.openBrace().lineRange();
-                    members = classDefinitionNode.members();
-                }
-
-                if (!members.isEmpty()) {
-                    functionLineRange = members.get(members.size() - 1).lineRange();
-                }
-                Map<String, String> imports = new HashMap<>();
-                String functionNode = NEW_LINE_WITH_TAB + generateFunctionDefSource(request.function(), List.of(),
-                        Utils.FunctionAddContext.FUNCTION_ADD, FUNCTION_ADD, imports)
-                        .replace(NEW_LINE, NEW_LINE_WITH_TAB);
-
-                List<String> importStmts = new ArrayList<>();
-                ModulePartNode rootNode = document.get().syntaxTree().rootNode();
-                imports.values().forEach(moduleId -> {
-                    String[] importParts = moduleId.split("/");
-                    String orgName = importParts[0];
-                    String moduleName = importParts[1].split(":")[0];
-                    if (!importExists(rootNode, orgName, moduleName)) {
-                        importStmts.add(getImportStmt(orgName, moduleName));
-                    }
-                });
-
-                if (!importStmts.isEmpty()) {
-                    String importsStmts = String.join(NEW_LINE, importStmts);
-                    edits.add(new TextEdit(Utils.toRange(rootNode.lineRange().startLine()), importsStmts));
-                }
-
-                edits.add(new TextEdit(Utils.toRange(functionLineRange.endLine()), functionNode));
-                return new CommonSourceResponse(Map.of(request.filePath(), edits));
+                String moduleName = (request.codedata().getModuleName() != null) ?
+                        request.codedata().getModuleName() : DEFAULT;
+                Map<String, List<TextEdit>> textEdits = FunctionBuilderRouter.addFunction(moduleName,
+                        request.function(), request.filePath(), document.get(), node);
+                return new CommonSourceResponse(textEdits);
             } catch (Throwable e) {
                 return new CommonSourceResponse(e);
             }
@@ -679,62 +640,12 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
                     return new CommonSourceResponse();
                 }
                 List<TextEdit> edits = new ArrayList<>();
+                String moduleName = (request.function().getCodedata().getModuleName() != null) ?
+                        request.function().getCodedata().getModuleName() : DEFAULT;
+                Map<String, List<TextEdit>> textEdits = FunctionBuilderRouter.updateFunction(moduleName, function,
+                        request.filePath(), document.get(), functionDefinitionNode);
                 Utils.addFunctionAnnotationTextEdits(function, functionDefinitionNode, edits);
-
-                String functionName = functionDefinitionNode.functionName().text().trim();
-                LineRange nameRange = functionDefinitionNode.functionName().lineRange();
-                String functionKind = function.getKind();
-                boolean isRemote = functionKind.equals(KIND_REMOTE) || functionKind.equals(KIND_MUTATION);
-                String newFunctionName = function.getName().getValue();
-                if (isRemote && !functionName.equals(newFunctionName)) {
-                    edits.add(new TextEdit(Utils.toRange(nameRange), newFunctionName));
-                }
-
-                if (!isRemote) {
-                    if (!functionName.equals(function.getAccessor().getValue())) {
-                        edits.add(new TextEdit(Utils.toRange(nameRange), function.getAccessor().getValue()));
-                    }
-
-                    NodeList<Node> path = functionDefinitionNode.relativeResourcePath();
-                    if (Objects.nonNull(path) && !newFunctionName.equals(getPath(path))) {
-                        LinePosition startPos = path.get(0).lineRange().startLine();
-                        LinePosition endPos = path.get(path.size() - 1).lineRange().endLine();
-                        LineRange pathLineRange = LineRange.from(lineRange.fileName(), startPos, endPos);
-                        TextEdit pathEdit = new TextEdit(Utils.toRange(pathLineRange), newFunctionName);
-                        edits.add(pathEdit);
-                    }
-                }
-
-                Map<String, String> imports = new HashMap<>();
-                LineRange signatureRange = functionDefinitionNode.functionSignature().lineRange();
-                List<String> newStatusCodeTypesDef = new ArrayList<>();
-                String functionSignature = generateFunctionSignatureSource(function, newStatusCodeTypesDef,
-                        FUNCTION_UPDATE, imports);
-                List<String> importStmts = new ArrayList<>();
-                ModulePartNode rootNode = document.get().syntaxTree().rootNode();
-                imports.values().forEach(moduleId -> {
-                    String[] importParts = moduleId.split("/");
-                    String orgName = importParts[0];
-                    String moduleName = importParts[1].split(":")[0];
-                    if (!importExists(rootNode, orgName, moduleName)) {
-                        importStmts.add(getImportStmt(orgName, moduleName));
-                    }
-                });
-
-                if (!importStmts.isEmpty()) {
-                    String importsStmts = String.join(NEW_LINE, importStmts);
-                    edits.addFirst(new TextEdit(Utils.toRange(rootNode.lineRange().startLine()), importsStmts));
-                }
-
-                edits.add(new TextEdit(Utils.toRange(signatureRange), functionSignature));
-
-                if (!newStatusCodeTypesDef.isEmpty() && parentNode instanceof ServiceDeclarationNode serviceNode) {
-                    String statusCodeResEdits = String.join(TWO_NEW_LINES, newStatusCodeTypesDef);
-                    edits.add(new TextEdit(Utils.toRange(serviceNode.closeBraceToken().lineRange().endLine()),
-                            NEW_LINE + statusCodeResEdits));
-                }
-
-                return new CommonSourceResponse(Map.of(request.filePath(), edits));
+                return new CommonSourceResponse(textEdits);
             } catch (Throwable e) {
                 return new CommonSourceResponse(e);
             }

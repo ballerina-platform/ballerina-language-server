@@ -30,6 +30,8 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.HTTP;
+
 public class HttpFunctionBuilder extends AbstractFunctionBuilder {
     private static final String HTTP_FUNCTION_MODEL_LOCATION = "functions/http_%s.json";
 
@@ -46,5 +48,10 @@ public class HttpFunctionBuilder extends AbstractFunctionBuilder {
         } catch (IOException e) {
             return Optional.empty();
         }
+    }
+
+    @Override
+    public String kind() {
+        return HTTP;
     }
 }
