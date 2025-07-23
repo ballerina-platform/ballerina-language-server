@@ -61,7 +61,6 @@ import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtil
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionAddContext.HTTP_SERVICE_ADD;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getHttpServiceContractSym;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getImportStmt;
-import static io.ballerina.servicemodelgenerator.extension.util.Utils.getServiceDeclarationNode;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.importExists;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.populateRequiredFuncsDesignApproachAndServiceType;
 
@@ -107,10 +106,13 @@ public final class HttpServiceBuilder extends AbstractServiceBuilder {
         populateRequiredFunctionsForServiceType(service);
 
         Map<String, String> imports = new HashMap<>();
-        String serviceDeclaration = getServiceDeclarationNode(service, HTTP_SERVICE_ADD, imports);
+        StringBuilder serviceBuilder = new StringBuilder(NEW_LINE);
+        buildServiceNodeStr(service, serviceBuilder);
+        List<String> functionsStr = buildMethodDefinitions(service, HTTP_SERVICE_ADD, imports);
+        buildServiceNodeBody(functionsStr, serviceBuilder);
 
         ModulePartNode rootNode = context.document().syntaxTree().rootNode();
-        edits.add(new TextEdit(Utils.toRange(rootNode.lineRange().endLine()), NEW_LINE + serviceDeclaration));
+        edits.add(new TextEdit(Utils.toRange(rootNode.lineRange().endLine()), serviceBuilder.toString()));
 
         Set<String> importStmts = new HashSet<>();
         if (!importExists(rootNode, service.getOrgName(), service.getModuleName())) {

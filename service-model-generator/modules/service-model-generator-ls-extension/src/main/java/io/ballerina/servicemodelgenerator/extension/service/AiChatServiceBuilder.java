@@ -9,7 +9,6 @@ import io.ballerina.servicemodelgenerator.extension.util.Utils;
 import org.eclipse.lsp4j.TextEdit;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -23,9 +22,6 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.BALLER
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.HTTP;
 import static io.ballerina.servicemodelgenerator.extension.util.ListenerUtil.getDefaultListenerDeclarationStmt;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.populateRequiredFunctionsForServiceType;
-import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionAddContext.TRIGGER_ADD;
-import static io.ballerina.servicemodelgenerator.extension.util.Utils.getImportStmt;
-import static io.ballerina.servicemodelgenerator.extension.util.Utils.getServiceDeclarationNode;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.importExists;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.populateRequiredFuncsDesignApproachAndServiceType;
 
@@ -49,11 +45,12 @@ public final class AiChatServiceBuilder extends AbstractServiceBuilder {
         populateRequiredFuncsDesignApproachAndServiceType(service);
         populateRequiredFunctionsForServiceType(service);
 
-        Map<String, String> importsNeedForTypes = new HashMap<>();
-        String serviceDeclaration = getServiceDeclarationNode(service, TRIGGER_ADD, importsNeedForTypes);
+        StringBuilder serviceBuilder = new StringBuilder(NEW_LINE);
+        buildServiceNodeStr(service, serviceBuilder);
+        buildServiceNodeBody(List.of(getAgentChatFunction()), serviceBuilder);
 
         ModulePartNode rootNode = context.document().syntaxTree().rootNode();
-        edits.add(new TextEdit(Utils.toRange(rootNode.lineRange().endLine()), NEW_LINE + serviceDeclaration));
+        edits.add(new TextEdit(Utils.toRange(rootNode.lineRange().endLine()), serviceBuilder.toString()));
 
         Set<String> importStmts = new HashSet<>();
         if (!importExists(rootNode, BALLERINA, HTTP)) {
@@ -62,14 +59,6 @@ public final class AiChatServiceBuilder extends AbstractServiceBuilder {
         if (!importExists(rootNode, BALLERINA, AI)) {
             importStmts.add(Utils.getImportStmt(BALLERINA, AI));
         }
-        importsNeedForTypes.values().forEach(moduleId -> {
-            String[] importParts = moduleId.split("/");
-            String orgName = importParts[0];
-            String moduleName = importParts[1].split(":")[0];
-            if (!importExists(rootNode, orgName, moduleName)) {
-                importStmts.add(getImportStmt(orgName, moduleName));
-            }
-        });
 
         if (!importStmts.isEmpty()) {
             String importsStmts = String.join(NEW_LINE, importStmts);
@@ -77,6 +66,12 @@ public final class AiChatServiceBuilder extends AbstractServiceBuilder {
         }
 
         return Map.of(context.filePath(), edits);
+    }
+
+    private static String getAgentChatFunction() {
+        return "    resource function post chat(@http:Payload ai:ChatReqMessage request) " +
+                "returns ai:ChatRespMessage|error {" + NEW_LINE +
+                "    }";
     }
 
     @Override

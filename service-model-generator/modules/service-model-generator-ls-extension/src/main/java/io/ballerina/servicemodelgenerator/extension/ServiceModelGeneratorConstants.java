@@ -28,12 +28,13 @@ import io.ballerina.servicemodelgenerator.extension.model.MetaData;
 public class ServiceModelGeneratorConstants {
 
     public static final String CAPABILITY_NAME = "serviceModel";
+    public static final String TAB = "\t";
     public static final String SPACE = " ";
     public static final String OPEN_BRACE = "{";
     public static final String CLOSE_BRACE = "}";
     public static final String NEW_LINE = System.lineSeparator();
     public static final String TWO_NEW_LINES = NEW_LINE + NEW_LINE;
-    public static final String NEW_LINE_WITH_TAB = NEW_LINE + "\t";
+    public static final String NEW_LINE_WITH_TAB = NEW_LINE + TAB;
     public static final String IMPORT_STMT_TEMPLATE = "%nimport %s/%s;%n";
     public static final String AT = "@";
     public static final String COLON = ":";
