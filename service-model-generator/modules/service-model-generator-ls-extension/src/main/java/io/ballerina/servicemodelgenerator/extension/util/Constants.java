@@ -10,6 +10,7 @@ public final class Constants {
     public static final String HTTP = "http";
     public static final String AI = "ai";
     public static final String TCP = "tcp";
+    public static final String RABBITMQ = "rabbitmq";
 
     public static final String DEFAULT = "default";
 

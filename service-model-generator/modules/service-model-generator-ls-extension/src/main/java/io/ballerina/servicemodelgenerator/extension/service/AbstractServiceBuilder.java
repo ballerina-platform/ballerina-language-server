@@ -20,6 +20,7 @@ package io.ballerina.servicemodelgenerator.extension.service;
 
 import io.ballerina.compiler.api.symbols.AnnotationAttachPoint;
 import io.ballerina.compiler.syntax.tree.ExpressionNode;
+import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeList;
@@ -28,8 +29,11 @@ import io.ballerina.modelgenerator.commons.AnnotationAttachment;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.ServiceDatabaseManager;
 import io.ballerina.modelgenerator.commons.ServiceDeclaration;
+import io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants;
 import io.ballerina.servicemodelgenerator.extension.model.AddModelContext;
+import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.DisplayAnnotation;
+import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.GetModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.ModelFromSourceContext;
 import io.ballerina.servicemodelgenerator.extension.model.NodeBuilder;
@@ -54,6 +58,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.CLOSE_BRACE;
+import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.DOUBLE_QUOTE;
 import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.NEW_LINE;
 import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.NEW_LINE_WITH_TAB;
 import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.ON;
@@ -65,25 +70,29 @@ import static io.ballerina.servicemodelgenerator.extension.ServiceModelGenerator
 import static io.ballerina.servicemodelgenerator.extension.util.ListenerUtil.getDefaultListenerDeclarationStmt;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getAnnotationAttachmentProperty;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getBasePathProperty;
+import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getFunction;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getListenersProperty;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getProtocol;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getStringLiteral;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getTypeDescriptorProperty;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.populateRequiredFunctionsForServiceType;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.serviceTypeWithoutPrefix;
-import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.updateGenericServiceModel;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.updateListenerItems;
+import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.updateServiceInfoNew;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionAddContext.TRIGGER_ADD;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionSignatureContext.FUNCTION_ADD;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.addServiceAnnotationTextEdits;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.generateFunctionDefSource;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getAnnotationEdits;
+import static io.ballerina.servicemodelgenerator.extension.util.Utils.getFunctionModel;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getImportStmt;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getListenerExpression;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getPath;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getValueString;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.importExists;
+import static io.ballerina.servicemodelgenerator.extension.util.Utils.populateListenerInfo;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.populateRequiredFuncsDesignApproachAndServiceType;
+import static io.ballerina.servicemodelgenerator.extension.util.Utils.updateAnnotationAttachmentProperty;
 
 public abstract class AbstractServiceBuilder implements NodeBuilder<Service> {
 
@@ -258,12 +267,30 @@ public abstract class AbstractServiceBuilder implements NodeBuilder<Service> {
             return null;
         }
         String serviceType = serviceTypeWithoutPrefix(context.serviceType());
-        Optional<Service> service = ServiceModelUtils.getServiceModelWithFunctions(context.moduleName(), serviceType);
+        Optional<Service> service = ServiceBuilderRouter.getModelTemplate(context.moduleName());
         if (service.isEmpty()) {
             return null;
         }
         Service serviceModel = service.get();
-        updateGenericServiceModel(serviceModel, (ServiceDeclarationNode) context.node(), context.semanticModel());
+        int packageId = Integer.parseInt(serviceModel.getId());
+        ServiceDatabaseManager.getInstance().getMatchingServiceTypeFunctions(packageId, serviceType)
+                .forEach(function -> serviceModel.getFunctions().add(getFunction(function)));
+        serviceModel.getServiceType().setValue(serviceType);
+
+        ServiceDeclarationNode serviceNode = (ServiceDeclarationNode) context.node();
+        extractServicePathInfo(serviceNode, serviceModel);
+
+        boolean isGraphql = serviceModel.getModuleName().equals(ServiceModelGeneratorConstants.GRAPHQL);
+        List<Function> functionsInSource = serviceNode.members().stream()
+                .filter(member -> member instanceof FunctionDefinitionNode)
+                .map(member -> getFunctionModel((FunctionDefinitionNode) member, context.semanticModel(), false,
+                        isGraphql, Map.of()))
+                .toList();
+
+        updateServiceInfoNew(serviceModel, functionsInSource);
+        serviceModel.setCodedata(new Codedata(serviceNode.lineRange()));
+        populateListenerInfo(serviceModel, serviceNode);
+        updateAnnotationAttachmentProperty(serviceNode, serviceModel);
         updateListenerItems(context.moduleName(), context.semanticModel(), context.project(), serviceModel);
         return serviceModel;
     }
@@ -333,6 +360,28 @@ public abstract class AbstractServiceBuilder implements NodeBuilder<Service> {
      */
     static void buildServiceNodeBody(List<String> functions, StringBuilder builder) {
         builder.append(String.join(TWO_NEW_LINES, functions)).append(NEW_LINE).append(CLOSE_BRACE);
+    }
+
+    private static void extractServicePathInfo(ServiceDeclarationNode serviceNode, Service serviceModel) {
+        String attachPoint = getPath(serviceNode.absoluteResourcePath());
+        if (!attachPoint.isEmpty()) {
+            boolean isStringLiteral = attachPoint.startsWith(DOUBLE_QUOTE) && attachPoint.endsWith(DOUBLE_QUOTE);
+            if (isStringLiteral) {
+                Value stringLiteralProperty = serviceModel.getStringLiteralProperty();
+                if (Objects.nonNull(stringLiteralProperty)) {
+                    stringLiteralProperty.setValue(attachPoint);
+                } else {
+                    serviceModel.setStringLiteral(ServiceModelUtils.getStringLiteralProperty(attachPoint));
+                }
+            } else {
+                Value basePathProperty = serviceModel.getBasePath();
+                if (Objects.nonNull(basePathProperty)) {
+                    basePathProperty.setValue(attachPoint);
+                } else {
+                    serviceModel.setBasePath(ServiceModelUtils.getBasePathProperty(attachPoint));
+                }
+            }
+        }
     }
 
     public abstract String kind();

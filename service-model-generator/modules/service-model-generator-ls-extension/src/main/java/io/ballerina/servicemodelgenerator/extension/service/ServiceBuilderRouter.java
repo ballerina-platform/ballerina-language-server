@@ -43,6 +43,7 @@ import java.util.function.Supplier;
 
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.AI;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.HTTP;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.RABBITMQ;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.TCP;
 
 public class ServiceBuilderRouter {
@@ -51,6 +52,7 @@ public class ServiceBuilderRouter {
         put(HTTP, HttpServiceBuilder::new);
         put(AI, AiChatServiceBuilder::new);
         put(TCP, TCPServiceBuilder::new);
+        put(RABBITMQ, RabbitMQServiceBuilder::new);
     }};
 
     public static NodeBuilder<?> getServiceBuilder(String protocol) {
