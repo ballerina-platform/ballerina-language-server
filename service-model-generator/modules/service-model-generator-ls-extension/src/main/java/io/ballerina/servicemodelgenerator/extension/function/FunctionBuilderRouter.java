@@ -37,6 +37,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.GRAPHQL;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.HTTP;
 
 /**
@@ -47,6 +48,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.HTTP;
 public class FunctionBuilderRouter {
     private static final Map<String, Supplier<? extends NodeBuilder<Function>>> CONSTRUCTOR_MAP = new HashMap<>() {{
         put(HTTP, HttpFunctionBuilder::new);
+        put(GRAPHQL, GraphqlFunctionBuilder::new);
     }};
 
     private static NodeBuilder<Function> getFunctionBuilder(String protocol) {
