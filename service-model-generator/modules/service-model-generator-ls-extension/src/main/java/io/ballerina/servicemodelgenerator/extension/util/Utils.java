@@ -88,6 +88,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static io.ballerina.modelgenerator.commons.CommonUtils.isAiModule;
 import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.GET;
 import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.KIND_DEFAULT;
 import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.KIND_DEFAULTABLE;
@@ -949,9 +950,5 @@ public final class Utils {
             return input.substring(1);
         }
         return input;
-    }
-
-    public static boolean isAiAgentModule(String org, String module) {
-        return org.equals("ballerinax") && module.equals("ai");
     }
 }
