@@ -18,12 +18,15 @@
 
 package io.ballerina.servicemodelgenerator.extension.function;
 
+import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
+import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NonTerminalNode;
 import io.ballerina.projects.Document;
 import io.ballerina.servicemodelgenerator.extension.model.AddModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.GetModelContext;
+import io.ballerina.servicemodelgenerator.extension.model.ModelFromSourceContext;
 import io.ballerina.servicemodelgenerator.extension.model.NodeBuilder;
 import io.ballerina.servicemodelgenerator.extension.model.UpdateModelContext;
 import org.eclipse.lsp4j.TextEdit;
@@ -59,8 +62,7 @@ public class FunctionBuilderRouter {
     public static Map<String, List<TextEdit>> addFunction(String moduleName, Function function, String filePath,
                                                           Document document, NonTerminalNode node) throws Exception {
         NodeBuilder<Function> functionBuilder = getFunctionBuilder(moduleName);
-        AddModelContext context = new AddModelContext(null, function, null, null, null, filePath,
-                document, node);
+        AddModelContext context = new AddModelContext(null, function, null, null, null, filePath, document, node);
         return functionBuilder.addModel(context);
     }
 
@@ -71,5 +73,12 @@ public class FunctionBuilderRouter {
         UpdateModelContext context = new UpdateModelContext(null, function, null, null, null, filePath,
                 document, null, functionNode);
         return functionBuilder.updateModel(context);
+    }
+
+    public static Function getFunctionFromSource(String moduleName, SemanticModel semanticModel, Node functionNode) {
+        NodeBuilder<Function> functionBuilder = getFunctionBuilder(moduleName);
+        ModelFromSourceContext context = new ModelFromSourceContext(functionNode, null, semanticModel, null,
+                moduleName, null);
+        return functionBuilder.getModelFromSource(context);
     }
 }
