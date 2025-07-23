@@ -268,6 +268,13 @@ public abstract class AbstractServiceBuilder implements NodeBuilder<Service> {
         return serviceModel;
     }
 
+    /**
+     * Builds the service node string representation.
+     * `service <serviceType> <serviceContractTypeName>|<basePath>|<stringLiteral> on <listener> {`
+     *
+     * @param service the service model
+     * @param builder the StringBuilder to append the service node string
+     */
     static void buildServiceNodeStr(Service service, StringBuilder builder) {
         List<String> annotationEdits = getAnnotationEdits(service);
         if (!annotationEdits.isEmpty()) {
@@ -296,6 +303,14 @@ public abstract class AbstractServiceBuilder implements NodeBuilder<Service> {
         builder.append(SPACE).append(OPEN_BRACE).append(NEW_LINE);
     }
 
+    /**
+     * Return a list of required method definitions for the service.
+     *
+     * @param service the service model
+     * @param context the function add context
+     * @param imports a map of imports to be used in the function definitions
+     * @return a list of method definitions as strings
+     */
     static List<String> buildMethodDefinitions(Service service, Utils.FunctionAddContext context,
                                                Map<String, String> imports) {
         List<String> functions = new ArrayList<>();
@@ -310,6 +325,12 @@ public abstract class AbstractServiceBuilder implements NodeBuilder<Service> {
         return functions;
     }
 
+    /**
+     * Append the function definitions to the service node body and close the service node with a brace.
+     *
+     * @param functions the list of function definitions
+     * @param builder   the StringBuilder to append the service node body
+     */
     static void buildServiceNodeBody(List<String> functions, StringBuilder builder) {
         builder.append(String.join(TWO_NEW_LINES, functions)).append(NEW_LINE).append(CLOSE_BRACE);
     }
