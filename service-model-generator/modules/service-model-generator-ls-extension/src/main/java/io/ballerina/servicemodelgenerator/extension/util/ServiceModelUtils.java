@@ -18,6 +18,7 @@
 
 package io.ballerina.servicemodelgenerator.extension.util;
 
+import io.ballerina.compiler.api.ModuleID;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.ModuleSymbol;
 import io.ballerina.compiler.api.symbols.Symbol;
@@ -39,10 +40,10 @@ import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.FunctionReturnType;
 import io.ballerina.servicemodelgenerator.extension.model.MetaData;
-import io.ballerina.servicemodelgenerator.extension.model.ModuleAndServiceType;
 import io.ballerina.servicemodelgenerator.extension.model.Parameter;
 import io.ballerina.servicemodelgenerator.extension.model.PropertyTypeMemberInfo;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
+import io.ballerina.servicemodelgenerator.extension.model.ServiceMetadata;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
 
 import java.util.ArrayList;
@@ -441,8 +442,8 @@ public class ServiceModelUtils {
         return actualServiceType;
     }
 
-    public static ModuleAndServiceType deriveServiceType(ServiceDeclarationNode serviceNode,
-                                                         SemanticModel semanticModel) {
+    public static ServiceMetadata deriveServiceType(ServiceDeclarationNode serviceNode,
+                                                    SemanticModel semanticModel) {
         Optional<TypeDescriptorNode> serviceTypeDesc = serviceNode.typeDescriptor();
         Optional<ModuleSymbol> module = Optional.empty();
         String serviceType = "Service";
@@ -458,13 +459,13 @@ public class ServiceModelUtils {
         if (module.isEmpty()) {
             SeparatedNodeList<ExpressionNode> expressions = serviceNode.expressions();
             if (expressions.isEmpty()) {
-                return new ModuleAndServiceType(null, serviceType);
+                return new ServiceMetadata(serviceType);
             }
             ExpressionNode expressionNode = expressions.get(0);
             if (expressionNode instanceof ExplicitNewExpressionNode explicitNewExpressionNode) {
                 Optional<Symbol> symbol = semanticModel.symbol(explicitNewExpressionNode.typeDescriptor());
                 if (symbol.isEmpty()) {
-                    return new ModuleAndServiceType(null, serviceType);
+                    return new ServiceMetadata(serviceType);
                 }
                 module = symbol.get().getModule();
             } else if (expressionNode instanceof NameReferenceNode nameReferenceNode) {
@@ -476,8 +477,9 @@ public class ServiceModelUtils {
         }
 
         if (module.isEmpty()) {
-            return new ModuleAndServiceType(null, serviceType);
+            return new ServiceMetadata(serviceType);
         }
-        return new ModuleAndServiceType(module.get().getName().orElse(null), serviceType);
+        ModuleID id = module.get().id();
+        return new ServiceMetadata(serviceType, id.orgName(), id.packageName(), id.moduleName());
     }
 }

@@ -88,7 +88,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static io.ballerina.modelgenerator.commons.CommonUtils.isAiModule;
 import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.GET;
 import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.KIND_DEFAULT;
 import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.KIND_DEFAULTABLE;

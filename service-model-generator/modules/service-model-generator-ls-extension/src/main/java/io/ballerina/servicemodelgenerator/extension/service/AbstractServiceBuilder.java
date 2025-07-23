@@ -99,7 +99,7 @@ public abstract class AbstractServiceBuilder implements NodeBuilder<Service> {
     @Override
     public Optional<Service> getModelTemplate(GetModelContext context) {
         Optional<ServiceDeclaration> serviceDeclaration = ServiceDatabaseManager.getInstance()
-                .getServiceDeclaration(context.moduleName());
+                .getServiceDeclaration(context.orgName(), context.moduleName());
         if (serviceDeclaration.isEmpty()) {
             return Optional.empty();
         }
@@ -267,7 +267,7 @@ public abstract class AbstractServiceBuilder implements NodeBuilder<Service> {
             return null;
         }
         String serviceType = serviceTypeWithoutPrefix(context.serviceType());
-        Optional<Service> service = ServiceBuilderRouter.getModelTemplate(context.moduleName());
+        Optional<Service> service = ServiceBuilderRouter.getModelTemplate(context.orgName(), context.moduleName());
         if (service.isEmpty()) {
             return null;
         }

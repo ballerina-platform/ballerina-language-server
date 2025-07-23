@@ -306,7 +306,8 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
     public CompletableFuture<ServiceModelResponse> getServiceModel(ServiceModelRequest request) {
         return CompletableFuture.supplyAsync(() -> {
             try {
-                Optional<Service> service = ServiceBuilderRouter.getModelTemplate(request.moduleName());
+                Optional<Service> service = ServiceBuilderRouter.getModelTemplate(request.orgName(),
+                        request.moduleName());
                 if (service.isEmpty()) {
                     return new ServiceModelResponse();
                 }

@@ -24,5 +24,6 @@ import io.ballerina.projects.Project;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 
 public record ModelFromSourceContext(Node node, Project project, SemanticModel semanticModel,
-                                     WorkspaceManager workspaceManager, String moduleName, String serviceType) {
+                                     WorkspaceManager workspaceManager, String serviceType,
+                                     String orgName, String packageName, String moduleName) {
 }

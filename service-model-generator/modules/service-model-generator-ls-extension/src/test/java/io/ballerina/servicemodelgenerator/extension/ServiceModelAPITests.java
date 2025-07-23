@@ -55,6 +55,7 @@ import org.eclipse.lsp4j.TextEdit;
 import org.eclipse.lsp4j.jsonrpc.Endpoint;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -663,6 +664,18 @@ public class ServiceModelAPITests {
         Assert.assertFalse(updateResponse.textEdits().isEmpty());
         serviceEndpoint.notify("textDocument/didClose",
                 new DidCloseTextDocumentParams(new TextDocumentIdentifier(filePath.toUri().toString())));
+    }
+
+    @AfterMethod
+    public void restartLanguageServer() {
+        this.startLanguageServer();
+        this.init();
+    }
+
+    private void startLanguageServer() {
+        this.languageServer.shutdown();
+        this.languageServer = null;
+        this.serviceEndpoint = null;
     }
 
     @AfterClass

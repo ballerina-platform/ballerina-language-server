@@ -55,7 +55,7 @@ public class FunctionBuilderRouter {
 
     public static Optional<Function> getModelTemplate(String moduleName, String functionType) {
         NodeBuilder<Function> functionBuilder = getFunctionBuilder(moduleName);
-        GetModelContext context = new GetModelContext(moduleName, functionType);
+        GetModelContext context = GetModelContext.fromServiceAndFunctionType(moduleName, functionType);
         return functionBuilder.getModelTemplate(context);
     }
 
@@ -78,7 +78,7 @@ public class FunctionBuilderRouter {
     public static Function getFunctionFromSource(String moduleName, SemanticModel semanticModel, Node functionNode) {
         NodeBuilder<Function> functionBuilder = getFunctionBuilder(moduleName);
         ModelFromSourceContext context = new ModelFromSourceContext(functionNode, null, semanticModel, null,
-                moduleName, null);
+                moduleName, null, null, null);
         return functionBuilder.getModelFromSource(context);
     }
 }
