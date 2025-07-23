@@ -21,6 +21,7 @@ package io.ballerina.flowmodelgenerator.core;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import io.ballerina.compiler.api.ModuleID;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.AnnotationAttachmentSymbol;
@@ -36,10 +37,16 @@ import io.ballerina.compiler.api.symbols.SymbolKind;
 import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.VariableSymbol;
+import io.ballerina.compiler.syntax.tree.FunctionBodyBlockNode;
+import io.ballerina.compiler.syntax.tree.FunctionBodyNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
+import io.ballerina.compiler.syntax.tree.ModulePartNode;
+import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.NonTerminalNode;
+import io.ballerina.compiler.syntax.tree.StatementNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.Token;
+import io.ballerina.flowmodelgenerator.core.analyzers.function.ModuleNodeAnalyzer;
 import io.ballerina.flowmodelgenerator.core.model.Codedata;
 import io.ballerina.flowmodelgenerator.core.model.FlowNode;
 import io.ballerina.flowmodelgenerator.core.model.FormBuilder;
@@ -54,6 +61,7 @@ import io.ballerina.flowmodelgenerator.core.utils.ParamUtils;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.FunctionData;
 import io.ballerina.modelgenerator.commons.FunctionDataBuilder;
+import io.ballerina.modelgenerator.commons.ModuleInfo;
 import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.modelgenerator.commons.ParameterData;
 import io.ballerina.projects.Document;
@@ -72,13 +80,16 @@ import org.eclipse.lsp4j.TextEdit;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+
+import static io.ballerina.flowmodelgenerator.core.Constants.MODEL_VERSION;
+import static io.ballerina.modelgenerator.commons.CommonUtils.AI_AZURE;
+import static io.ballerina.modelgenerator.commons.CommonUtils.isAiModule;
 
 /**
  * This class is responsible for managing agents.
@@ -93,15 +104,15 @@ public class AgentsGenerator {
     public static final String TARGET_TYPE = "targetType";
     private final Gson gson;
     private final SemanticModel semanticModel;
-    private static final String BALLERINAX = "ballerinax";
-    private static final String AI_AGENT = "ai";
     private static final String INIT = "init";
     private static final String AGENT_FILE = "agents.bal";
     public static final String AGENT = "Agent";
-    private static final String BALLERINA_ORG = "ballerina";
     private static final String HTTP_MODULE = "http";
     private static final List<String> HTTP_REMOTE_METHOD_SKIP_LIST = List.of("get", "put", "post", "head",
             "delete", "patch", "options");
+    private static final String OPENAI_MODEL_PROVIDER = "OpenAiModelProvider";
+    private static final String DEFAULT_MODEL_PROVIDER = "getDefaultModelProvider";
+
 
     public AgentsGenerator() {
         this.gson = new Gson();
@@ -120,7 +131,7 @@ public class AgentsGenerator {
                 continue;
             }
             ClassSymbol classSymbol = (ClassSymbol) symbol;
-            if (classSymbol.qualifiers().contains(Qualifier.CLIENT) && classSymbol.getName().orElse("").equals(AGENT)) {
+            if (classSymbol.getName().orElse("").equals(AGENT)) {
                 Optional<ModuleSymbol> optModule = classSymbol.getModule();
                 if (optModule.isEmpty()) {
                     throw new IllegalStateException("Agent module id not found");
@@ -140,7 +151,37 @@ public class AgentsGenerator {
         return gson.toJsonTree(agents).getAsJsonArray();
     }
 
-    public JsonArray getAllModels(SemanticModel agentSymbol) {
+    public JsonArray getNewBallerinaxModels() {
+        JsonArray models = new JsonArray();
+        CommonUtils.AI_MODULE_NAMES.stream().filter(model -> !model.equals(AI_AZURE))
+                .forEach(model -> models.add(createModelObject(model)));
+        models.add(createModelObject(NodeKind.CLASS_INIT, AI_AZURE, OPENAI_MODEL_PROVIDER));
+        models.add(createModelObject(NodeKind.FUNCTION_CALL, Constants.AI, DEFAULT_MODEL_PROVIDER));
+        return models;
+    }
+
+    private JsonObject createModelObject(String moduleName) {
+        return createModelObject(NodeKind.CLASS_INIT, moduleName, MODEL);
+    }
+
+    private JsonObject createModelObject(NodeKind nodeKind, String moduleName, String objectOrFuncName) {
+        JsonObject model = new JsonObject();
+        model.addProperty("node", nodeKind.toString());
+        model.addProperty("org", nodeKind.equals(NodeKind.CLASS_INIT) ?
+                Constants.BALLERINAX : Constants.BALLERINA);
+        model.addProperty("module", moduleName);
+        model.addProperty("packageName", moduleName);
+        if (nodeKind.equals(NodeKind.CLASS_INIT)) {
+            model.addProperty("object", objectOrFuncName);
+            model.addProperty("symbol", INIT);
+        } else {
+            model.addProperty("symbol", objectOrFuncName);
+        }
+        model.addProperty("version", MODEL_VERSION);
+        return model;
+    }
+
+    public JsonArray getAllBallerinaxModels(SemanticModel agentSymbol) {
         List<ClassSymbol> modelSymbols = new ArrayList<>();
         for (Symbol symbol : agentSymbol.moduleSymbols()) {
             if (symbol.kind() != SymbolKind.CLASS) {
@@ -278,17 +319,17 @@ public class AgentsGenerator {
         return gson.toJsonTree(functionNames).getAsJsonArray();
     }
 
-    public JsonElement genTool(JsonElement node, String toolName, String connectionName, String description,
-                               Path filePath, WorkspaceManager workspaceManager) {
+    public JsonElement genTool(JsonElement node, String toolName, JsonElement toolParameters, String connectionName,
+                               String description, Path filePath, WorkspaceManager workspaceManager) {
         FlowNode flowNode = gson.fromJson(node, FlowNode.class);
+        Property toolParams = gson.fromJson(toolParameters, Property.class);
         NodeKind nodeKind = flowNode.codedata().node();
         SourceBuilder sourceBuilder = new SourceBuilder(flowNode, workspaceManager, filePath);
-        List<String> args = new ArrayList<>();
         String path = flowNode.metadata().icon();
         if (nodeKind == NodeKind.FUNCTION_DEFINITION) {
-            if (description != null && !description.isEmpty()) {
-                sourceBuilder.token().descriptionDoc(description);
-            }
+            boolean hasDescription = genDescription(description, flowNode, sourceBuilder);
+            List<String> paramList = populateToolParams(toolParams, hasDescription, sourceBuilder);
+
             sourceBuilder.token()
                     .name("@ai:AgentTool")
                     .name(System.lineSeparator());
@@ -302,24 +343,7 @@ public class AgentsGenerator {
 
             sourceBuilder.token().keyword(SyntaxKind.ISOLATED_KEYWORD).keyword(SyntaxKind.FUNCTION_KEYWORD);
             sourceBuilder.token().name(toolName).keyword(SyntaxKind.OPEN_PAREN_TOKEN);
-            Optional<Property> parameters = flowNode.getProperty(Property.PARAMETERS_KEY);
-            if (parameters.isPresent() && parameters.get().value() instanceof Map<?, ?> paramMap) {
-                List<String> paramList = new ArrayList<>();
-                for (Object obj : paramMap.values()) {
-                    Property paramProperty = gson.fromJson(gson.toJsonTree(obj), Property.class);
-                    if (!(paramProperty.value() instanceof Map<?, ?> paramData)) {
-                        continue;
-                    }
-                    Map<String, Property> paramProperties = gson.fromJson(gson.toJsonTree(paramData),
-                            FormBuilder.NODE_PROPERTIES_TYPE);
-
-                    String paramType = paramProperties.get(Property.TYPE_KEY).value().toString();
-                    String paramName = paramProperties.get(Property.VARIABLE_KEY).value().toString();
-                    args.add(paramName);
-                    paramList.add(paramType + " " + paramName);
-                }
-                sourceBuilder.token().name(String.join(", ", paramList));
-            }
+            sourceBuilder.token().name(String.join(", ", paramList));
             sourceBuilder.token().keyword(SyntaxKind.CLOSE_PAREN_TOKEN);
 
             Optional<Property> returnType = flowNode.getProperty(Property.TYPE_KEY);
@@ -343,6 +367,21 @@ public class AgentsGenerator {
             if (optFuncName.isEmpty()) {
                 throw new IllegalStateException("Function name is not present");
             }
+
+            List<String> args = new ArrayList<>();
+            Optional<Property> funcCallArgs = flowNode.getProperty(Property.PARAMETERS_KEY);
+            if (funcCallArgs.isPresent() && funcCallArgs.get().value() instanceof Map<?, ?> paramMap) {
+                for (Object obj : paramMap.values()) {
+                    Property paramProperty = gson.fromJson(gson.toJsonTree(obj), Property.class);
+                    if (!(paramProperty.value() instanceof Map<?, ?> paramData)) {
+                        continue;
+                    }
+                    Map<String, Property> paramProperties = gson.fromJson(gson.toJsonTree(paramData),
+                            FormBuilder.NODE_PROPERTIES_TYPE);
+                    args.add(paramProperties.get(Property.VARIABLE_KEY).value().toString());
+                }
+            }
+
             sourceBuilder.token()
                     .name(optFuncName.get().value().toString())
                     .keyword(SyntaxKind.OPEN_PAREN_TOKEN);
@@ -369,36 +408,10 @@ public class AgentsGenerator {
             return gson.toJsonTree(textEdits);
         } else if (nodeKind == NodeKind.REMOTE_ACTION_CALL) {
             boolean hasDescription = genDescription(description, flowNode, sourceBuilder);
-            Map<String, Property> properties = flowNode.properties();
-            Set<String> keys = new LinkedHashSet<>(properties != null ? properties.keySet() : Set.of());
             Set<String> ignoredKeys = new HashSet<>(List.of(Property.VARIABLE_KEY, Property.TYPE_KEY, TARGET_TYPE,
                     Property.CONNECTION_KEY, Property.CHECK_ERROR_KEY));
-            keys.removeAll(ignoredKeys);
 
-            List<String> paramList = new ArrayList<>();
-            for (String k : keys) {
-                Property property = properties.get(k);
-                if (property == null) {
-                    continue;
-                }
-                String key = k;
-                if (k.startsWith("$")) {
-                    key = "'" + k.substring(1);
-                }
-                PropertyCodedata codedata = property.codedata();
-                if (codedata != null) {
-                    String kind = codedata.kind();
-                    if (kind != null && kind.equals(ParameterData.Kind.DEFAULTABLE.name())) {
-                        ignoredKeys.add(key);
-                        continue;
-                    }
-                }
-                if (hasDescription) {
-                    sourceBuilder.token().parameterDoc(key, property.metadata().description());
-                }
-                String paramType = property.valueTypeConstraint().toString();
-                paramList.add(paramType + " " + key);
-            }
+            List<String> paramList = populateToolParams(toolParams, hasDescription, sourceBuilder);
 
             Optional<Property> optReturnType = flowNode.getProperty(Property.TYPE_KEY);
             String returnType = "";
@@ -471,7 +484,6 @@ public class AgentsGenerator {
             Set<String> ignoredKeys = new HashSet<>(List.of(Property.CONNECTION_KEY, Property.VARIABLE_KEY,
                     Property.TYPE_KEY, TARGET_TYPE, Property.RESOURCE_PATH_KEY, Property.CHECK_ERROR_KEY));
             keys.removeAll(ignoredKeys);
-            List<String> paramList = new ArrayList<>();
             Set<String> pathParams = new HashSet<>();
             for (String k : keys) {
                 Property property = properties.get(k);
@@ -490,16 +502,11 @@ public class AgentsGenerator {
                         pathParams.add(key);
                     } else if (kind.equals(ParameterData.Kind.DEFAULTABLE.name())) {
                         ignoredKeys.add(key);
-                        continue;
                     }
                 }
-                if (hasDescription) {
-                    sourceBuilder.token().parameterDoc(key, property.metadata().description());
-                }
-                String paramType = property.valueTypeConstraint().toString();
-                paramList.add(paramType + " " + key);
             }
 
+            List<String> paramList = populateToolParams(toolParams, hasDescription, sourceBuilder);
             sourceBuilder.token()
                     .name("@ai:AgentTool")
                     .name(System.lineSeparator());
@@ -591,6 +598,33 @@ public class AgentsGenerator {
         throw new IllegalStateException("Unsupported node kind to generate tool");
     }
 
+    private List<String> populateToolParams(Property toolParams, boolean hasDescription,
+                                            SourceBuilder sourceBuilder) {
+        List<String> paramList = new ArrayList<>();
+        if (toolParams == null || toolParams.value() == null) {
+            return paramList;
+        }
+        if (toolParams.value() instanceof Map<?, ?> paramMap) {
+            for (Object obj : paramMap.values()) {
+                Property paramProperty = gson.fromJson(gson.toJsonTree(obj), Property.class);
+                if (!(paramProperty.value() instanceof Map<?, ?> paramData)) {
+                    continue;
+                }
+                Map<String, Property> paramProperties = gson.fromJson(gson.toJsonTree(paramData),
+                        FormBuilder.NODE_PROPERTIES_TYPE);
+
+                String paramType = paramProperties.get(Property.TYPE_KEY).value().toString();
+                String paramName = paramProperties.get(Property.VARIABLE_KEY).value().toString();
+                Property property = paramProperties.get(Property.PARAMETER_DESCRIPTION_KEY);
+                paramList.add(paramType + " " + paramName);
+                if (hasDescription && property != null) {
+                    sourceBuilder.token().parameterDoc(paramName, property.value().toString());
+                }
+            }
+        }
+        return paramList;
+    }
+
     private boolean isToolAnnotated(FunctionSymbol functionSymbol) {
         for (AnnotationAttachmentSymbol annotAttachment : functionSymbol.annotAttachments()) {
             AnnotationSymbol annotationSymbol = annotAttachment.typeDescriptor();
@@ -599,7 +633,7 @@ public class AgentsGenerator {
                 continue;
             }
             ModuleID id = optModule.get().id();
-            if (!(id.orgName().equals(BALLERINAX) && id.packageName().equals(AI_AGENT))) {
+            if (!isAiModule(id.orgName(), id.packageName())) {
                 continue;
             }
             Optional<String> optName = annotationSymbol.getName();
@@ -697,7 +731,7 @@ public class AgentsGenerator {
             String packageName = methodFunction.packageName();
             String moduleName = methodFunction.moduleName();
             String version = methodFunction.version();
-            boolean isHttpModule = org.equals(BALLERINA_ORG) && packageName.equals(HTTP_MODULE);
+            boolean isHttpModule = org.equals(Constants.BALLERINA) && packageName.equals(HTTP_MODULE);
 
             NodeBuilder nodeBuilder;
             String label;
@@ -739,33 +773,48 @@ public class AgentsGenerator {
         return gson.toJsonTree(methods).getAsJsonArray();
     }
 
-    public JsonElement editTool(String toolName, String description, Path projectPath) {
-        Map<Path, List<TextEdit>> textEditsMap = new HashMap<>();
-        List<TextEdit> textEdits = new ArrayList<>();
-        for (Symbol symbol : semanticModel.moduleSymbols()) {
-            if (symbol.kind() != SymbolKind.FUNCTION) {
-                continue;
-            }
-            FunctionSymbol functionSymbol = (FunctionSymbol) symbol;
-            if (!functionSymbol.getName().orElseThrow().equals(toolName)) {
-                continue;
-            }
+    public FunctionDefinitionNode getToolFunction(String toolName, Document document) {
+        return ((ModulePartNode) document.syntaxTree().rootNode()).members().stream()
+                .filter(member -> member.kind() == SyntaxKind.FUNCTION_DEFINITION)
+                .map(member -> (FunctionDefinitionNode) member)
+                .filter(function -> function.functionName().text().equals(toolName))
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("Function with name " + toolName + " not found"));
+    }
 
-            for (AnnotationAttachmentSymbol annotAttachment : functionSymbol.annotAttachments()) {
-                AnnotationSymbol annotationSymbol = annotAttachment.typeDescriptor();
-                if (!annotationSymbol.getName().orElseThrow().equals("AgentTool")) {
-                    continue;
-                }
-                Location location = annotAttachment.getLocation().orElseThrow();
-                textEdits.add(new TextEdit(CommonUtils.toRange(location.lineRange()),
-                        "@ai:AgentTool {description: \"" + description + "\"}" + System.lineSeparator()));
-                break;
-            }
-            textEditsMap.put(projectPath.resolve(functionSymbol.getLocation().orElseThrow().lineRange().fileName()),
-                    textEdits);
-            break;
+    public JsonElement getToolFlowNode(FunctionDefinitionNode functionDefinitionNode, Document document) {
+        ModuleNodeAnalyzer moduleNodeAnalyzer =
+                new ModuleNodeAnalyzer(ModuleInfo.from(document.module().descriptor()), semanticModel);
+        functionDefinitionNode.accept(moduleNodeAnalyzer);
+        return moduleNodeAnalyzer.getNode();
+    }
+
+    public JsonElement getMethodCallFlowNode(FunctionDefinitionNode functionDefinitionNode, Project project,
+                                             Document document) {
+        FunctionBodyNode fnBodyNode = functionDefinitionNode.functionBody();
+        if (functionDefinitionNode.functionBody().kind() != SyntaxKind.FUNCTION_BODY_BLOCK) {
+            return null;
         }
-        return gson.toJsonTree(textEditsMap);
+        NodeList<StatementNode> statements = ((FunctionBodyBlockNode) fnBodyNode).statements();
+        if (statements.isEmpty()) {
+            return null;
+        }
+        CodeAnalyzer codeAnalyzer = new CodeAnalyzer(project, semanticModel, Property.LOCAL_SCOPE, Map.of(), Map.of(),
+                document.textDocument(), ModuleInfo.from(document.module().descriptor()), false);
+        StatementNode firstStmt = statements.get(0);
+        firstStmt.accept(codeAnalyzer);
+
+        List<FlowNode> flowNodes = codeAnalyzer.getFlowNodes();
+        if (flowNodes.isEmpty()) {
+            return null;
+        }
+        FlowNode flowNode = flowNodes.getFirst();
+        NodeKind nodeKind = flowNode.codedata().node();
+        if (!(nodeKind == NodeKind.FUNCTION_DEFINITION || nodeKind == NodeKind.REMOTE_ACTION_CALL ||
+                nodeKind == NodeKind.RESOURCE_ACTION_CALL)) {
+            return null;
+        }
+        return gson.toJsonTree(flowNode);
     }
 
     private Path addIsolateKeyword(String name, Path filePath, List<TextEdit> textEdits,

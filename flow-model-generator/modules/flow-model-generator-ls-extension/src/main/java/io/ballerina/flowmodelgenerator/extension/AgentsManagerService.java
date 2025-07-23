@@ -19,21 +19,24 @@
 package io.ballerina.flowmodelgenerator.extension;
 
 import io.ballerina.compiler.api.SemanticModel;
+import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.flowmodelgenerator.core.AgentsGenerator;
-import io.ballerina.flowmodelgenerator.extension.request.EditToolRequest;
 import io.ballerina.flowmodelgenerator.extension.request.GenToolRequest;
+import io.ballerina.flowmodelgenerator.extension.request.GetAiModuleOrgRequest;
 import io.ballerina.flowmodelgenerator.extension.request.GetAllAgentsRequest;
 import io.ballerina.flowmodelgenerator.extension.request.GetAllMemoryManagersRequest;
 import io.ballerina.flowmodelgenerator.extension.request.GetAllModelsRequest;
 import io.ballerina.flowmodelgenerator.extension.request.GetConnectorActionsRequest;
 import io.ballerina.flowmodelgenerator.extension.request.GetModelsRequest;
+import io.ballerina.flowmodelgenerator.extension.request.GetToolRequest;
 import io.ballerina.flowmodelgenerator.extension.request.GetToolsRequest;
-import io.ballerina.flowmodelgenerator.extension.response.EditToolResponse;
 import io.ballerina.flowmodelgenerator.extension.response.GenToolResponse;
 import io.ballerina.flowmodelgenerator.extension.response.GetAgentsResponse;
+import io.ballerina.flowmodelgenerator.extension.response.GetAiModuleOrgResponse;
 import io.ballerina.flowmodelgenerator.extension.response.GetConnectorActionsResponse;
 import io.ballerina.flowmodelgenerator.extension.response.GetMemoryManagersResponse;
 import io.ballerina.flowmodelgenerator.extension.response.GetModelsResponse;
+import io.ballerina.flowmodelgenerator.extension.response.GetToolResponse;
 import io.ballerina.flowmodelgenerator.extension.response.GetToolsResponse;
 import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.projects.Document;
@@ -44,17 +47,21 @@ import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 import org.eclipse.lsp4j.jsonrpc.services.JsonRequest;
 import org.eclipse.lsp4j.jsonrpc.services.JsonSegment;
 import org.eclipse.lsp4j.services.LanguageServer;
+import org.wso2.ballerinalang.compiler.tree.BLangPackage;
 
 import java.nio.file.Path;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
+import static io.ballerina.flowmodelgenerator.core.Constants.AI;
+import static io.ballerina.flowmodelgenerator.core.Constants.BALLERINA;
+import static io.ballerina.flowmodelgenerator.core.Constants.BALLERINAX;
+import static io.ballerina.modelgenerator.commons.CommonUtils.importExists;
+
 @JavaSPIService("org.ballerinalang.langserver.commons.service.spi.ExtendedLanguageServerService")
 @JsonSegment("agentManager")
 public class AgentsManagerService implements ExtendedLanguageServerService {
     private WorkspaceManager workspaceManager;
-    private static final String BALLERINAX = "ballerinax";
-    private static final String AI_AGENT = "ai";
 
     @Override
     public void init(LanguageServer langServer, WorkspaceManager workspaceManager) {
@@ -67,11 +74,29 @@ public class AgentsManagerService implements ExtendedLanguageServerService {
     }
 
     @JsonRequest
+    public CompletableFuture<GetAiModuleOrgResponse> getAiModuleOrg(GetAiModuleOrgRequest request) {
+        return CompletableFuture.supplyAsync(() -> {
+            GetAiModuleOrgResponse response = new GetAiModuleOrgResponse();
+            try {
+                Path projectPath = Path.of(request.projectPath());
+                Project project = this.workspaceManager.loadProject(projectPath);
+                BLangPackage bLangPackage =
+                        PackageUtil.getCompilation(project.currentPackage()).defaultModuleBLangPackage();
+                response.setOrg(importExists(bLangPackage, BALLERINAX, AI) ? BALLERINAX : BALLERINA);
+            } catch (Throwable e) {
+                throw new RuntimeException(e);
+            }
+            return response;
+        });
+    }
+
+    @JsonRequest
     public CompletableFuture<GetAgentsResponse> getAllAgents(GetAllAgentsRequest request) {
         return CompletableFuture.supplyAsync(() -> {
             GetAgentsResponse response = new GetAgentsResponse();
             try {
-                Optional<SemanticModel> semanticModel = PackageUtil.getSemanticModel(BALLERINAX, AI_AGENT);
+                String orgName = request.orgName() != null ? request.orgName() : BALLERINAX;
+                Optional<SemanticModel> semanticModel = PackageUtil.getSemanticModel(orgName, AI);
                 if (semanticModel.isEmpty()) {
                     return response;
                 }
@@ -90,13 +115,13 @@ public class AgentsManagerService implements ExtendedLanguageServerService {
         return CompletableFuture.supplyAsync(() -> {
             GetModelsResponse response = new GetModelsResponse();
             try {
-                Optional<SemanticModel> semanticModel = PackageUtil.getSemanticModel(BALLERINAX, AI_AGENT);
-                if (semanticModel.isEmpty()) {
-                    return response;
-                }
-
                 AgentsGenerator agentsGenerator  = new AgentsGenerator();
-                response.setModels(agentsGenerator.getAllModels(semanticModel.get()));
+                if (BALLERINA.equals(request.orgName())) {
+                    response.setModels(agentsGenerator.getNewBallerinaxModels());
+                } else {
+                    Optional<SemanticModel> semanticModel = PackageUtil.getSemanticModel(BALLERINAX, AI);
+                    semanticModel.ifPresent(model -> response.setModels(agentsGenerator.getAllBallerinaxModels(model)));
+                }
             } catch (Throwable e) {
                 throw new RuntimeException(e);
             }
@@ -109,7 +134,8 @@ public class AgentsManagerService implements ExtendedLanguageServerService {
         return CompletableFuture.supplyAsync(() -> {
             GetMemoryManagersResponse response = new GetMemoryManagersResponse();
             try {
-                Optional<SemanticModel> semanticModel = PackageUtil.getSemanticModel(BALLERINAX, AI_AGENT);
+                String orgName = request.orgName() != null ? request.orgName() : BALLERINAX;
+                Optional<SemanticModel> semanticModel = PackageUtil.getSemanticModel(orgName, AI);
                 if (semanticModel.isEmpty()) {
                     return response;
                 }
@@ -180,7 +206,8 @@ public class AgentsManagerService implements ExtendedLanguageServerService {
 
                 AgentsGenerator agentsGenerator = new AgentsGenerator(semanticModel.get());
                 response.setTextEdits(agentsGenerator.genTool(request.flowNode(), request.toolName(),
-                        request.connection(), request.description(), filePath, this.workspaceManager));
+                        request.toolParameters(), request.connection(), request.description(), filePath,
+                        this.workspaceManager));
             } catch (Throwable e) {
                 throw new RuntimeException(e);
             }
@@ -211,20 +238,29 @@ public class AgentsManagerService implements ExtendedLanguageServerService {
     }
 
     @JsonRequest
-    public CompletableFuture<EditToolResponse> editTool(EditToolRequest request) {
+    public CompletableFuture<GetToolResponse> getTool(GetToolRequest request) {
         return CompletableFuture.supplyAsync(() -> {
-            EditToolResponse response = new EditToolResponse();
+            GetToolResponse response = new GetToolResponse();
             try {
                 Path projectPath = Path.of(request.projectPath());
                 Path filePath = projectPath.resolve("agents.bal");
                 this.workspaceManager.loadProject(filePath);
                 Optional<SemanticModel> semanticModel = this.workspaceManager.semanticModel(filePath);
-                if (semanticModel.isEmpty()) {
+                Optional<Document> optDocument = this.workspaceManager.document(filePath);
+                Optional<Project> optProject = this.workspaceManager.project(projectPath);
+
+                if (semanticModel.isEmpty() || optDocument.isEmpty() || optProject.isEmpty()) {
                     return response;
                 }
 
                 AgentsGenerator agentsGenerator = new AgentsGenerator(semanticModel.get());
-                response.setTextEdits(agentsGenerator.editTool(request.toolName(), request.description(), projectPath));
+                Document document = optDocument.get();
+                FunctionDefinitionNode functionDefinitionNode = agentsGenerator.getToolFunction(request.toolName(),
+                        document);
+                response.setToolName(request.toolName());
+                response.setFlowNode(agentsGenerator.getToolFlowNode(functionDefinitionNode, document));
+                response.setMethodCallFlowNode(agentsGenerator.getMethodCallFlowNode(functionDefinitionNode,
+                        optProject.get(), document));
             } catch (Throwable e) {
                 throw new RuntimeException(e);
             }

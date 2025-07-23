@@ -37,6 +37,7 @@ import io.ballerina.servicemodelgenerator.extension.request.ServiceModelRequest;
 import io.ballerina.servicemodelgenerator.extension.request.ServiceModifierRequest;
 import io.ballerina.servicemodelgenerator.extension.request.ServiceSourceRequest;
 import io.ballerina.servicemodelgenerator.extension.response.CommonSourceResponse;
+import io.ballerina.servicemodelgenerator.extension.response.FunctionFromSourceResponse;
 import io.ballerina.servicemodelgenerator.extension.response.FunctionModelResponse;
 import io.ballerina.servicemodelgenerator.extension.response.ListenerDiscoveryResponse;
 import io.ballerina.servicemodelgenerator.extension.response.ListenerFromSourceResponse;
@@ -50,6 +51,7 @@ import org.ballerinalang.langserver.BallerinaLanguageServer;
 import org.ballerinalang.langserver.util.TestUtil;
 import org.eclipse.lsp4j.DidCloseTextDocumentParams;
 import org.eclipse.lsp4j.TextDocumentIdentifier;
+import org.eclipse.lsp4j.TextEdit;
 import org.eclipse.lsp4j.jsonrpc.Endpoint;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
@@ -177,6 +179,29 @@ public class ServiceModelAPITests {
     }
 
     @Test
+    public void testAddAiListener() throws ExecutionException, InterruptedException {
+        ListenerModelRequest modelRequest = new ListenerModelRequest("ballerina", "ai");
+        CompletableFuture<?> modelResult = serviceEndpoint.request("serviceDesign/getListenerModel", modelRequest);
+        ListenerModelResponse modelResponse = (ListenerModelResponse) modelResult.get();
+        Listener listener = modelResponse.listener();
+
+        Value name = listener.getProperty("name");
+        name.setValue("agentListener");
+        Value listenOn = listener.getProperty("listenOn");
+        listenOn.setValue("check http:getDefaultListener()");
+
+        Path filePath = resDir.resolve("sample2/main.bal");
+        ListenerSourceRequest sourceRequest = new ListenerSourceRequest(filePath.toAbsolutePath().toString(),
+                listener);
+        CompletableFuture<?> sourceResult = serviceEndpoint.request("serviceDesign/addListener", sourceRequest);
+        CommonSourceResponse sourceResponse = (CommonSourceResponse) sourceResult.get();
+        Assert.assertTrue(Objects.nonNull(sourceResponse.textEdits()));
+        Assert.assertFalse(sourceResponse.textEdits().isEmpty());
+        List<TextEdit> textEdits = sourceResponse.textEdits().entrySet().stream().findFirst().get().getValue();
+        Assert.assertEquals(textEdits.size(), 2);
+    }
+
+    @Test
     public void testGetServiceModelWithoutListener() throws ExecutionException, InterruptedException {
         Path filePath = resDir.resolve("sample1/main.bal");
         ServiceModelRequest request = new ServiceModelRequest(filePath.toAbsolutePath().toString(), "ballerina", 
@@ -244,6 +269,29 @@ public class ServiceModelAPITests {
         CommonSourceResponse sourceResponse = (CommonSourceResponse) sourceResult.get();
         Assert.assertTrue(Objects.nonNull(sourceResponse.textEdits()));
         Assert.assertFalse(sourceResponse.textEdits().isEmpty());
+        serviceEndpoint.notify("textDocument/didClose",
+                new DidCloseTextDocumentParams(new TextDocumentIdentifier(filePath.toUri().toString())));
+    }
+
+    @Test
+    public void testAddAiService() throws ExecutionException, InterruptedException {
+        Path filePath = resDir.resolve("sample9/main.bal");
+        ServiceModelRequest modelRequest = new ServiceModelRequest(filePath.toAbsolutePath().toString(), "ballerina",
+                "ai", null);
+        CompletableFuture<?> modelResult = serviceEndpoint.request("serviceDesign/getServiceModel", modelRequest);
+        ServiceModelResponse modelResponse = (ServiceModelResponse) modelResult.get();
+        Service service = modelResponse.service();
+        Assert.assertTrue(Objects.nonNull(service));
+        service.getListener().setValues(List.of("aiListener"));
+
+        ServiceSourceRequest sourceRequest = new ServiceSourceRequest(filePath.toAbsolutePath().toString(), service);
+        CompletableFuture<?> sourceResult = serviceEndpoint.request("serviceDesign/addService", sourceRequest);
+        CommonSourceResponse sourceResponse = (CommonSourceResponse) sourceResult.get();
+        Assert.assertTrue(Objects.nonNull(sourceResponse.textEdits()));
+        Assert.assertFalse(sourceResponse.textEdits().isEmpty());
+
+        List<TextEdit> textEdits = sourceResponse.textEdits().entrySet().stream().findFirst().get().getValue();
+        Assert.assertEquals(textEdits.size(), 2);
         serviceEndpoint.notify("textDocument/didClose",
                 new DidCloseTextDocumentParams(new TextDocumentIdentifier(filePath.toUri().toString())));
     }
@@ -588,17 +636,15 @@ public class ServiceModelAPITests {
     @Test
     public void testUpdateFunction() throws ExecutionException, InterruptedException {
         Path filePath = resDir.resolve("sample3/main.bal");
-        Codedata codedata = new Codedata(LineRange.from("main.bal", LinePosition.from(7, 0),
-                LinePosition.from(21, 1)));
+        Codedata codedata = new Codedata(LineRange.from("main.bal", LinePosition.from(15, 4),
+                LinePosition.from(20, 5)));
         CommonModelFromSourceRequest sourceRequest = new CommonModelFromSourceRequest(
                 filePath.toAbsolutePath().toString(), codedata);
-        CompletableFuture<?> sourceResult = serviceEndpoint.request("serviceDesign/getServiceFromSource",
+        CompletableFuture<?> sourceResult = serviceEndpoint.request("serviceDesign/getFunctionFromSource",
                 sourceRequest);
-        ServiceFromSourceResponse sourceResponse = (ServiceFromSourceResponse) sourceResult.get();
-        Service service = sourceResponse.service();
-        Assert.assertTrue(Objects.nonNull(service));
-        Assert.assertTrue(service.getFunctions().size() > 1);
-        Function function = service.getFunctions().get(1);
+        FunctionFromSourceResponse sourceResponse = (FunctionFromSourceResponse) sourceResult.get();
+        Function function = sourceResponse.function();
+        Assert.assertTrue(Objects.nonNull(function));
         function.getAccessor().setValue("put");
         function.getReturnType().setValue("");
         List<HttpResponse> responses = function.getReturnType().getResponses();
@@ -622,5 +668,7 @@ public class ServiceModelAPITests {
     @AfterClass
     public void cleanupLanguageServer() {
         this.languageServer.shutdown();
+        this.languageServer = null;
+        this.serviceEndpoint = null;
     }
 }

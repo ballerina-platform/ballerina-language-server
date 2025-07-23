@@ -19,12 +19,17 @@
 package io.ballerina.servicemodelgenerator.extension.util;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import com.google.gson.stream.JsonReader;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.ModuleSymbol;
+import io.ballerina.compiler.api.symbols.RecordFieldSymbol;
+import io.ballerina.compiler.api.symbols.RecordTypeSymbol;
 import io.ballerina.compiler.api.symbols.ResourceMethodSymbol;
 import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.api.symbols.TypeDefinitionSymbol;
+import io.ballerina.compiler.api.symbols.TypeDescKind;
 import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
@@ -36,13 +41,13 @@ import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.TypeDefinitionNode;
 import io.ballerina.modelgenerator.commons.Annotation;
+import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.ServiceDatabaseManager;
 import io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants;
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.FunctionReturnType;
 import io.ballerina.servicemodelgenerator.extension.model.HttpResponse;
-import io.ballerina.servicemodelgenerator.extension.model.Parameter;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
 
@@ -58,7 +63,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.KIND_RESOURCE;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getFunctionModel;
@@ -234,18 +241,16 @@ public final class HttpUtil {
     }
 
     public static void updateHttpServiceContractModel(Service serviceModel, TypeDefinitionNode serviceTypeNode,
-                                                      ServiceDeclarationNode serviceDeclaration,
-                                                      SemanticModel semanticModel) {
-        Service commonSvcModel = fromHttpServiceWithContract(serviceTypeNode, serviceDeclaration, semanticModel);
+                                                      ServiceDeclarationNode serviceDeclaration) {
+        Service commonSvcModel = fromHttpServiceWithContract(serviceTypeNode);
         enableContractFirstApproach(serviceModel);
         updateServiceInfo(serviceModel, commonSvcModel);
         serviceModel.setCodedata(new Codedata(serviceDeclaration.lineRange()));
         populateListenerInfo(serviceModel, serviceDeclaration);
     }
 
-    public static void updateHttpServiceModel(Service serviceModel, ServiceDeclarationNode serviceNode,
-                                              SemanticModel semanticModel) {
-        Service commonSvcModel = getServiceModel(serviceNode, semanticModel);
+    public static void updateHttpServiceModel(Service serviceModel, ServiceDeclarationNode serviceNode) {
+        Service commonSvcModel = Service.getEmptyServiceModel();
         updateServiceInfo(serviceModel, commonSvcModel);
         serviceModel.setCodedata(new Codedata(serviceNode.lineRange()));
         populateListenerInfo(serviceModel, serviceNode);
@@ -266,32 +271,9 @@ public final class HttpUtil {
     private static void updateServiceInfo(Service serviceModel, Service commonSvcModel) {
         populateRequiredFuncsDesignApproachAndServiceType(serviceModel);
         updateValue(serviceModel.getServiceContractTypeNameValue(), commonSvcModel.getServiceContractTypeNameValue());
-
-        // functions contains in source but not enforced using the service contract type
-        commonSvcModel.getFunctions().forEach(functionModel -> {
-            if (functionModel.getKind().equals(KIND_RESOURCE)) {
-                getResourceFunctionModel().ifPresentOrElse(
-                        resourceFunction -> {
-                            // remove the default json response from the resource function
-                            if (resourceFunction.getReturnType().getResponses().size() > 1) {
-                                resourceFunction.getReturnType().getResponses().remove(1);
-                            }
-                            updateFunctionInfo(resourceFunction, functionModel);
-                            serviceModel.addFunction(resourceFunction);
-                        },
-                        () -> serviceModel.addFunction(functionModel)
-                );
-            } else {
-                functionModel.setAnnotations(null);
-                functionModel.getAccessor().setEnabled(false);
-                serviceModel.addFunction(functionModel);
-            }
-        });
     }
 
-    public static Service fromHttpServiceWithContract(TypeDefinitionNode serviceTypeNode,
-                                                      ServiceDeclarationNode serviceDeclarationNode,
-                                                      SemanticModel semanticModel) {
+    public static Service fromHttpServiceWithContract(TypeDefinitionNode serviceTypeNode) {
         Service serviceModel = Service.getEmptyServiceModel();
         Value serviceContractType = new Value.ValueBuilder()
                 .enabled(true)
@@ -299,14 +281,6 @@ public final class HttpUtil {
                 .value(serviceTypeNode.typeName().text().trim())
                 .build();
         serviceModel.setServiceContractTypeName(serviceContractType);
-        serviceDeclarationNode.members().forEach(member -> {
-            if (member instanceof FunctionDefinitionNode functionDefinitionNode) {
-                Function functionModel = getFunctionModel(functionDefinitionNode, semanticModel, true,
-                        false, Map.of());
-                serviceModel.getFunctions().add(functionModel);
-            }
-        });
-
         return serviceModel;
     }
 
@@ -326,37 +300,6 @@ public final class HttpUtil {
         return Optional.empty();
     }
 
-    private static Service getServiceModel(ServiceDeclarationNode serviceDeclarationNode, SemanticModel semanticModel) {
-        ServiceDatabaseManager databaseManager = ServiceDatabaseManager.getInstance();
-        List<Annotation> annotationAttachments = databaseManager.
-                getAnnotationAttachments("ballerina", "http", "OBJECT_METHOD");
-        Map<String, Value> annotations = Function.createAnnotationsMap(annotationAttachments);
-        Service serviceModel = Service.getEmptyServiceModel();
-        serviceDeclarationNode.members().forEach(member -> {
-            if (member instanceof FunctionDefinitionNode functionDefinitionNode) {
-                Function functionModel = getFunctionModel(functionDefinitionNode, semanticModel, true, false,
-                        annotations);
-                functionModel.setEditable(true);
-                serviceModel.getFunctions().add(functionModel);
-            }
-        });
-        return serviceModel;
-    }
-
-    private static Optional<Function> getResourceFunctionModel() {
-        InputStream resourceStream = Utils.class.getClassLoader()
-                .getResourceAsStream("functions/http_resource.json");
-        if (resourceStream == null) {
-            return Optional.empty();
-        }
-
-        try (JsonReader reader = new JsonReader(new InputStreamReader(resourceStream, StandardCharsets.UTF_8))) {
-            return Optional.of(new Gson().fromJson(reader, Function.class));
-        } catch (IOException e) {
-            return Optional.empty();
-        }
-    }
-
     private static void enableContractFirstApproach(Service service) {
         Value designApproach = service.getDesignApproach();
         if (Objects.nonNull(designApproach) && Objects.nonNull(designApproach.getChoices())
@@ -370,21 +313,6 @@ public final class HttpUtil {
                         approach.getProperties().remove("spec");
                     });
         }
-    }
-
-    private static void updateFunctionInfo(Function functionModel, Function commonFunction) {
-        functionModel.setEditable(commonFunction.isEditable());
-        functionModel.setEnabled(true);
-        functionModel.setKind(commonFunction.getKind());
-        functionModel.setCodedata(commonFunction.getCodedata());
-        updateValue(functionModel.getAccessor(), commonFunction.getAccessor());
-        updateValue(functionModel.getName(), commonFunction.getName());
-        updateValue(functionModel.getReturnType(), commonFunction.getReturnType());
-        List<Parameter> parameters = functionModel.getParameters();
-        parameters.removeIf(parameter -> commonFunction.getParameters().stream()
-                .anyMatch(newParameter -> newParameter.getType().getValue()
-                        .equals(parameter.getType().getValue())));
-        commonFunction.getParameters().forEach(functionModel::addParameter);
     }
 
     private static List<HttpResponse> getHttpResponses(TypeSymbol returnTypeSymbol, int defaultStatusCode,
@@ -420,13 +348,14 @@ public final class HttpUtil {
                     }
                 });
         List<HttpResponse> responses = new ArrayList<>();
-        HttpResponse normalResponse = new HttpResponse(String.valueOf(defaultStatusCode), "http:Response");
-        normalResponse.setAdvanced(true);
-        normalResponse.setEditable(true);
-        normalResponse.setEnabled(hasHttpResponse.get());
-        normalResponse.setHttpResponseType(true);
 
-        responses.add(normalResponse);
+        if (hasHttpResponse.get()) {
+            HttpResponse dynamicStatusRes = new HttpResponse(String.valueOf(defaultStatusCode), "http:Response");
+            dynamicStatusRes.setEditable(true);
+            dynamicStatusRes.setEnabled(hasHttpResponse.get());
+            dynamicStatusRes.setHttpResponseType(true);
+            responses.add(dynamicStatusRes);
+        }
 
         statusCodeResponses.stream()
                 .map(statusCodeResponse -> getHttpResponse(statusCodeResponse, String.valueOf(defaultStatusCode),
@@ -451,6 +380,13 @@ public final class HttpUtil {
                     responses.add(response);
                 });
 
+        // sort the responses based on status code
+        responses.sort((r1, r2) -> {
+            String code1 = r1.getStatusCode().getValue();
+            String code2 = r2.getStatusCode().getValue();
+            return code1.compareTo(code2);
+        });
+
         return responses;
     }
 
@@ -466,7 +402,37 @@ public final class HttpUtil {
             return HttpResponse.getAnonResponse(statusCode, "record {|...|}");
         }
         boolean addEditButton = typeName.startsWith(currentModuleName + ":");
-        return new HttpResponse(statusCode, typeName, addEditButton);
+        if (typeName.startsWith("http:")) {
+            String type = HTTP_CODES_DES.get(statusCode);
+            if (Objects.nonNull(type) && "http:%s".formatted(type).equals(typeName)) {
+                return new HttpResponse(statusCode, typeName, true);
+            }
+        }
+        List<Object> headers = new ArrayList<>();
+        String body = addHeadersAndGetBodyType(statusCodeResponseType, currentModuleName, headers);
+        return new HttpResponse(statusCode, typeName, body, headers, addEditButton);
+    }
+
+    private static String addHeadersAndGetBodyType(TypeSymbol typeSymbol, String currentModuleName,
+                                                   List<Object> headers) {
+        TypeSymbol rawType = CommonUtils.getRawType(typeSymbol);
+        if (rawType.typeKind() != TypeDescKind.RECORD) {
+            return "anydata";
+        }
+        RecordTypeSymbol recordTypeSymbol = (RecordTypeSymbol) rawType;
+        Map<String, RecordFieldSymbol> fieldSymbolMap = recordTypeSymbol.fieldDescriptors();
+        TypeSymbol headersFieldType = CommonUtils.getRawType(fieldSymbolMap.get("headers").typeDescriptor());
+        if (headersFieldType instanceof RecordTypeSymbol headersRecordType) {
+            headersRecordType.fieldDescriptors().forEach((name, field) -> {
+                    headers.add(Map.of("name", name, "type",
+                            getTypeName(field.typeDescriptor(), currentModuleName),
+                            "optional", field.isOptional()));
+            });
+        }
+        if (fieldSymbolMap.containsKey("body")) {
+            return getTypeName(fieldSymbolMap.get("body").typeDescriptor(), currentModuleName);
+        }
+        return "anydata";
     }
 
     public static boolean isSubTypeOfHttpStatusCodeResponse(TypeSymbol typeSymbol, SemanticModel semanticModel) {
@@ -520,7 +486,7 @@ public final class HttpUtil {
     public static String getStatusCodeResponse(HttpResponse response, List<String> statusCodeResponses,
                                                Map<String, String> imports) {
         Value name = response.getName();
-        if (Objects.nonNull(name) && name.isEnabledWithValue()) {
+        if (Objects.nonNull(name) && name.isEnabledWithValue() && name.isEditable()) {
             String statusCode = response.getStatusCode().getValue();
             String statusCodeRes = HTTP_CODES_DES.get(statusCode);
             if (Objects.isNull(statusCodeRes)) {
@@ -530,17 +496,17 @@ public final class HttpUtil {
                     response.getHeaders(), imports));
             return response.getName().getValue();
         }
-        if (response.getType().isEnabledWithValue()) {
-            if (Objects.nonNull(response.getType().getImports())) {
-                imports.putAll(response.getType().getImports());
-            }
-            return response.getType().getValue();
-        }
         if (Objects.nonNull(response.getBody()) && response.getBody().isEnabledWithValue()) {
             if (Objects.nonNull(response.getBody().getImports())) {
                 imports.putAll(response.getBody().getImports());
             }
             return response.getBody().getValue();
+        }
+        if (response.getType().isEnabledWithValue()) {
+            if (Objects.nonNull(response.getType().getImports())) {
+                imports.putAll(response.getType().getImports());
+            }
+            return response.getType().getValue();
         }
         Value statusCode = response.getStatusCode();
         if (Objects.nonNull(statusCode) && statusCode.isEnabledWithValue()) {
@@ -562,9 +528,101 @@ public final class HttpUtil {
             }
         }
         if (Objects.nonNull(headers) && headers.isEnabledWithValue()) {
-            template += "\tmap<%s> headers;%n".formatted(String.join("|", headers.getValues()));
+            List<Object> values = headers.getValuesAsObjects();
+            StringBuilder headersRecordDef = new StringBuilder("record {|%n".formatted());
+            if (Objects.nonNull(values) && !values.isEmpty()) {
+                for (Object value : values) {
+                    if (value instanceof Map<?, ?> header) {
+                        String headerName = getString(header.get("name"));
+                        String headerType = getString(header.get("type"));
+                        boolean optional = Objects.requireNonNull(getString(header.get("optional"))).contains("true");
+                        headerName = optional ? "%s?".formatted(headerName) : headerName;
+                        headersRecordDef.append("\t\t%s %s;%n".formatted(headerType, headerName));
+                    }
+                    if (value instanceof JsonObject header) {
+                        String headerName = getString(header.get("name"));
+                        String headerType = getString(header.get("type"));
+                        boolean optional = Objects.requireNonNull(getString(header.get("optional"))).contains("true");
+                        headerName = optional ? "%s?".formatted(headerName) : headerName;
+                        headersRecordDef.append("\t\t%s %s;%n".formatted(headerType, headerName));
+                    }
+                }
+            }
+            headersRecordDef.append("\t\t(string|int|boolean|string[]|int[]|boolean[])...;%n".formatted());
+            headersRecordDef.append("\t|}");
+            template += "\t%s headers;%n".formatted(headersRecordDef);
         }
         template += "|};";
         return template;
+    }
+
+    public static Function getFunctionFromFunctionDef(FunctionDefinitionNode functionDefinitionNode,
+                                                      SemanticModel semanticModel) {
+        ServiceDatabaseManager databaseManager = ServiceDatabaseManager.getInstance();
+        List<Annotation> annotationAttachments = databaseManager.
+                getAnnotationAttachments("ballerina", "http", "OBJECT_METHOD");
+        Map<String, Value> annotations = Function.createAnnotationsMap(annotationAttachments);
+        Function functionModel = getFunctionModel(functionDefinitionNode, semanticModel, true, false,
+                annotations);
+        functionModel.setEditable(true);
+
+        if (functionModel.getKind().equals(KIND_RESOURCE)) {
+            Optional<Function> resourceFunctionOp = getResourceFunctionModel();
+            if (resourceFunctionOp.isPresent()) {
+                Function resourceFunction = resourceFunctionOp.get();
+                if (resourceFunction.getReturnType().getResponses().size() > 1) {
+                    resourceFunction.getReturnType().getResponses().remove(1);
+                }
+                updateFunctionInfo(resourceFunction, functionModel);
+                return resourceFunction;
+            }
+        } else {
+            functionModel.setAnnotations(null);
+            functionModel.getAccessor().setEnabled(false);
+        }
+        return functionModel;
+    }
+
+    private static Optional<Function> getResourceFunctionModel() {
+        InputStream resourceStream = Utils.class.getClassLoader()
+                .getResourceAsStream("functions/http_resource.json");
+        if (resourceStream == null) {
+            return Optional.empty();
+        }
+
+        try (JsonReader reader = new JsonReader(new InputStreamReader(resourceStream, StandardCharsets.UTF_8))) {
+            return Optional.of(new Gson().fromJson(reader, Function.class));
+        } catch (IOException e) {
+            return Optional.empty();
+        }
+    }
+
+    private static void updateFunctionInfo(Function functionModel, Function commonFunction) {
+        functionModel.setEditable(commonFunction.isEditable());
+        functionModel.setEnabled(true);
+        functionModel.setKind(commonFunction.getKind());
+        functionModel.setCodedata(commonFunction.getCodedata());
+        updateValue(functionModel.getAccessor(), commonFunction.getAccessor());
+        updateValue(functionModel.getName(), commonFunction.getName());
+        updateValue(functionModel.getReturnType(), commonFunction.getReturnType());
+        Set<String> existingTypes = functionModel.getParameters().stream()
+                .map(parameter -> parameter.getType().getValue())
+                .collect(Collectors.toSet());
+        commonFunction.getParameters().stream()
+                .filter(commonParam -> !existingTypes.contains(commonParam.getType().getValue()))
+                .forEach(functionModel::addParameter);
+    }
+
+    private static String getString(Object value) {
+        if (Objects.isNull(value)) {
+            return null;
+        }
+        if (value instanceof String) {
+            return (String) value;
+        }
+        if (value instanceof JsonPrimitive jsonPrimitive) {
+            return jsonPrimitive.getAsString();
+        }
+        return value.toString();
     }
 }
