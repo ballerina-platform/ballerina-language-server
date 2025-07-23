@@ -118,6 +118,7 @@ import static io.ballerina.servicemodelgenerator.extension.ServiceModelGenerator
 import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.TWO_NEW_LINES;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.DEFAULT;
 import static io.ballerina.servicemodelgenerator.extension.util.ListenerUtil.getDefaultListenerDeclarationStmt;
+import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.deriveServiceType;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getProtocol;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionAddContext.RESOURCE_ADD;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionSignatureContext.HTTP_RESOURCE_ADD;
@@ -516,9 +517,12 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
             if (!(node instanceof FunctionDefinitionNode functionDefinitionNode)) {
                 return new FunctionFromSourceResponse();
             }
-
             String moduleName = (request.codedata().getModuleName() != null) ?
                     request.codedata().getModuleName() : DEFAULT;
+            if (moduleName.equals(DEFAULT) &&
+                    functionDefinitionNode.parent() instanceof ServiceDeclarationNode serviceDecNode) {
+                moduleName = deriveServiceType(serviceDecNode, semanticModelOp.get()).moduleName();
+            }
             Function function = FunctionBuilderRouter.getFunctionFromSource(moduleName, semanticModelOp.get(),
                     functionDefinitionNode);
             return new FunctionFromSourceResponse(function);

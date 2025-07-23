@@ -21,7 +21,6 @@ package io.ballerina.servicemodelgenerator.extension.function;
 import com.google.gson.Gson;
 import com.google.gson.stream.JsonReader;
 import io.ballerina.compiler.syntax.tree.ClassDefinitionNode;
-import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeList;
@@ -32,6 +31,7 @@ import io.ballerina.servicemodelgenerator.extension.model.GetModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.ModelFromSourceContext;
 import io.ballerina.servicemodelgenerator.extension.model.NodeBuilder;
 import io.ballerina.servicemodelgenerator.extension.model.UpdateModelContext;
+import io.ballerina.servicemodelgenerator.extension.util.ServiceClassUtil;
 import io.ballerina.servicemodelgenerator.extension.util.Utils;
 import io.ballerina.tools.text.LinePosition;
 import io.ballerina.tools.text.LineRange;
@@ -53,7 +53,6 @@ import static io.ballerina.servicemodelgenerator.extension.ServiceModelGenerator
 import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.NEW_LINE;
 import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.NEW_LINE_WITH_TAB;
 import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.TWO_NEW_LINES;
-import static io.ballerina.servicemodelgenerator.extension.util.HttpUtil.getFunctionFromFunctionDef;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionSignatureContext.FUNCTION_UPDATE;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.generateFunctionDefSource;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionSignatureContext.FUNCTION_ADD;
@@ -218,7 +217,9 @@ public abstract class AbstractFunctionBuilder implements NodeBuilder<Function> {
      */
     @Override
     public Function getModelFromSource(ModelFromSourceContext context) {
-        return getFunctionFromFunctionDef((FunctionDefinitionNode) context.node(), context.semanticModel());
+        Function functionModel = Function.getNewFunctionModel(ServiceClassUtil.ServiceClassContext.SERVICE_DIAGRAM);
+        functionModel.setEditable(true);
+        return functionModel;
     }
 
     /**
