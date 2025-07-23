@@ -569,75 +569,6 @@ public final class Utils {
         }
     }
 
-    public static String getServiceDeclarationNode(Service service, FunctionAddContext context,
-                                                   Map<String, String> imports) {
-        StringBuilder builder = new StringBuilder();
-        List<String> annots = getAnnotationEdits(service);
-
-        if (!annots.isEmpty()) {
-            builder.append(String.join(NEW_LINE, annots));
-            builder.append(System.lineSeparator());
-        }
-
-        builder.append(ServiceModelGeneratorConstants.SERVICE).append(ServiceModelGeneratorConstants.SPACE);
-        if (Objects.nonNull(service.getServiceType()) && service.getServiceType().isEnabledWithValue()) {
-            builder.append(service.getServiceTypeName());
-            builder.append(ServiceModelGeneratorConstants.SPACE);
-        }
-        if (Objects.nonNull(service.getServiceContractTypeNameValue()) &&
-                service.getServiceContractTypeNameValue().isEnabledWithValue()) {
-            builder.append(service.getServiceContractTypeName());
-            builder.append(ServiceModelGeneratorConstants.SPACE);
-        } else if (Objects.nonNull(service.getBasePath()) && service.getBasePath().isEnabledWithValue()) {
-            builder.append(getValueString(service.getBasePath()));
-            builder.append(ServiceModelGeneratorConstants.SPACE);
-        } else if (Objects.nonNull(service.getStringLiteralProperty()) &&
-                service.getStringLiteralProperty().isEnabledWithValue()) {
-            builder.append(getValueString(service.getStringLiteralProperty()));
-            builder.append(ServiceModelGeneratorConstants.SPACE);
-        }
-
-        builder.append(ServiceModelGeneratorConstants.ON).append(ServiceModelGeneratorConstants.SPACE);
-        if (Objects.nonNull(service.getListener()) && service.getListener().isEnabledWithValue()) {
-            builder.append(service.getListener().getValue());
-        }
-        builder.append(ServiceModelGeneratorConstants.SPACE).append(ServiceModelGeneratorConstants.OPEN_BRACE);
-        builder.append(System.lineSeparator());
-        List<String> functions = new ArrayList<>();
-        boolean isNewTcpService = Utils.isTcpService(service.getOrgName(), service.getPackageName())
-                && service.getProperties().containsKey("returningServiceClass");
-
-        boolean isAiAgent = Utils.isAiAgentModule(service.getOrgName(), service.getPackageName());
-
-        if (isNewTcpService) {
-            String serviceClassName = service.getProperties().get("returningServiceClass").getValue();
-            String onConnectFunc = Utils.getTcpOnConnectTemplate().formatted(serviceClassName, serviceClassName);
-            functions.add(onConnectFunc);
-        } else if (isAiAgent) {
-            String chatFunction = getAgentChatFunction();
-            functions.add(chatFunction);
-        } else {
-            service.getFunctions().forEach(function -> {
-                if (function.isEnabled()) {
-                    String functionNode = "\t" + generateFunctionDefSource(function, new ArrayList<>(), context,
-                            FunctionSignatureContext.FUNCTION_ADD, imports)
-                            .replace(System.lineSeparator(), System.lineSeparator() + "\t");
-                    functions.add(functionNode);
-                }
-            });
-        }
-        builder.append(String.join(System.lineSeparator() + System.lineSeparator(), functions));
-        builder.append(System.lineSeparator());
-        builder.append(ServiceModelGeneratorConstants.CLOSE_BRACE);
-        return builder.toString();
-    }
-
-    private static String getAgentChatFunction() {
-        return "    resource function post chat(@http:Payload ai:ChatReqMessage request) " +
-                "returns ai:ChatRespMessage|error {" + System.lineSeparator() +
-                "    }";
-    }
-
     public static List<String> getAnnotationEdits(Service service) {
         Map<String, Value> properties = service.getProperties();
         List<String> annots = new ArrayList<>();
@@ -989,35 +920,6 @@ public final class Utils {
 
     public static boolean expectsTriggerByName(TriggerRequest request) {
         return request.id() == null && request.organization() != null && request.packageName() != null;
-    }
-
-    public static boolean isTcpService(String org, String module) {
-        return org.equals("ballerina") && module.equals("tcp");
-    }
-
-    public static String getTcpOnConnectTemplate() {
-        return "    remote function onConnect(tcp:Caller caller) returns tcp:ConnectionService|tcp:Error? {%n" +
-                "        do {%n" +
-                "            %s connectionService = new %s();%n" +
-                "            return connectionService;%n" +
-                "        } on fail error err {%n" +
-                "            // handle error%n" +
-                "            return error(\"unhandled error\", err);%n" +
-                "        }%n" +
-                "    }";
-    }
-
-    public static FunctionAddContext getTriggerAddContext(String org, String module) {
-        if (org.equals("ballerina")) {
-            if (module.equals("http")) {
-                return FunctionAddContext.HTTP_SERVICE_ADD;
-            } else if (module.equals("graphql")) {
-                return FunctionAddContext.GRAPHQL_SERVICE_ADD;
-            } else if (module.equals("tcp")) {
-                return FunctionAddContext.TCP_SERVICE_ADD;
-            }
-        }
-        return FunctionAddContext.TRIGGER_ADD;
     }
 
     public static String generateVariableIdentifier(SemanticModel semanticModel, Document document,

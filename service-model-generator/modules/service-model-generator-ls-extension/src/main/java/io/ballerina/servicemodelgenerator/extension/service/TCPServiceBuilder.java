@@ -3,28 +3,22 @@ package io.ballerina.servicemodelgenerator.extension.service;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.servicemodelgenerator.extension.model.AddModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
-import io.ballerina.servicemodelgenerator.extension.model.Value;
 import io.ballerina.servicemodelgenerator.extension.util.ListenerUtil;
 import io.ballerina.servicemodelgenerator.extension.util.ServiceClassUtil;
 import io.ballerina.servicemodelgenerator.extension.util.Utils;
+import io.ballerina.tools.text.LineRange;
 import org.eclipse.lsp4j.TextEdit;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 
 import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.NEW_LINE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.BALLERINA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.TCP;
 import static io.ballerina.servicemodelgenerator.extension.util.ListenerUtil.getDefaultListenerDeclarationStmt;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.populateRequiredFunctionsForServiceType;
-import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionAddContext.TCP_SERVICE_ADD;
-import static io.ballerina.servicemodelgenerator.extension.util.Utils.getImportStmt;
-import static io.ballerina.servicemodelgenerator.extension.util.Utils.getServiceDeclarationNode;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.importExists;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.populateRequiredFuncsDesignApproachAndServiceType;
 
@@ -46,36 +40,38 @@ public final class TCPServiceBuilder extends AbstractServiceBuilder {
         populateRequiredFunctionsForServiceType(service);
 
         ModulePartNode rootNode = context.document().syntaxTree().rootNode();
+        LineRange lineRange = rootNode.lineRange();
         String serviceName = Utils.generateTypeIdentifier(context.semanticModel(), context.document(),
-                rootNode.lineRange().endLine(), TCP_SERVICE_CLASS_NAME);
-        service.getProperties().put("returningServiceClass", Value.getTcpValue(serviceName)); // TODO: remove this prop
+                lineRange.endLine(), TCP_SERVICE_CLASS_NAME);
 
-        Map<String, String> importsNeedForTypes = new HashMap<>();
-        String serviceDeclaration = getServiceDeclarationNode(service, TCP_SERVICE_ADD, importsNeedForTypes);
-        edits.add(new TextEdit(Utils.toRange(rootNode.lineRange().endLine()), NEW_LINE + serviceDeclaration));
+        StringBuilder serviceBuilder = new StringBuilder(NEW_LINE);
+        buildServiceNodeStr(service, serviceBuilder);
+        buildServiceNodeBody(List.of(tcpServiceClassTemplate(serviceName)), serviceBuilder);
 
-        Set<String> importStmts = new HashSet<>();
+        edits.add(new TextEdit(Utils.toRange(lineRange.endLine()), serviceBuilder.toString()));
+
         if (!importExists(rootNode, BALLERINA, TCP)) {
-            importStmts.add(Utils.getImportStmt(service.getOrgName(), service.getModuleName()));
-        }
-        importsNeedForTypes.values().forEach(moduleId -> {
-            String[] importParts = moduleId.split("/");
-            String orgName = importParts[0];
-            String moduleName = importParts[1].split(":")[0];
-            if (!importExists(rootNode, orgName, moduleName)) {
-                importStmts.add(getImportStmt(orgName, moduleName));
-            }
-        });
-
-        if (!importStmts.isEmpty()) {
-            String importsStmts = String.join(NEW_LINE, importStmts);
-            edits.addFirst(new TextEdit(Utils.toRange(rootNode.lineRange().startLine()), importsStmts));
+            String importStatement = Utils.getImportStmt(service.getOrgName(), service.getModuleName());
+            edits.addFirst(new TextEdit(Utils.toRange(lineRange.startLine()), importStatement));
         }
 
         String serviceClass = ServiceClassUtil.getTcpConnectionServiceTemplate().formatted(serviceName);
-        edits.add(new TextEdit(Utils.toRange(rootNode.lineRange().endLine()), serviceClass));
+        edits.add(new TextEdit(Utils.toRange(lineRange.endLine()), serviceClass));
 
         return Map.of(context.filePath(), edits);
+    }
+
+    public static String tcpServiceClassTemplate(String serviceClassName) {
+        String f = "    remote function onConnect(tcp:Caller caller) returns tcp:ConnectionService|tcp:Error? {%n" +
+                "        do {%n" +
+                "            %s connectionService = new %s();%n" +
+                "            return connectionService;%n" +
+                "        } on fail error err {%n" +
+                "            // handle error%n" +
+                "            return error(\"unhandled error\", err);%n" +
+                "        }%n" +
+                "    }";
+        return f.formatted(serviceClassName, serviceClassName);
     }
 
     @Override

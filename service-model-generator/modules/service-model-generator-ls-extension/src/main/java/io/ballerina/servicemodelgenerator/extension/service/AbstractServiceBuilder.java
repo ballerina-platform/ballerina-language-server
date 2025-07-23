@@ -53,7 +53,15 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
+import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.CLOSE_BRACE;
 import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.NEW_LINE;
+import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.NEW_LINE_WITH_TAB;
+import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.ON;
+import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.OPEN_BRACE;
+import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.SERVICE;
+import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.SPACE;
+import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.TAB;
+import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.TWO_NEW_LINES;
 import static io.ballerina.servicemodelgenerator.extension.util.ListenerUtil.getDefaultListenerDeclarationStmt;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getAnnotationAttachmentProperty;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getBasePathProperty;
@@ -66,11 +74,14 @@ import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtil
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.updateGenericServiceModel;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.updateListenerItems;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionAddContext.TRIGGER_ADD;
+import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionSignatureContext.FUNCTION_ADD;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.addServiceAnnotationTextEdits;
+import static io.ballerina.servicemodelgenerator.extension.util.Utils.generateFunctionDefSource;
+import static io.ballerina.servicemodelgenerator.extension.util.Utils.getAnnotationEdits;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getImportStmt;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getListenerExpression;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getPath;
-import static io.ballerina.servicemodelgenerator.extension.util.Utils.getServiceDeclarationNode;
+import static io.ballerina.servicemodelgenerator.extension.util.Utils.getValueString;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.importExists;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.populateRequiredFuncsDesignApproachAndServiceType;
 
@@ -153,10 +164,13 @@ public abstract class AbstractServiceBuilder implements NodeBuilder<Service> {
         populateRequiredFunctionsForServiceType(service);
 
         Map<String, String> imports = new HashMap<>();
-        String serviceDeclaration = getServiceDeclarationNode(service, TRIGGER_ADD, imports);
+        StringBuilder serviceBuilder = new StringBuilder(NEW_LINE);
+        buildServiceNodeStr(service, serviceBuilder);
+        List<String> functionsStr = buildMethodDefinitions(service, TRIGGER_ADD, imports);
+        buildServiceNodeBody(functionsStr, serviceBuilder);
 
         ModulePartNode rootNode = context.document().syntaxTree().rootNode();
-        edits.add(new TextEdit(Utils.toRange(rootNode.lineRange().endLine()), NEW_LINE + serviceDeclaration));
+        edits.add(new TextEdit(Utils.toRange(rootNode.lineRange().endLine()), serviceBuilder.toString()));
 
         Set<String> importStmts = new HashSet<>();
         if (!importExists(rootNode, service.getOrgName(), service.getModuleName())) {
@@ -252,6 +266,52 @@ public abstract class AbstractServiceBuilder implements NodeBuilder<Service> {
         updateGenericServiceModel(serviceModel, (ServiceDeclarationNode) context.node(), context.semanticModel());
         updateListenerItems(context.moduleName(), context.semanticModel(), context.project(), serviceModel);
         return serviceModel;
+    }
+
+    static void buildServiceNodeStr(Service service, StringBuilder builder) {
+        List<String> annotationEdits = getAnnotationEdits(service);
+        if (!annotationEdits.isEmpty()) {
+            builder.append(String.join(NEW_LINE, annotationEdits)).append(NEW_LINE);
+        }
+
+        builder.append(SERVICE).append(SPACE);
+        if (Objects.nonNull(service.getServiceType()) && service.getServiceType().isEnabledWithValue()) {
+            builder.append(service.getServiceTypeName()).append(SPACE);
+        }
+        Value serviceContract = service.getServiceContractTypeNameValue();
+        Value serviceBasePath = service.getBasePath();
+        Value stringLiteralProperty = service.getStringLiteralProperty();
+        if (Objects.nonNull(serviceContract) && serviceContract.isEnabledWithValue()) {
+            builder.append(service.getServiceContractTypeName()).append(SPACE);
+        } else if (Objects.nonNull(serviceBasePath) && serviceBasePath.isEnabledWithValue()) {
+            builder.append(getValueString(serviceBasePath)).append(SPACE);
+        } else if (Objects.nonNull(stringLiteralProperty) && stringLiteralProperty.isEnabledWithValue()) {
+            builder.append(getValueString(stringLiteralProperty)).append(SPACE);
+        }
+
+        builder.append(ON).append(SPACE);
+        if (Objects.nonNull(service.getListener()) && service.getListener().isEnabledWithValue()) {
+            builder.append(service.getListener().getValue());
+        }
+        builder.append(SPACE).append(OPEN_BRACE).append(NEW_LINE);
+    }
+
+    static List<String> buildMethodDefinitions(Service service, Utils.FunctionAddContext context,
+                                               Map<String, String> imports) {
+        List<String> functions = new ArrayList<>();
+        service.getFunctions().forEach(function -> {
+            if (function.isEnabled()) {
+                String functionNode = TAB;
+                functionNode += generateFunctionDefSource(function, new ArrayList<>(), context, FUNCTION_ADD, imports)
+                        .replace(NEW_LINE, NEW_LINE_WITH_TAB);
+                functions.add(functionNode);
+            }
+        });
+        return functions;
+    }
+
+    static void buildServiceNodeBody(List<String> functions, StringBuilder builder) {
+        builder.append(String.join(TWO_NEW_LINES, functions)).append(NEW_LINE).append(CLOSE_BRACE);
     }
 
     public abstract String kind();
