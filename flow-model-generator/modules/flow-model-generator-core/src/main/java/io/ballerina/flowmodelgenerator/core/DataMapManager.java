@@ -128,6 +128,7 @@ public class DataMapManager {
     public static final String FROM = "from";
     public static final String WHERE = "where";
     public static final String LIMIT = "limit";
+    public static final String LET = "let";
     public static final String ORDER_BY = "order-by";
     public static final String ITEM = "Item";
     public static final String INT = "int";
@@ -848,7 +849,11 @@ public class DataMapManager {
             expr = varDecl.expression();
         }
 
+
         if (expr != null) {
+            if (expr.kind() == SyntaxKind.LET_EXPRESSION) {
+                expr = ((LetExpressionNode) expr).expression();
+            }
             String output = mapping.output();
             String[] splits = output.split(DOT);
             StringBuilder sb = new StringBuilder();
@@ -868,18 +873,25 @@ public class DataMapManager {
         List<TextEdit> textEdits = new ArrayList<>();
         textEditsMap.put(filePath, textEdits);
 
+        ExpressionNode expr = null;
         if (node.kind() == SyntaxKind.LOCAL_VAR_DECL) {
             VariableDeclarationNode varDecl = (VariableDeclarationNode) node;
-            String output = mapping.output();
-            String[] splits = output.split(DOT);
-            ExpressionNode expr = getMappingExpr(varDecl.initializer().orElseThrow(), targetField);
-            genDeleteMappingSource(expr, splits, 1, textEdits);
+            expr = varDecl.initializer().orElseThrow();
         } else if (node.kind() == SyntaxKind.MODULE_VAR_DECL) {
             ModuleVariableDeclarationNode moduleVarDecl = (ModuleVariableDeclarationNode) node;
+            expr = moduleVarDecl.initializer().orElseThrow();
+        } else if (node.kind() == SyntaxKind.LET_VAR_DECL) {
+            LetVariableDeclarationNode letVarDecl = (LetVariableDeclarationNode) node;
+            expr = letVarDecl.expression();
+        }
+
+        if (expr != null) {
+            if (expr.kind() == SyntaxKind.LET_EXPRESSION) {
+                expr = ((LetExpressionNode) expr).expression();
+            }
             String output = mapping.output();
             String[] splits = output.split(DOT);
-            ExpressionNode expr = getMappingExpr(moduleVarDecl.initializer().orElseThrow(), targetField);
-            genDeleteMappingSource(expr, splits, 1, textEdits);
+            genDeleteMappingSource(getMappingExpr(expr, targetField), splits, 1, textEdits);
         }
 
         return gson.toJsonTree(textEditsMap);
@@ -888,7 +900,9 @@ public class DataMapManager {
 
     private void genSource(ExpressionNode expr, String[] names, int idx, StringBuilder stringBuilder,
                            String mappingExpr, LinePosition position, List<TextEdit> textEdits) {
-        if (expr == null) {
+        if (idx == names.length) {
+            textEdits.add(new TextEdit(CommonUtils.toRange(expr.lineRange()), mappingExpr));
+        } else if (expr == null) {
             String name = names[idx];
             if (name.matches("\\d+")) {
                 stringBuilder.append(mappingExpr);
@@ -920,28 +934,19 @@ public class DataMapManager {
             }
         } else if (expr.kind() == SyntaxKind.LIST_CONSTRUCTOR) {
             ListConstructorExpressionNode listCtrExpr = (ListConstructorExpressionNode) expr;
-            if (idx == names.length) {
-                textEdits.add(new TextEdit(CommonUtils.toRange(expr.lineRange()), mappingExpr));
-            } else {
-                String name = names[idx];
-                if (name.matches("\\d+")) {
-                    int index = Integer.parseInt(name);
-                    if (index >= listCtrExpr.expressions().size()) {
-                        if (idx > 0) {
-                            stringBuilder.append(", ");
-                        }
-                        genSource(null, names, idx, stringBuilder, mappingExpr,
-                                listCtrExpr.closeBracket().lineRange().startLine(), textEdits);
-                    } else {
-                        genSource((ExpressionNode) listCtrExpr.expressions().get(index), names, idx + 1, stringBuilder,
-                                mappingExpr, null, textEdits);
+            String name = names[idx];
+            if (name.matches("\\d+")) {
+                int index = Integer.parseInt(name);
+                if (index >= listCtrExpr.expressions().size()) {
+                    if (idx > 0) {
+                        stringBuilder.append(", ");
                     }
+                    genSource(null, names, idx, stringBuilder, mappingExpr,
+                            listCtrExpr.closeBracket().lineRange().startLine(), textEdits);
+                } else {
+                    genSource((ExpressionNode) listCtrExpr.expressions().get(index), names, idx + 1, stringBuilder,
+                            mappingExpr, null, textEdits);
                 }
-            }
-        } else {
-            // TODO: check to move this out of if-else and move up
-            if (idx == names.length) {
-                textEdits.add(new TextEdit(CommonUtils.toRange(expr.lineRange()), mappingExpr));
             }
         }
     }
@@ -1652,7 +1657,7 @@ public class DataMapManager {
                     SeparatedNodeList<LetVariableDeclarationNode> letVars = letClauseNode.letVarDeclarations();
                     LetVariableDeclarationNode letVar = letVars.get(0);
                     TypedBindingPatternNode typedBindingPattern = letVar.typedBindingPattern();
-                    intermediateClauses.add(new Clause(LIMIT,
+                    intermediateClauses.add(new Clause(LET,
                             new Properties(typedBindingPattern.bindingPattern().toSourceCode().trim(),
                                     typedBindingPattern.typeDescriptor().toSourceCode().trim(),
                                     letVar.expression().toSourceCode().trim(), null)));
