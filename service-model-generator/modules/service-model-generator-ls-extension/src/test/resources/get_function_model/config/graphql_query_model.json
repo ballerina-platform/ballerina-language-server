@@ -109,6 +109,13 @@
     "enabled": true,
     "optional": false,
     "editable": true,
-    "canAddParameters": false
+    "canAddParameters": false,
+    "codedata": {
+      "inListenerInit": false,
+      "isBasePath": false,
+      "inDisplayAnnotation": false,
+      "orgName": "ballerina",
+      "moduleName": "graphql"
+    }
   }
 }

@@ -564,6 +564,13 @@
     "optional": false,
     "editable": true,
     "canAddParameters": false,
+    "codedata": {
+      "inListenerInit": false,
+      "isBasePath": false,
+      "inDisplayAnnotation": false,
+      "orgName": "ballerina",
+      "moduleName": "http"
+    },
     "annotations": {
       "annotResourceConfig": {
         "metadata": {
