@@ -52,6 +52,7 @@ import java.util.Set;
 
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.OBJECT_TYPE_DESC;
 import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.NEW_LINE;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.BALLERINA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.HTTP;
 import static io.ballerina.servicemodelgenerator.extension.util.HttpUtil.updateHttpServiceContractModel;
 import static io.ballerina.servicemodelgenerator.extension.util.HttpUtil.updateHttpServiceModel;
@@ -137,7 +138,7 @@ public final class HttpServiceBuilder extends AbstractServiceBuilder {
 
     @Override
     public Service getModelFromSource(ModelFromSourceContext context) {
-        Optional<Service> service = getModelTemplate(new GetModelContext(HTTP));
+        Optional<Service> service = getModelTemplate(GetModelContext.fromServiceAndFunctionType(BALLERINA, HTTP));
         if (service.isEmpty()) {
             return null;
         }

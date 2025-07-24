@@ -20,19 +20,22 @@ package io.ballerina.servicemodelgenerator.extension.model;
 
 import java.util.Locale;
 
-public record GetModelContext(String moduleName, String serviceType, String functionType) {
+public record GetModelContext(String orgName, String packageName, String moduleName, String serviceType,
+                              String functionType) {
     public GetModelContext {
+        orgName = (orgName != null) ? orgName.toLowerCase(Locale.US) : null;
+        packageName = (packageName != null) ? packageName.toLowerCase(Locale.US) : null;
         moduleName = (moduleName != null) ? moduleName.toLowerCase(Locale.US) : null;
         serviceType = (serviceType != null) ? serviceType.toLowerCase(Locale.US) : null;
         functionType = (functionType != null) ? functionType.toLowerCase(Locale.US) : null;
     }
 
-    public GetModelContext(String moduleName) {
-        this(moduleName, null, null);
+    public static GetModelContext fromOrgAndModule(String orgName, String moduleName) {
+        return new GetModelContext(orgName, moduleName, moduleName, null, null);
     }
 
-    public GetModelContext(String serviceType, String functionType) {
-        this(null, serviceType, functionType);
+    public static GetModelContext fromServiceAndFunctionType(String serviceType, String functionType) {
+        return new GetModelContext(null, null, null, serviceType, functionType);
     }
 }
 

@@ -18,8 +18,7 @@
 
 package io.ballerina.servicemodelgenerator.extension.util;
 
-import com.google.gson.Gson;
-import com.google.gson.stream.JsonReader;
+import io.ballerina.compiler.api.ModuleID;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.ModuleSymbol;
 import io.ballerina.compiler.api.symbols.Symbol;
@@ -27,7 +26,6 @@ import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.VariableSymbol;
 import io.ballerina.compiler.syntax.tree.ExplicitNewExpressionNode;
 import io.ballerina.compiler.syntax.tree.ExpressionNode;
-import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.NameReferenceNode;
 import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
@@ -42,105 +40,25 @@ import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.FunctionReturnType;
 import io.ballerina.servicemodelgenerator.extension.model.MetaData;
-import io.ballerina.servicemodelgenerator.extension.model.ModuleAndServiceType;
 import io.ballerina.servicemodelgenerator.extension.model.Parameter;
 import io.ballerina.servicemodelgenerator.extension.model.PropertyTypeMemberInfo;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
+import io.ballerina.servicemodelgenerator.extension.model.ServiceMetadata;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
-import io.ballerina.servicemodelgenerator.extension.service.ServiceBuilderRouter;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static io.ballerina.servicemodelgenerator.extension.util.Utils.getFunctionModel;
-import static io.ballerina.servicemodelgenerator.extension.util.Utils.getPath;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.isPresent;
-import static io.ballerina.servicemodelgenerator.extension.util.Utils.populateListenerInfo;
-import static io.ballerina.servicemodelgenerator.extension.util.Utils.updateAnnotationAttachmentProperty;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.updateValue;
 
 public class ServiceModelUtils {
 
-    /**
-     * Update the service model of services other than http.
-     *
-     * @param serviceModel service model initially populated using the database
-     * @param serviceNode service declaration node
-     * @param semanticModel semantic model of the source
-     */
-    public static void updateGenericServiceModel(Service serviceModel, ServiceDeclarationNode serviceNode,
-                                                 SemanticModel semanticModel) {
-        // handle base path and string literal
-        String attachPoint = getPath(serviceNode.absoluteResourcePath());
-        if (!attachPoint.isEmpty()) {
-            boolean isStringLiteral = attachPoint.startsWith("\"") && attachPoint.endsWith("\"");
-            if (isStringLiteral) {
-                Value stringLiteralProperty = serviceModel.getStringLiteralProperty();
-                if (Objects.nonNull(stringLiteralProperty)) {
-                    stringLiteralProperty.setValue(attachPoint);
-                } else {
-                    serviceModel.setStringLiteral(ServiceModelUtils.getStringLiteralProperty(attachPoint));
-                }
-            } else {
-                Value basePathProperty = serviceModel.getBasePath();
-                if (Objects.nonNull(basePathProperty)) {
-                    basePathProperty.setValue(attachPoint);
-                } else {
-                    serviceModel.setBasePath(ServiceModelUtils.getBasePathProperty(attachPoint));
-                }
-            }
-        }
-
-        boolean isGraphql = serviceModel.getModuleName().equals(ServiceModelGeneratorConstants.GRAPHQL);
-        List<Function> functionsInSource = serviceNode.members().stream()
-                .filter(member -> member instanceof FunctionDefinitionNode)
-                .map(member -> getFunctionModel((FunctionDefinitionNode) member, semanticModel, false,
-                        isGraphql, Map.of()))
-                .toList();
-
-        updateServiceInfoNew(serviceModel, functionsInSource);
-        serviceModel.setCodedata(new Codedata(serviceNode.lineRange()));
-        populateListenerInfo(serviceModel, serviceNode);
-        updateAnnotationAttachmentProperty(serviceNode, serviceModel);
-
-        if (serviceModel.getModuleName().equals(ServiceModelGeneratorConstants.RABBITMQ)) {
-            filterRabbitMqFunctions(serviceModel.getFunctions());
-        }
-    }
-
-    private static void filterRabbitMqFunctions(List<Function> functions) {
-        // RabbitMQ services can have on of `onMessage` or `onRequest` functions
-        boolean hasOnMessage = false;
-        boolean hasOnRequest = false;
-        int onMessageIndex = -1;
-        int onRequestIndex = -1;
-        for (int i = 0; i < functions.size(); i++) {
-            Function function = functions.get(i);
-            if (function.getName().getValue().equals("onMessage")) {
-                hasOnMessage = function.isEnabled();
-                onMessageIndex = i;
-            } else if (function.getName().getValue().equals("onRequest")) {
-                hasOnRequest = function.isEnabled();
-                onRequestIndex = i;
-            }
-        }
-        if (hasOnMessage) {
-            functions.remove(onRequestIndex);
-        } else if (hasOnRequest) {
-            functions.remove(onMessageIndex);
-        }
-    }
-
-    private static void updateServiceInfoNew(Service serviceModel, List<Function> functionsInSource) {
+    public static void updateServiceInfoNew(Service serviceModel, List<Function> functionsInSource) {
         Utils.populateRequiredFunctions(serviceModel);
 
         boolean isGraphql = serviceModel.getModuleName().equals(ServiceModelGeneratorConstants.GRAPHQL);
@@ -214,26 +132,6 @@ public class ServiceModelUtils {
         updateValue(target.getName(), source.getName());
     }
 
-    /**
-     * Get the service model for a give service type including its functions.
-     *
-     * @param moduleName module name
-     * @param serviceType service type
-     * @return {@link Optional<Service>} service model
-     */
-    public static Optional<Service> getServiceModelWithFunctions(String moduleName, String serviceType) {
-        Optional<Service> serviceOptional = ServiceBuilderRouter.getModelTemplate(moduleName);
-        if (serviceOptional.isEmpty() || serviceOptional.get().getPackageName().equals("http")) {
-            return serviceOptional;
-        }
-        Service service = serviceOptional.get();
-        int packageId = Integer.parseInt(service.getId());
-        ServiceDatabaseManager.getInstance().getMatchingServiceTypeFunctions(packageId, serviceType)
-                .forEach(function -> service.getFunctions().add(getFunction(function)));
-        service.getServiceType().setValue(serviceType);
-        return Optional.of(service);
-    }
-
     public static void populateRequiredFunctionsForServiceType(Service service) {
         int packageId = Integer.parseInt(service.getId());
         String serviceTypeName = Objects.nonNull(service.getServiceType()) ? service.getServiceType().getValue()
@@ -242,7 +140,7 @@ public class ServiceModelUtils {
                 .forEach(function -> service.getFunctions().add(getFunction(function)));
     }
 
-    private static Function getFunction(ServiceTypeFunction function) {
+    public static Function getFunction(ServiceTypeFunction function) {
 
         List<Parameter> parameters = new ArrayList<>();
         for (ServiceTypeFunction.ServiceTypeFunctionParameter parameter : function.parameters()) {
@@ -520,21 +418,6 @@ public class ServiceModelUtils {
         return split[split.length - 1];
     }
 
-
-    public static Optional<Service> getHttpService() {
-        InputStream resourceStream = ServiceModelUtils.class.getClassLoader()
-                .getResourceAsStream("services/http.json");
-        if (resourceStream == null) {
-            return Optional.empty();
-        }
-
-        try (JsonReader reader = new JsonReader(new InputStreamReader(resourceStream, StandardCharsets.UTF_8))) {
-            return Optional.of(new Gson().fromJson(reader, Service.class));
-        } catch (IOException e) {
-            return Optional.empty();
-        }
-    }
-
     public static void updateListenerItems(String moduleName, SemanticModel semanticModel, Project project,
                                            Service serviceModel) {
         Set<String> listeners = ListenerUtil.getCompatibleListeners(moduleName, semanticModel, project);
@@ -559,8 +442,8 @@ public class ServiceModelUtils {
         return actualServiceType;
     }
 
-    public static ModuleAndServiceType deriveServiceType(ServiceDeclarationNode serviceNode,
-                                                         SemanticModel semanticModel) {
+    public static ServiceMetadata deriveServiceType(ServiceDeclarationNode serviceNode,
+                                                    SemanticModel semanticModel) {
         Optional<TypeDescriptorNode> serviceTypeDesc = serviceNode.typeDescriptor();
         Optional<ModuleSymbol> module = Optional.empty();
         String serviceType = "Service";
@@ -576,13 +459,13 @@ public class ServiceModelUtils {
         if (module.isEmpty()) {
             SeparatedNodeList<ExpressionNode> expressions = serviceNode.expressions();
             if (expressions.isEmpty()) {
-                return new ModuleAndServiceType(null, serviceType);
+                return new ServiceMetadata(serviceType);
             }
             ExpressionNode expressionNode = expressions.get(0);
             if (expressionNode instanceof ExplicitNewExpressionNode explicitNewExpressionNode) {
                 Optional<Symbol> symbol = semanticModel.symbol(explicitNewExpressionNode.typeDescriptor());
                 if (symbol.isEmpty()) {
-                    return new ModuleAndServiceType(null, serviceType);
+                    return new ServiceMetadata(serviceType);
                 }
                 module = symbol.get().getModule();
             } else if (expressionNode instanceof NameReferenceNode nameReferenceNode) {
@@ -594,8 +477,9 @@ public class ServiceModelUtils {
         }
 
         if (module.isEmpty()) {
-            return new ModuleAndServiceType(null, serviceType);
+            return new ServiceMetadata(serviceType);
         }
-        return new ModuleAndServiceType(module.get().getName().orElse(null), serviceType);
+        ModuleID id = module.get().id();
+        return new ServiceMetadata(serviceType, id.orgName(), id.packageName(), id.moduleName());
     }
 }

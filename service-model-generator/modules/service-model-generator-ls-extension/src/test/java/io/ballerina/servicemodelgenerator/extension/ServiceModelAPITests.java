@@ -51,9 +51,11 @@ import org.ballerinalang.langserver.BallerinaLanguageServer;
 import org.ballerinalang.langserver.util.TestUtil;
 import org.eclipse.lsp4j.DidCloseTextDocumentParams;
 import org.eclipse.lsp4j.TextDocumentIdentifier;
+import org.eclipse.lsp4j.TextEdit;
 import org.eclipse.lsp4j.jsonrpc.Endpoint;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -178,6 +180,29 @@ public class ServiceModelAPITests {
     }
 
     @Test
+    public void testAddAiListener() throws ExecutionException, InterruptedException {
+        ListenerModelRequest modelRequest = new ListenerModelRequest("ballerina", "ai");
+        CompletableFuture<?> modelResult = serviceEndpoint.request("serviceDesign/getListenerModel", modelRequest);
+        ListenerModelResponse modelResponse = (ListenerModelResponse) modelResult.get();
+        Listener listener = modelResponse.listener();
+
+        Value name = listener.getProperty("name");
+        name.setValue("agentListener");
+        Value listenOn = listener.getProperty("listenOn");
+        listenOn.setValue("check http:getDefaultListener()");
+
+        Path filePath = resDir.resolve("sample2/main.bal");
+        ListenerSourceRequest sourceRequest = new ListenerSourceRequest(filePath.toAbsolutePath().toString(),
+                listener);
+        CompletableFuture<?> sourceResult = serviceEndpoint.request("serviceDesign/addListener", sourceRequest);
+        CommonSourceResponse sourceResponse = (CommonSourceResponse) sourceResult.get();
+        Assert.assertTrue(Objects.nonNull(sourceResponse.textEdits()));
+        Assert.assertFalse(sourceResponse.textEdits().isEmpty());
+        List<TextEdit> textEdits = sourceResponse.textEdits().entrySet().stream().findFirst().get().getValue();
+        Assert.assertEquals(textEdits.size(), 2);
+    }
+
+    @Test
     public void testGetServiceModelWithoutListener() throws ExecutionException, InterruptedException {
         Path filePath = resDir.resolve("sample1/main.bal");
         ServiceModelRequest request = new ServiceModelRequest(filePath.toAbsolutePath().toString(), "ballerina", 
@@ -245,6 +270,52 @@ public class ServiceModelAPITests {
         CommonSourceResponse sourceResponse = (CommonSourceResponse) sourceResult.get();
         Assert.assertTrue(Objects.nonNull(sourceResponse.textEdits()));
         Assert.assertFalse(sourceResponse.textEdits().isEmpty());
+        serviceEndpoint.notify("textDocument/didClose",
+                new DidCloseTextDocumentParams(new TextDocumentIdentifier(filePath.toUri().toString())));
+    }
+
+    @Test
+    public void testAddBallerinaAiService() throws ExecutionException, InterruptedException {
+        Path filePath = resDir.resolve("sample9/main.bal");
+        ServiceModelRequest modelRequest = new ServiceModelRequest(filePath.toAbsolutePath().toString(), "ballerina",
+                "ai", null);
+        CompletableFuture<?> modelResult = serviceEndpoint.request("serviceDesign/getServiceModel", modelRequest);
+        ServiceModelResponse modelResponse = (ServiceModelResponse) modelResult.get();
+        Service service = modelResponse.service();
+        Assert.assertTrue(Objects.nonNull(service));
+        service.getListener().setValues(List.of("aiListener"));
+
+        ServiceSourceRequest sourceRequest = new ServiceSourceRequest(filePath.toAbsolutePath().toString(), service);
+        CompletableFuture<?> sourceResult = serviceEndpoint.request("serviceDesign/addService", sourceRequest);
+        CommonSourceResponse sourceResponse = (CommonSourceResponse) sourceResult.get();
+        Assert.assertTrue(Objects.nonNull(sourceResponse.textEdits()));
+        Assert.assertFalse(sourceResponse.textEdits().isEmpty());
+
+        List<TextEdit> textEdits = sourceResponse.textEdits().entrySet().stream().findFirst().get().getValue();
+        Assert.assertEquals(textEdits.size(), 2);
+        serviceEndpoint.notify("textDocument/didClose",
+                new DidCloseTextDocumentParams(new TextDocumentIdentifier(filePath.toUri().toString())));
+    }
+
+    @Test
+    public void testAddBallerinaXAiService() throws ExecutionException, InterruptedException {
+        Path filePath = resDir.resolve("sample9/main.bal");
+        ServiceModelRequest modelRequest = new ServiceModelRequest(filePath.toAbsolutePath().toString(), "ballerinax",
+                "ai", null);
+        CompletableFuture<?> modelResult = serviceEndpoint.request("serviceDesign/getServiceModel", modelRequest);
+        ServiceModelResponse modelResponse = (ServiceModelResponse) modelResult.get();
+        Service service = modelResponse.service();
+        Assert.assertTrue(Objects.nonNull(service));
+        service.getListener().setValues(List.of("aiListener"));
+
+        ServiceSourceRequest sourceRequest = new ServiceSourceRequest(filePath.toAbsolutePath().toString(), service);
+        CompletableFuture<?> sourceResult = serviceEndpoint.request("serviceDesign/addService", sourceRequest);
+        CommonSourceResponse sourceResponse = (CommonSourceResponse) sourceResult.get();
+        Assert.assertTrue(Objects.nonNull(sourceResponse.textEdits()));
+        Assert.assertFalse(sourceResponse.textEdits().isEmpty());
+
+        List<TextEdit> textEdits = sourceResponse.textEdits().entrySet().stream().findFirst().get().getValue();
+        Assert.assertEquals(textEdits.size(), 2);
         serviceEndpoint.notify("textDocument/didClose",
                 new DidCloseTextDocumentParams(new TextDocumentIdentifier(filePath.toUri().toString())));
     }
@@ -616,6 +687,18 @@ public class ServiceModelAPITests {
         Assert.assertFalse(updateResponse.textEdits().isEmpty());
         serviceEndpoint.notify("textDocument/didClose",
                 new DidCloseTextDocumentParams(new TextDocumentIdentifier(filePath.toUri().toString())));
+    }
+
+    @AfterMethod
+    public void restartLanguageServer() {
+        this.startLanguageServer();
+        this.init();
+    }
+
+    private void startLanguageServer() {
+        this.languageServer.shutdown();
+        this.languageServer = null;
+        this.serviceEndpoint = null;
     }
 
     @AfterClass

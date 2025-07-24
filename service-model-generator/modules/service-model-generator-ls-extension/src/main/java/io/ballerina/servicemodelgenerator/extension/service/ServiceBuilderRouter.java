@@ -26,9 +26,9 @@ import io.ballerina.projects.Project;
 import io.ballerina.servicemodelgenerator.extension.model.AddModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.GetModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.ModelFromSourceContext;
-import io.ballerina.servicemodelgenerator.extension.model.ModuleAndServiceType;
 import io.ballerina.servicemodelgenerator.extension.model.NodeBuilder;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
+import io.ballerina.servicemodelgenerator.extension.model.ServiceMetadata;
 import io.ballerina.servicemodelgenerator.extension.model.UpdateModelContext;
 import io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
@@ -43,6 +43,7 @@ import java.util.function.Supplier;
 
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.AI;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.HTTP;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.RABBITMQ;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.TCP;
 
 public class ServiceBuilderRouter {
@@ -51,15 +52,16 @@ public class ServiceBuilderRouter {
         put(HTTP, HttpServiceBuilder::new);
         put(AI, AiChatServiceBuilder::new);
         put(TCP, TCPServiceBuilder::new);
+        put(RABBITMQ, RabbitMQServiceBuilder::new);
     }};
 
     public static NodeBuilder<?> getServiceBuilder(String protocol) {
         return CONSTRUCTOR_MAP.getOrDefault(protocol, DefaultServiceBuilder::new).get();
     }
 
-    public static Optional<Service> getModelTemplate(String moduleName) {
+    public static Optional<Service> getModelTemplate(String orgName, String moduleName) {
         NodeBuilder<?> serviceBuilder = getServiceBuilder(moduleName);
-        GetModelContext context = new GetModelContext(moduleName);
+        GetModelContext context = GetModelContext.fromOrgAndModule(orgName, moduleName);
         Optional<?> modelTemplate = serviceBuilder.getModelTemplate(context);
         if (modelTemplate.isEmpty() || !(modelTemplate.get() instanceof Service)) {
             return Optional.empty();
@@ -70,14 +72,15 @@ public class ServiceBuilderRouter {
     public static Service getServiceFromSource(Node node, Project project,
                                                SemanticModel semanticModel,
                                                WorkspaceManager workspaceManager) {
-        ModuleAndServiceType moduleAndServiceType = ServiceModelUtils.deriveServiceType(
+        ServiceMetadata serviceMetadata = ServiceModelUtils.deriveServiceType(
                 (ServiceDeclarationNode) node, semanticModel);
-        if (Objects.isNull(moduleAndServiceType.moduleName())) {
+        if (Objects.isNull(serviceMetadata.orgName()) || Objects.isNull(serviceMetadata.packageName())) {
             return null;
         }
-        NodeBuilder<?> serviceBuilder = getServiceBuilder(moduleAndServiceType.moduleName());
+        NodeBuilder<?> serviceBuilder = getServiceBuilder(serviceMetadata.moduleName());
         ModelFromSourceContext context = new ModelFromSourceContext(node, project, semanticModel,
-                workspaceManager, moduleAndServiceType.moduleName(), moduleAndServiceType.serviceType());
+                workspaceManager, serviceMetadata.serviceType(), serviceMetadata.orgName(),
+                serviceMetadata.packageName(), serviceMetadata.moduleName());
         return (Service) serviceBuilder.getModelFromSource(context);
     }
 

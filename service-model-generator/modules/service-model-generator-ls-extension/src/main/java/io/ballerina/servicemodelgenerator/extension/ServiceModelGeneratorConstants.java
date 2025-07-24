@@ -28,6 +28,7 @@ import io.ballerina.servicemodelgenerator.extension.model.MetaData;
 public class ServiceModelGeneratorConstants {
 
     public static final String CAPABILITY_NAME = "serviceModel";
+    public static final String DOUBLE_QUOTE = "\"";
     public static final String TAB = "\t";
     public static final String SPACE = " ";
     public static final String OPEN_BRACE = "{";

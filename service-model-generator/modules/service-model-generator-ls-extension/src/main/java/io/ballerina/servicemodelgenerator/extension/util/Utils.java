@@ -950,8 +950,4 @@ public final class Utils {
         }
         return input;
     }
-
-    public static boolean isAiAgentModule(String org, String module) {
-        return org.equals("ballerinax") && module.equals("ai");
-    }
 }
