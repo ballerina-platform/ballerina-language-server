@@ -56,8 +56,8 @@ public final class AiChatServiceBuilder extends AbstractServiceBuilder {
         if (!importExists(rootNode, BALLERINA, HTTP)) {
             importStmts.add(Utils.getImportStmt(BALLERINA, HTTP));
         }
-        if (!importExists(rootNode, BALLERINA, AI)) {
-            importStmts.add(Utils.getImportStmt(BALLERINA, AI));
+        if (!importExists(rootNode, service.getOrgName(), AI)) {
+            importStmts.add(Utils.getImportStmt(service.getOrgName(), AI));
         }
 
         if (!importStmts.isEmpty()) {

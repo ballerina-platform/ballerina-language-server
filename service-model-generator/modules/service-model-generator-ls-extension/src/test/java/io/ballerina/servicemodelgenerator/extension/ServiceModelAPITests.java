@@ -275,9 +275,32 @@ public class ServiceModelAPITests {
     }
 
     @Test
-    public void testAddAiService() throws ExecutionException, InterruptedException {
+    public void testAddBallerinaAiService() throws ExecutionException, InterruptedException {
         Path filePath = resDir.resolve("sample9/main.bal");
         ServiceModelRequest modelRequest = new ServiceModelRequest(filePath.toAbsolutePath().toString(), "ballerina",
+                "ai", null);
+        CompletableFuture<?> modelResult = serviceEndpoint.request("serviceDesign/getServiceModel", modelRequest);
+        ServiceModelResponse modelResponse = (ServiceModelResponse) modelResult.get();
+        Service service = modelResponse.service();
+        Assert.assertTrue(Objects.nonNull(service));
+        service.getListener().setValues(List.of("aiListener"));
+
+        ServiceSourceRequest sourceRequest = new ServiceSourceRequest(filePath.toAbsolutePath().toString(), service);
+        CompletableFuture<?> sourceResult = serviceEndpoint.request("serviceDesign/addService", sourceRequest);
+        CommonSourceResponse sourceResponse = (CommonSourceResponse) sourceResult.get();
+        Assert.assertTrue(Objects.nonNull(sourceResponse.textEdits()));
+        Assert.assertFalse(sourceResponse.textEdits().isEmpty());
+
+        List<TextEdit> textEdits = sourceResponse.textEdits().entrySet().stream().findFirst().get().getValue();
+        Assert.assertEquals(textEdits.size(), 2);
+        serviceEndpoint.notify("textDocument/didClose",
+                new DidCloseTextDocumentParams(new TextDocumentIdentifier(filePath.toUri().toString())));
+    }
+
+    @Test
+    public void testAddBallerinaXAiService() throws ExecutionException, InterruptedException {
+        Path filePath = resDir.resolve("sample9/main.bal");
+        ServiceModelRequest modelRequest = new ServiceModelRequest(filePath.toAbsolutePath().toString(), "ballerinax",
                 "ai", null);
         CompletableFuture<?> modelResult = serviceEndpoint.request("serviceDesign/getServiceModel", modelRequest);
         ServiceModelResponse modelResponse = (ServiceModelResponse) modelResult.get();
