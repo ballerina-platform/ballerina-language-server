@@ -176,7 +176,6 @@ public class ServiceClassUtil {
         Value type = parameterModel.getType();
         type.setValue(objectField.typeName().toSourceCode().trim());
         type.setValueType(ServiceModelGeneratorConstants.VALUE_TYPE_TYPE);
-        type.setType(true);
         type.setEnabled(true);
         Value name = parameterModel.getName();
         name.setValue(objectField.fieldName().text().trim());

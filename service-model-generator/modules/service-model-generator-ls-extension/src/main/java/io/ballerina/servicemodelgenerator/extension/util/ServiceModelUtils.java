@@ -165,7 +165,6 @@ public class ServiceModelUtils {
                 .setPlaceholder(function.returnType())
                 .editable(function.returnTypeEditable() == 1)
                 .enabled(true)
-                .isType(true)
                 .optional(true);
 
         FunctionReturnType functionReturnType = new FunctionReturnType(returnValue.build());
@@ -191,7 +190,6 @@ public class ServiceModelUtils {
                     .setPlaceholder(function.accessor())
                     .enabled(true)
                     .editable(false)
-                    .isType(false)
                     .optional(false)
                     .setAdvanced(false);
             functionBuilder.accessor(accessor.build());
@@ -219,7 +217,6 @@ public class ServiceModelUtils {
                 .setPlaceholder(parameter.type())
                 .enabled(true)
                 .editable(parameter.typeEditable() == 1)
-                .isType(true)
                 .optional(true);
 
         Value.ValueBuilder parameterDefaultValue = new Value.ValueBuilder();
@@ -270,9 +267,7 @@ public class ServiceModelUtils {
                 .optional(false)
                 .setAdvanced(false)
                 .enabled(template.optionalTypeDescriptor() == 0)
-                .editable(true)
-                .isType(false)
-                .setAddNewButton(false);
+                .editable(true);
 
         return valueBuilder.build();
     }
@@ -290,9 +285,7 @@ public class ServiceModelUtils {
                 .optional(false)
                 .setAdvanced(false)
                 .enabled(true)
-                .editable(true)
-                .isType(false)
-                .setAddNewButton(false);
+                .editable(true);
 
         return valueBuilder.build();
     }
@@ -310,9 +303,7 @@ public class ServiceModelUtils {
                 .optional(false)
                 .setAdvanced(false)
                 .enabled(true)
-                .editable(true)
-                .isType(false)
-                .setAddNewButton(false);
+                .editable(true);
 
         return valueBuilder.build();
     }
@@ -330,9 +321,7 @@ public class ServiceModelUtils {
                 .optional(false)
                 .setAdvanced(false)
                 .enabled(true)
-                .editable(true)
-                .isType(false)
-                .setAddNewButton(false);
+                .editable(true);
 
         return valueBuilder.build();
     }
@@ -351,9 +340,7 @@ public class ServiceModelUtils {
                 .optional(false)
                 .setAdvanced(false)
                 .enabled(true)
-                .editable(true)
-                .isType(false)
-                .setAddNewButton(false);
+                .editable(true);
 
         return valueBuilder.build();
     }
@@ -381,8 +368,6 @@ public class ServiceModelUtils {
                 .setAdvanced(true)
                 .enabled(true)
                 .editable(true)
-                .isType(false)
-                .setAddNewButton(false)
                 .setMembers(List.of(propertyTypeMemberInfo));
 
         return valueBuilder.build();
@@ -406,9 +391,7 @@ public class ServiceModelUtils {
                 .optional(false)
                 .setAdvanced(false)
                 .enabled(true)
-                .editable(true)
-                .isType(false)
-                .setAddNewButton(isMultiple);
+                .editable(true);
 
         return valueBuilder.build();
     }

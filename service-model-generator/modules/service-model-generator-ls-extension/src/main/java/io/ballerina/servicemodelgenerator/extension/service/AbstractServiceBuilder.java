@@ -32,7 +32,6 @@ import io.ballerina.modelgenerator.commons.ServiceDeclaration;
 import io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants;
 import io.ballerina.servicemodelgenerator.extension.model.AddModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
-import io.ballerina.servicemodelgenerator.extension.model.DisplayAnnotation;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.GetModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.ModelFromSourceContext;
@@ -121,7 +120,6 @@ public abstract class AbstractServiceBuilder implements NodeBuilder<Service> {
                 .setType(context.moduleName())
                 .setDisplayName(label)
                 .setDescription(documentation)
-                .setDisplayAnnotation(new DisplayAnnotation(label, icon))
                 .setModuleName(context.moduleName())
                 .setOrgName(pkg.org())
                 .setVersion(pkg.version())
