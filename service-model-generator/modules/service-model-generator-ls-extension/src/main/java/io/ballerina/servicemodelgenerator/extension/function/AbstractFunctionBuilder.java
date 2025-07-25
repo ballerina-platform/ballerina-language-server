@@ -20,17 +20,30 @@ package io.ballerina.servicemodelgenerator.extension.function;
 
 import com.google.gson.Gson;
 import com.google.gson.stream.JsonReader;
+import io.ballerina.compiler.syntax.tree.AnnotationNode;
 import io.ballerina.compiler.syntax.tree.ClassDefinitionNode;
+import io.ballerina.compiler.syntax.tree.DefaultableParameterNode;
+import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
+import io.ballerina.compiler.syntax.tree.FunctionSignatureNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeList;
+import io.ballerina.compiler.syntax.tree.ParameterNode;
+import io.ballerina.compiler.syntax.tree.RequiredParameterNode;
+import io.ballerina.compiler.syntax.tree.ReturnTypeDescriptorNode;
+import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.servicemodelgenerator.extension.model.AddModelContext;
+import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
+import io.ballerina.servicemodelgenerator.extension.model.FunctionReturnType;
 import io.ballerina.servicemodelgenerator.extension.model.GetModelContext;
+import io.ballerina.servicemodelgenerator.extension.model.MetaData;
 import io.ballerina.servicemodelgenerator.extension.model.ModelFromSourceContext;
 import io.ballerina.servicemodelgenerator.extension.model.NodeBuilder;
+import io.ballerina.servicemodelgenerator.extension.model.Parameter;
 import io.ballerina.servicemodelgenerator.extension.model.UpdateModelContext;
+import io.ballerina.servicemodelgenerator.extension.model.Value;
 import io.ballerina.servicemodelgenerator.extension.util.ServiceClassUtil;
 import io.ballerina.servicemodelgenerator.extension.util.Utils;
 import io.ballerina.tools.text.LinePosition;
@@ -48,11 +61,17 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
+import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.KIND_DEFAULT;
+import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.KIND_DEFAULTABLE;
 import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.KIND_MUTATION;
 import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.KIND_REMOTE;
+import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.KIND_REQUIRED;
 import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.NEW_LINE;
 import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.NEW_LINE_WITH_TAB;
 import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.TWO_NEW_LINES;
+import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.VALUE_TYPE_EXPRESSION;
+import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.VALUE_TYPE_IDENTIFIER;
+import static io.ballerina.servicemodelgenerator.extension.util.ServiceClassUtil.ServiceClassContext.SERVICE_DIAGRAM;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionSignatureContext.FUNCTION_UPDATE;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.generateFunctionDefSource;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionSignatureContext.FUNCTION_ADD;
@@ -60,6 +79,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Utils.generateFu
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getImportStmt;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getPath;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.importExists;
+import static io.ballerina.servicemodelgenerator.extension.util.Utils.updateAnnotationAttachmentProperty;
 
 /**
  * Represents the abstract function builder of the service model generator.
@@ -228,5 +248,69 @@ public abstract class AbstractFunctionBuilder implements NodeBuilder<Function> {
     @Override
     public String kind() {
         return "";
+    }
+
+    static Function getEnrichedFunctionModel(FunctionDefinitionNode functionDefinitionNode) {
+        Function functionModel = Function.getNewFunctionModel(SERVICE_DIAGRAM);
+        boolean isInit = Utils.isInitFunction(functionDefinitionNode);
+        if (isInit) {
+            functionModel.setKind(KIND_DEFAULT);
+        }
+        functionModel.getName().setValue(functionDefinitionNode.functionName().text().trim());
+        functionModel.getName().setValueType(VALUE_TYPE_IDENTIFIER);
+
+        FunctionSignatureNode functionSignatureNode = functionDefinitionNode.functionSignature();
+        Optional<ReturnTypeDescriptorNode> returnTypeDesc = functionSignatureNode.returnTypeDesc();
+        if (returnTypeDesc.isPresent()) {
+            FunctionReturnType returnType = functionModel.getReturnType();
+            returnType.setValue(returnTypeDesc.get().type().toString().trim());
+        }
+
+        SeparatedNodeList<ParameterNode> parameters = functionSignatureNode.parameters();
+        List<Parameter> parameterModels = new ArrayList<>();
+        parameters.forEach(parameterNode -> {
+            Optional<Parameter> parameterModel = getParameterModel(parameterNode);
+            parameterModel.ifPresent(parameterModels::add);
+        });
+        functionModel.setParameters(parameterModels);
+        functionModel.setCodedata(new Codedata(functionDefinitionNode.lineRange()));
+        functionModel.setCanAddParameters(true);
+        updateAnnotationAttachmentProperty(functionDefinitionNode, functionModel);
+        return functionModel;
+    }
+
+    public static Optional<Parameter> getParameterModel(ParameterNode parameterNode) {
+        if (parameterNode instanceof RequiredParameterNode parameter) {
+            if (parameter.paramName().isEmpty()) {
+                return Optional.empty();
+            }
+            String paramName = parameter.paramName().get().text().trim();
+            String paramType = parameter.typeName().toString().trim();
+            Parameter parameterModel = createParameter(paramName, KIND_REQUIRED, paramType, parameter.annotations());
+            return Optional.of(parameterModel);
+        } else if (parameterNode instanceof DefaultableParameterNode parameter) {
+            if (parameter.paramName().isEmpty()) {
+                return Optional.empty();
+            }
+            String paramName = parameter.paramName().get().text().trim();
+            String paramType = parameter.typeName().toString().trim();
+            Parameter parameterModel = createParameter(paramName, KIND_DEFAULTABLE, paramType, parameter.annotations());
+            Value defaultValue = parameterModel.getDefaultValue();
+            defaultValue.setValue(parameter.expression().toString().trim());
+            defaultValue.setValueType(VALUE_TYPE_EXPRESSION);
+            defaultValue.setEnabled(true);
+            return Optional.of(parameterModel);
+        }
+        return Optional.empty();
+    }
+
+    private static Parameter createParameter(String paramName, String paramKind, String typeName,
+                                             NodeList<AnnotationNode> annotationNodes) {
+        Parameter parameterModel = Parameter.functionParamSchema();
+        parameterModel.setMetadata(new MetaData(paramName, paramName));
+        parameterModel.setKind(paramKind);
+        parameterModel.getType().setValue(typeName);
+        parameterModel.getName().setValue(paramName);
+        return parameterModel;
     }
 }

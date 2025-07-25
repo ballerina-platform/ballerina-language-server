@@ -47,7 +47,6 @@ import io.ballerina.projects.Project;
 import io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants;
 import io.ballerina.servicemodelgenerator.extension.model.AddModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
-import io.ballerina.servicemodelgenerator.extension.model.DisplayAnnotation;
 import io.ballerina.servicemodelgenerator.extension.model.Listener;
 import io.ballerina.servicemodelgenerator.extension.model.MetaData;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
@@ -299,7 +298,6 @@ public class ListenerUtil {
                 .setPackageName(functionData.packageName())
                 .setVersion(functionData.version())
                 .setIcon(icon)
-                .setDisplayAnnotation(new DisplayAnnotation(formattedModuleName, icon))
                 .setProperties(properties);
 
         properties.put("name", nameProperty());
@@ -382,7 +380,6 @@ public class ListenerUtil {
                     .setPlaceholder(paramResult.placeholder())
                     .setValueTypeConstraint(paramResult.type().toString())
                     .editable(true)
-                    .isType(false)
                     .enabled(true)
                     .optional(paramResult.optional())
                     .setAdvanced(paramResult.optional())
@@ -458,7 +455,6 @@ public class ListenerUtil {
                 .value("")
                 .valueType("IDENTIFIER")
                 .setValueTypeConstraint("Global")
-                .isType(false)
                 .editable(true)
                 .enabled(true)
                 .optional(false)

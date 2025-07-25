@@ -161,7 +161,7 @@ public class ServiceClassUtil {
         SeparatedNodeList<ParameterNode> parameters = functionSignatureNode.parameters();
         List<Parameter> parameterModels = new ArrayList<>();
         parameters.forEach(parameterNode -> {
-            Optional<Parameter> parameterModel = Utils.getParameterModel(parameterNode, false,
+            Optional<Parameter> parameterModel = Utils.getParameterModel(parameterNode,
                     context == ServiceClassContext.GRAPHQL_DIAGRAM);
             parameterModel.ifPresent(parameterModels::add);
         });
@@ -176,7 +176,6 @@ public class ServiceClassUtil {
         Value type = parameterModel.getType();
         type.setValue(objectField.typeName().toSourceCode().trim());
         type.setValueType(ServiceModelGeneratorConstants.VALUE_TYPE_TYPE);
-        type.setType(true);
         type.setEnabled(true);
         Value name = parameterModel.getName();
         name.setValue(objectField.fieldName().text().trim());

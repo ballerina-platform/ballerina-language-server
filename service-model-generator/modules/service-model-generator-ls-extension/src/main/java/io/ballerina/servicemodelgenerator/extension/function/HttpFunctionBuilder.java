@@ -21,13 +21,29 @@ package io.ballerina.servicemodelgenerator.extension.function;
 import com.google.gson.Gson;
 import com.google.gson.stream.JsonReader;
 import io.ballerina.compiler.api.SemanticModel;
+import io.ballerina.compiler.api.symbols.ResourceMethodSymbol;
+import io.ballerina.compiler.api.symbols.Symbol;
+import io.ballerina.compiler.syntax.tree.AnnotationNode;
+import io.ballerina.compiler.syntax.tree.DefaultableParameterNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
+import io.ballerina.compiler.syntax.tree.FunctionSignatureNode;
+import io.ballerina.compiler.syntax.tree.NodeFactory;
+import io.ballerina.compiler.syntax.tree.NodeList;
+import io.ballerina.compiler.syntax.tree.ParameterNode;
+import io.ballerina.compiler.syntax.tree.RequiredParameterNode;
+import io.ballerina.compiler.syntax.tree.ReturnTypeDescriptorNode;
+import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
 import io.ballerina.modelgenerator.commons.Annotation;
 import io.ballerina.modelgenerator.commons.ServiceDatabaseManager;
+import io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants;
+import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
+import io.ballerina.servicemodelgenerator.extension.model.FunctionReturnType;
 import io.ballerina.servicemodelgenerator.extension.model.GetModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.ModelFromSourceContext;
+import io.ballerina.servicemodelgenerator.extension.model.Parameter;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
+import io.ballerina.servicemodelgenerator.extension.util.HttpUtil;
 import io.ballerina.servicemodelgenerator.extension.util.Utils;
 
 import java.io.IOException;
@@ -37,38 +53,38 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.KIND_RESOURCE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.BALLERINA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.HTTP;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.OBJECT_METHOD;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.RESOURCE;
-import static io.ballerina.servicemodelgenerator.extension.util.Utils.getFunctionModel;
-import static io.ballerina.servicemodelgenerator.extension.util.Utils.updateValue;
+import static io.ballerina.servicemodelgenerator.extension.util.HttpUtil.getHttpParameterType;
+import static io.ballerina.servicemodelgenerator.extension.util.Utils.getPath;
+import static io.ballerina.servicemodelgenerator.extension.util.Utils.updateAnnotationAttachmentProperty;
 
 public class HttpFunctionBuilder extends AbstractFunctionBuilder {
     private static final String HTTP_FUNCTION_MODEL_LOCATION = "functions/http_%s.json";
+    private static final String HTTP_REQUEST_TYPE = "http:Request";
+    private static final String HTTP_CALLER_TYPE = "http:Caller";
+    private static final String HTTP_HEADERS_TYPE = "http:Headers";
+    private static final String HTTP_REQUEST_CONTEXT_TYPE = "http:RequestContext";
 
     @Override
     public Optional<Function> getModelTemplate(GetModelContext context) {
-        String resourcePath =  String.format(HTTP_FUNCTION_MODEL_LOCATION, context.functionType());
-        InputStream resourceStream = Utils.class.getClassLoader().getResourceAsStream(resourcePath);
-        if (resourceStream == null) {
-            return Optional.empty();
-        }
-
-        try (JsonReader reader = new JsonReader(new InputStreamReader(resourceStream, StandardCharsets.UTF_8))) {
-            return Optional.of(new Gson().fromJson(reader, Function.class));
-        } catch (IOException e) {
-            return Optional.empty();
-        }
+        return getHttpResourceModel();
     }
 
     @Override
     public Function getModelFromSource(ModelFromSourceContext context) {
-        return getFunctionFromFunctionDef((FunctionDefinitionNode) context.node(), context.semanticModel());
+        FunctionDefinitionNode functionDefinitionNode = (FunctionDefinitionNode) context.node();
+        boolean isResource = functionDefinitionNode.qualifierList().stream()
+                .anyMatch(qualifier -> qualifier.text().equals(RESOURCE));
+        if (isResource) {
+            return getEnrichedResourceModel(functionDefinitionNode, context.semanticModel());
+        }
+        Function functionModel = getEnrichedFunctionModel(functionDefinitionNode);
+        functionModel.setEditable(true);
+        return functionModel;
     }
 
     @Override
@@ -76,35 +92,80 @@ public class HttpFunctionBuilder extends AbstractFunctionBuilder {
         return HTTP;
     }
 
-    public static Function getFunctionFromFunctionDef(FunctionDefinitionNode functionDefinitionNode,
-                                                      SemanticModel semanticModel) {
+    public static Function getEnrichedResourceModel(FunctionDefinitionNode functionDefinitionNode,
+                                                    SemanticModel semanticModel) {
         ServiceDatabaseManager databaseManager = ServiceDatabaseManager.getInstance();
         List<Annotation> annotationAttachments = databaseManager.
                 getAnnotationAttachments(BALLERINA, HTTP, OBJECT_METHOD);
         Map<String, Value> annotations = Function.createAnnotationsMap(annotationAttachments);
-        Function functionModel = getFunctionModel(functionDefinitionNode, semanticModel, true, false, annotations);
-        functionModel.setEditable(true);
-
-        if (functionModel.getKind().equals(KIND_RESOURCE)) {
-            Optional<Function> resourceFunctionOp = getHttpFunctionModel(RESOURCE);
-            if (resourceFunctionOp.isPresent()) {
-                Function resourceFunction = resourceFunctionOp.get();
-                if (resourceFunction.getReturnType().getResponses().size() > 1) {
-                    resourceFunction.getReturnType().getResponses().remove(1);
-                }
-                updateFunctionInfo(resourceFunction, functionModel);
-                return resourceFunction;
-            }
-        } else {
-            functionModel.setAnnotations(null);
-            functionModel.getAccessor().setEnabled(false);
+        Optional<Function> httpFunctionModel = getHttpResourceModel();
+        if (httpFunctionModel.isEmpty()) {
+            throw new RuntimeException("Failed to load HTTP resource function model");
         }
+        Function functionModel = httpFunctionModel.get();
+        functionModel.setAnnotations(annotations);
+        functionModel.getAccessor().setValue(functionDefinitionNode.functionName().text().trim());
+        functionModel.getName().setValue(getPath(functionDefinitionNode.relativeResourcePath()));
+
+        FunctionSignatureNode functionSignatureNode = functionDefinitionNode.functionSignature();
+        Optional<ReturnTypeDescriptorNode> returnTypeDesc = functionSignatureNode.returnTypeDesc();
+        if (returnTypeDesc.isPresent()) {
+            FunctionReturnType returnType = functionModel.getReturnType();
+            returnType.setValue(returnTypeDesc.get().type().toString().trim());
+            Optional<Symbol> functionDefSymbol = semanticModel.symbol(functionDefinitionNode);
+            if (functionDefSymbol.isEmpty() || !(functionDefSymbol.get() instanceof ResourceMethodSymbol resource)) {
+                throw new RuntimeException("Failed to get resource method symbol");
+            }
+            HttpUtil.populateHttpResponses(returnType, semanticModel, resource);
+        }
+
+        SeparatedNodeList<ParameterNode> parameters = functionSignatureNode.parameters();
+        List<Parameter> parameterModels = functionModel.getParameters();
+        parameters.forEach(parameterNode -> {
+            Optional<Parameter> param = getParameterModel(parameterNode);
+            if (param.isEmpty()) {
+                return;
+            }
+            Parameter parameterModel = param.get();
+            Optional<String> httpParameterType = getHttpParameterType(getParamAnnotations(parameterNode));
+            if (httpParameterType.isPresent()) {
+                parameterModel.setHttpParamType(httpParameterType.get());
+            } else {
+                String typeName = parameterModel.getType().getValue();
+                if (typeName.equals(HTTP_REQUEST_TYPE)) {
+                    Parameter parameter = parameterModels.get(0);
+                    parameter.getName().setValue(parameterModel.getName().getValue());
+                    parameter.setEnabled(true);
+                    parameterModels.add(parameter);
+                    return;
+                } else if (typeName.equals(HTTP_CALLER_TYPE)) {
+                    Parameter parameter = parameterModels.get(1);
+                    parameterModels.add(parameter);
+                    parameter.setEnabled(true);
+                    return;
+                } else if (typeName.equals(HTTP_HEADERS_TYPE)) {
+                    Parameter parameter = parameterModels.get(2);
+                    parameter.setEnabled(true);
+                    parameterModels.add(parameter);
+                    return;
+                }
+                if (!typeName.equals(HTTP_REQUEST_CONTEXT_TYPE)) {
+                    parameterModel.setHttpParamType(ServiceModelGeneratorConstants.HTTP_PARAM_TYPE_QUERY);
+                    parameterModel.setEditable(true);
+                }
+            }
+            parameterModels.add(parameterModel);
+        });
+        functionModel.setParameters(parameterModels);
+        functionModel.setCodedata(new Codedata(functionDefinitionNode.lineRange()));
+        functionModel.setCanAddParameters(true);
+        updateAnnotationAttachmentProperty(functionDefinitionNode, functionModel);
         return functionModel;
     }
 
-    private static Optional<Function> getHttpFunctionModel(String functionType) {
+    private static Optional<Function> getHttpResourceModel() {
         InputStream resourceStream = Utils.class.getClassLoader()
-                .getResourceAsStream(String.format(HTTP_FUNCTION_MODEL_LOCATION, functionType));
+                .getResourceAsStream(String.format(HTTP_FUNCTION_MODEL_LOCATION, RESOURCE));
         if (resourceStream == null) {
             return Optional.empty();
         }
@@ -116,19 +177,12 @@ public class HttpFunctionBuilder extends AbstractFunctionBuilder {
         }
     }
 
-    private static void updateFunctionInfo(Function functionModel, Function commonFunction) {
-        functionModel.setEditable(commonFunction.isEditable());
-        functionModel.setEnabled(true);
-        functionModel.setKind(commonFunction.getKind());
-        functionModel.setCodedata(commonFunction.getCodedata());
-        updateValue(functionModel.getAccessor(), commonFunction.getAccessor());
-        updateValue(functionModel.getName(), commonFunction.getName());
-        updateValue(functionModel.getReturnType(), commonFunction.getReturnType());
-        Set<String> existingTypes = functionModel.getParameters().stream()
-                .map(parameter -> parameter.getType().getValue())
-                .collect(Collectors.toSet());
-        commonFunction.getParameters().stream()
-                .filter(commonParam -> !existingTypes.contains(commonParam.getType().getValue()))
-                .forEach(functionModel::addParameter);
+    private static NodeList<AnnotationNode> getParamAnnotations(ParameterNode parameterNode) {
+        if (parameterNode instanceof RequiredParameterNode requiredParam) {
+            return requiredParam.annotations();
+        } else if (parameterNode instanceof DefaultableParameterNode defaultableParam) {
+            return defaultableParam.annotations();
+        }
+        return NodeFactory.createEmptyNodeList();
     }
 }
