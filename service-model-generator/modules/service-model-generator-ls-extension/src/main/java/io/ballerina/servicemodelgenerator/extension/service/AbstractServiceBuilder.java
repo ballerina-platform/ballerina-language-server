@@ -283,7 +283,7 @@ public abstract class AbstractServiceBuilder implements NodeBuilder<Service> {
         boolean isGraphql = serviceModel.getModuleName().equals(ServiceModelGeneratorConstants.GRAPHQL);
         List<Function> functionsInSource = serviceNode.members().stream()
                 .filter(member -> member instanceof FunctionDefinitionNode)
-                .map(member -> getFunctionModel((FunctionDefinitionNode) member, context.semanticModel(), false,
+                .map(member -> getFunctionModel((FunctionDefinitionNode) member, context.semanticModel(),
                         isGraphql, Map.of()))
                 .toList();
 

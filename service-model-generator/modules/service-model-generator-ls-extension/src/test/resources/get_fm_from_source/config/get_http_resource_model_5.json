@@ -23,7 +23,7 @@
       "enabled": true,
       "editable": true,
       "value": "get",
-      "valueType": "IDENTIFIER",
+      "valueType": "SINGLE_SELECT",
       "valueTypeConstraint": "http:Method",
       "isType": false,
       "placeholder": "GET",
@@ -570,7 +570,7 @@
     "enabled": true,
     "optional": false,
     "editable": true,
-    "canAddParameters": false,
+    "canAddParameters": true,
     "codedata": {
       "lineRange": {
         "fileName": "main.bal",
@@ -595,7 +595,6 @@
         },
         "enabled": true,
         "editable": true,
-        "value": "",
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "http:HttpResourceConfig",
         "isType": false,
@@ -617,7 +616,7 @@
             "type": "HttpResourceConfig",
             "packageInfo": "ballerina:http:2.14.0",
             "kind": "RECORD_TYPE",
-            "selected": true
+            "selected": false
           }
         ],
         "imports": {}

@@ -72,7 +72,7 @@ public class GraphqlFunctionBuilder extends AbstractFunctionBuilder {
                 getAnnotationAttachments(BALLERINA, GRAPHQL, OBJECT_METHOD);
         Map<String, Value> annotations = Function.createAnnotationsMap(annotationAttachments);
         Function functionModel = getFunctionModel((FunctionDefinitionNode) context.node(), context.semanticModel(),
-                false, true, annotations);
+                true, annotations);
         functionModel.setEditable(true);
 
         if (functionModel.getKind().equals(KIND_RESOURCE)) {

@@ -21,7 +21,6 @@ package io.ballerina.servicemodelgenerator.extension.util;
 import com.google.gson.Gson;
 import com.google.gson.stream.JsonReader;
 import io.ballerina.compiler.api.SemanticModel;
-import io.ballerina.compiler.api.symbols.ResourceMethodSymbol;
 import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.api.symbols.TypeDefinitionSymbol;
 import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
@@ -104,7 +103,6 @@ import static io.ballerina.servicemodelgenerator.extension.ServiceModelGenerator
 import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.SUBSCRIBE;
 import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.VALUE_TYPE_EXPRESSION;
 import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.VALUE_TYPE_IDENTIFIER;
-import static io.ballerina.servicemodelgenerator.extension.util.HttpUtil.getHttpParameterType;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceClassUtil.ServiceClassContext.GRAPHQL_DIAGRAM;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceClassUtil.ServiceClassContext.HTTP_DIAGRAM;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceClassUtil.ServiceClassContext.SERVICE_DIAGRAM;
@@ -242,9 +240,9 @@ public final class Utils {
     }
 
     public static Function getFunctionModel(MethodDeclarationNode functionDefinitionNode, SemanticModel semanticModel,
-                                            boolean isHttp, boolean isGraphQL, Map<String, Value> annotations) {
+            boolean isGraphQL, Map<String, Value> annotations) {
         boolean isInit = isInitFunction(functionDefinitionNode);
-        ServiceClassUtil.ServiceClassContext context = deriveContext(isGraphQL, isHttp, isInit);
+        ServiceClassUtil.ServiceClassContext context = deriveContext(isGraphQL, isInit);
         Function functionModel = Function.getNewFunctionModel(context);
         functionModel.setAnnotations(annotations);
 
@@ -268,14 +266,11 @@ public final class Utils {
         if (returnTypeDesc.isPresent()) {
             FunctionReturnType returnType = functionModel.getReturnType();
             returnType.setValue(returnTypeDesc.get().type().toString().trim());
-            if (isHttp) {
-                populateHttpResponses(functionDefinitionNode, returnType, semanticModel);
-            }
         }
         SeparatedNodeList<ParameterNode> parameters = functionSignatureNode.parameters();
         List<Parameter> parameterModels = new ArrayList<>();
         parameters.forEach(parameterNode -> {
-            Optional<Parameter> parameterModel = getParameterModel(parameterNode, isHttp, isGraphQL);
+            Optional<Parameter> parameterModel = getParameterModel(parameterNode, isGraphQL);
             parameterModel.ifPresent(parameterModels::add);
         });
         functionModel.setParameters(parameterModels);
@@ -284,9 +279,9 @@ public final class Utils {
     }
 
     public static Function getFunctionModel(FunctionDefinitionNode functionDefinitionNode, SemanticModel semanticModel,
-                                            boolean isHttp, boolean isGraphQL, Map<String, Value> annotations) {
+                                            boolean isGraphQL, Map<String, Value> annotations) {
         boolean isInit = isInitFunction(functionDefinitionNode);
-        ServiceClassUtil.ServiceClassContext context = deriveContext(isGraphQL, isHttp, isInit);
+        ServiceClassUtil.ServiceClassContext context = deriveContext(isGraphQL, isInit);
 
         Function functionModel = Function.getNewFunctionModel(context);
         functionModel.setAnnotations(annotations);
@@ -322,14 +317,11 @@ public final class Utils {
         if (returnTypeDesc.isPresent()) {
             FunctionReturnType returnType = functionModel.getReturnType();
             returnType.setValue(returnTypeDesc.get().type().toString().trim());
-            if (isHttp) {
-                populateHttpResponses(functionDefinitionNode, returnType, semanticModel);
-            }
         }
         SeparatedNodeList<ParameterNode> parameters = functionSignatureNode.parameters();
         List<Parameter> parameterModels = new ArrayList<>();
         parameters.forEach(parameterNode -> {
-            Optional<Parameter> parameterModel = getParameterModel(parameterNode, isHttp, isGraphQL);
+            Optional<Parameter> parameterModel = getParameterModel(parameterNode, isGraphQL);
             parameterModel.ifPresent(parameterModels::add);
         });
         functionModel.setParameters(parameterModels);
@@ -339,51 +331,29 @@ public final class Utils {
         return functionModel;
     }
 
-    private static ServiceClassUtil.ServiceClassContext deriveContext(boolean isGraphQL, boolean isHttp,
-                                                                      boolean isInit) {
+    private static ServiceClassUtil.ServiceClassContext deriveContext(boolean isGraphQL, boolean isInit) {
         if (isGraphQL && !isInit) {
             return GRAPHQL_DIAGRAM;
-        } else if (isHttp && isInit) {
-            return HTTP_DIAGRAM;
         }
         return SERVICE_DIAGRAM;
     }
 
-    private static boolean isInitFunction(FunctionDefinitionNode functionDefinitionNode) {
+    public static boolean isInitFunction(FunctionDefinitionNode functionDefinitionNode) {
         return functionDefinitionNode.functionName().text().trim().equals(ServiceModelGeneratorConstants.INIT);
     }
 
-    private static boolean isInitFunction(MethodDeclarationNode functionDefinitionNode) {
+    public static boolean isInitFunction(MethodDeclarationNode functionDefinitionNode) {
         return functionDefinitionNode.methodName().text().trim().equals(ServiceModelGeneratorConstants.INIT);
     }
 
-    private static void populateHttpResponses(MethodDeclarationNode functionDefinitionNode,
-                                              FunctionReturnType returnType, SemanticModel semanticModel) {
-        Optional<Symbol> functionDefSymbol = semanticModel.symbol(functionDefinitionNode);
-        if (functionDefSymbol.isEmpty() || !(functionDefSymbol.get() instanceof ResourceMethodSymbol resource)) {
-            return;
-        }
-        HttpUtil.populateHttpResponses(returnType, semanticModel, resource);
-    }
-
-    private static void populateHttpResponses(FunctionDefinitionNode functionDefinitionNode,
-                                              FunctionReturnType returnType, SemanticModel semanticModel) {
-        Optional<Symbol> functionDefSymbol = semanticModel.symbol(functionDefinitionNode);
-        if (functionDefSymbol.isEmpty() || !(functionDefSymbol.get() instanceof ResourceMethodSymbol resource)) {
-            return;
-        }
-        HttpUtil.populateHttpResponses(returnType, semanticModel, resource);
-    }
-
-    public static Optional<Parameter> getParameterModel(ParameterNode parameterNode, boolean isHttp,
-                                                        boolean isGraphQL) {
+    public static Optional<Parameter> getParameterModel(ParameterNode parameterNode, boolean isGraphQL) {
         if (parameterNode instanceof RequiredParameterNode parameter) {
             if (parameter.paramName().isEmpty()) {
                 return Optional.empty();
             }
             String paramName = parameter.paramName().get().text().trim();
             Parameter parameterModel = createParameter(paramName, KIND_REQUIRED, parameter.typeName().toString().trim(),
-                    parameter.annotations(), isHttp, isGraphQL);
+                    parameter.annotations(), isGraphQL);
             return Optional.of(parameterModel);
         } else if (parameterNode instanceof DefaultableParameterNode parameter) {
             if (parameter.paramName().isEmpty()) {
@@ -391,7 +361,7 @@ public final class Utils {
             }
             String paramName = parameter.paramName().get().text().trim();
             Parameter parameterModel = createParameter(paramName, KIND_DEFAULTABLE,
-                    parameter.typeName().toString().trim(), parameter.annotations(), isHttp, isGraphQL);
+                    parameter.typeName().toString().trim(), parameter.annotations(), isGraphQL);
             Value defaultValue = parameterModel.getDefaultValue();
             defaultValue.setValue(parameter.expression().toString().trim());
             defaultValue.setValueType(VALUE_TYPE_EXPRESSION);
@@ -403,27 +373,12 @@ public final class Utils {
 
 
     private static Parameter createParameter(String paramName, String paramKind, String typeName,
-                                             NodeList<AnnotationNode> annotationNodes, boolean isHttp,
-                                             boolean isGraphQL) {
+                                             NodeList<AnnotationNode> annotationNodes, boolean isGraphQL) {
         Parameter parameterModel = Parameter.getNewParameter(isGraphQL);
         parameterModel.setMetadata(new MetaData(paramName, paramName));
         parameterModel.setKind(paramKind);
         parameterModel.getType().setValue(typeName);
         parameterModel.getName().setValue(paramName);
-
-        if (isHttp) {
-            Optional<String> httpParameterType = getHttpParameterType(annotationNodes);
-            if (httpParameterType.isPresent()) {
-                parameterModel.setHttpParamType(httpParameterType.get());
-            } else {
-                if (!(typeName.equals("http:Request") || typeName.equals("http:Caller")
-                        || typeName.equals("http:Headers") || typeName.equals("http:RequestContext"))) {
-                    parameterModel.setHttpParamType(ServiceModelGeneratorConstants.HTTP_PARAM_TYPE_QUERY);
-                    parameterModel.setEditable(true);
-                }
-            }
-        }
-
         return parameterModel;
     }
 

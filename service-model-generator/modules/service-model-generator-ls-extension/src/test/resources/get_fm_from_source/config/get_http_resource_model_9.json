@@ -20,7 +20,7 @@
         "label": "Accessor",
         "description": "The accessor of the function"
       },
-      "enabled": false,
+      "enabled": true,
       "editable": true,
       "valueType": "IDENTIFIER",
       "isType": false,
