@@ -45,6 +45,7 @@ import java.util.Optional;
 
 import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.FUNCTION_NAME_METADATA;
 import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.FUNCTION_RETURN_TYPE_METADATA;
+import static io.ballerina.servicemodelgenerator.extension.function.GraphqlFunctionBuilder.getGraphqlParameterModel;
 
 /**
  * Util class for service class related operations.
@@ -161,8 +162,8 @@ public class ServiceClassUtil {
         SeparatedNodeList<ParameterNode> parameters = functionSignatureNode.parameters();
         List<Parameter> parameterModels = new ArrayList<>();
         parameters.forEach(parameterNode -> {
-            Optional<Parameter> parameterModel = Utils.getParameterModel(parameterNode,
-                    context == ServiceClassContext.GRAPHQL_DIAGRAM);
+            Optional<Parameter> parameterModel = context == ServiceClassContext.GRAPHQL_DIAGRAM ?
+                    getGraphqlParameterModel(parameterNode) : Utils.getParameterModel(parameterNode);
             parameterModel.ifPresent(parameterModels::add);
         });
         functionModel.setParameters(parameterModels);

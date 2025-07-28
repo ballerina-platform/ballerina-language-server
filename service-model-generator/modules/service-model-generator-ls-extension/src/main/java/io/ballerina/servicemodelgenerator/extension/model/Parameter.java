@@ -199,7 +199,7 @@ public class Parameter {
                 .build();
     }
 
-    public static Parameter graphQLParamSchema() {
+    public static Parameter graphqlParamSchema() {
         return new Parameter.Builder()
                 .type(type(ARGUMENT_TYPE_METADATA))
                 .name(name(ARGUMENT_NAME_METADATA))
@@ -219,8 +219,12 @@ public class Parameter {
                 .build();
     }
 
-    public static Parameter getNewParameter(boolean isGraphQL) {
-        return isGraphQL ? graphQLParamSchema() : functionParamSchema();
+    public static Parameter getNewFunctionParameter() {
+        return functionParamSchema();
+    }
+
+    public static Parameter getNewGraphqlParameter() {
+        return graphqlParamSchema();
     }
 
     public static class RequiredParamSorter implements Comparator<Parameter>, Serializable {

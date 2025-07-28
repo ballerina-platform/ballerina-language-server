@@ -89,7 +89,7 @@ public class Function {
             functionBuilder
                     .name(name(FIELD_NAME_METADATA))
                     .returnType(returnType(FIELD_TYPE_METADATA))
-                    .schema(Map.of(ServiceModelGeneratorConstants.PARAMETER, Parameter.graphQLParamSchema()));
+                    .schema(Map.of(ServiceModelGeneratorConstants.PARAMETER, Parameter.graphqlParamSchema()));
         } else if (context == TYPE_DIAGRAM) {
            functionBuilder
                     .name(name(RESOURCE_NAME_METADATA))

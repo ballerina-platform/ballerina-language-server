@@ -85,6 +85,34 @@
         "editable": true,
         "optional": false,
         "advanced": false
+      },
+      "annotServiceConfig": {
+        "metadata": {
+          "label": "Service Configuration",
+          "description": "Define service configurations such as maximum query depth."
+        },
+        "codedata": {
+          "type": "ANNOTATION_ATTACHMENT",
+          "originalName": "ServiceConfig"
+        },
+        "placeholder": "{}",
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "graphql:GraphqlServiceConfig",
+        "value": "{\n    introspection: false\n}",
+        "values": [],
+        "typeMembers": [
+          {
+            "type": "GraphqlServiceConfig",
+            "packageInfo": "ballerina:graphql:1.16.0",
+            "kind": "RECORD_TYPE",
+            "selected": true
+          }
+        ],
+        "imports": {},
+        "enabled": true,
+        "editable": true,
+        "optional": true,
+        "advanced": true
       }
     },
     "codedata": {

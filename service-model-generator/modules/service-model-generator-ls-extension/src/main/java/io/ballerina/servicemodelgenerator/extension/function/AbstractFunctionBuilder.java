@@ -20,7 +20,6 @@ package io.ballerina.servicemodelgenerator.extension.function;
 
 import com.google.gson.Gson;
 import com.google.gson.stream.JsonReader;
-import io.ballerina.compiler.syntax.tree.AnnotationNode;
 import io.ballerina.compiler.syntax.tree.ClassDefinitionNode;
 import io.ballerina.compiler.syntax.tree.DefaultableParameterNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
@@ -286,7 +285,7 @@ public abstract class AbstractFunctionBuilder implements NodeBuilder<Function> {
             }
             String paramName = parameter.paramName().get().text().trim();
             String paramType = parameter.typeName().toString().trim();
-            Parameter parameterModel = createParameter(paramName, KIND_REQUIRED, paramType, parameter.annotations());
+            Parameter parameterModel = createParameter(paramName, KIND_REQUIRED, paramType);
             return Optional.of(parameterModel);
         } else if (parameterNode instanceof DefaultableParameterNode parameter) {
             if (parameter.paramName().isEmpty()) {
@@ -294,7 +293,7 @@ public abstract class AbstractFunctionBuilder implements NodeBuilder<Function> {
             }
             String paramName = parameter.paramName().get().text().trim();
             String paramType = parameter.typeName().toString().trim();
-            Parameter parameterModel = createParameter(paramName, KIND_DEFAULTABLE, paramType, parameter.annotations());
+            Parameter parameterModel = createParameter(paramName, KIND_DEFAULTABLE, paramType);
             Value defaultValue = parameterModel.getDefaultValue();
             defaultValue.setValue(parameter.expression().toString().trim());
             defaultValue.setValueType(VALUE_TYPE_EXPRESSION);
@@ -304,8 +303,7 @@ public abstract class AbstractFunctionBuilder implements NodeBuilder<Function> {
         return Optional.empty();
     }
 
-    private static Parameter createParameter(String paramName, String paramKind, String typeName,
-                                             NodeList<AnnotationNode> annotationNodes) {
+    private static Parameter createParameter(String paramName, String paramKind, String typeName) {
         Parameter parameterModel = Parameter.functionParamSchema();
         parameterModel.setMetadata(new MetaData(paramName, paramName));
         parameterModel.setKind(paramKind);
