@@ -18,7 +18,7 @@
 
 package io.ballerina.servicemodelgenerator.extension.model;
 
-import io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants;
+import io.ballerina.servicemodelgenerator.extension.util.Constants;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -26,15 +26,15 @@ import java.util.Comparator;
 import java.util.Locale;
 import java.util.Objects;
 
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.ARGUMENT_DEFAULT_VALUE_METADATA;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.ARGUMENT_NAME_METADATA;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.ARGUMENT_TYPE_METADATA;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.FIELD_DEFAULT_VALUE_METADATA;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.FIELD_NAME_METADATA;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.FIELD_TYPE_METADATA;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.PARAMETER_DEFAULT_VALUE_METADATA;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.PARAMETER_NAME_METADATA;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.PARAMETER_TYPE_METADATA;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARGUMENT_DEFAULT_VALUE_METADATA;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARGUMENT_NAME_METADATA;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARGUMENT_TYPE_METADATA;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.FIELD_DEFAULT_VALUE_METADATA;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.FIELD_NAME_METADATA;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.FIELD_TYPE_METADATA;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.PARAMETER_DEFAULT_VALUE_METADATA;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.PARAMETER_NAME_METADATA;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.PARAMETER_TYPE_METADATA;
 
 /**
  * Represents a parameter in service method.
@@ -166,7 +166,7 @@ public class Parameter {
     private static Value name(MetaData metadata) {
         return new Value.ValueBuilder()
                 .setMetadata(metadata)
-                .valueType(ServiceModelGeneratorConstants.VALUE_TYPE_IDENTIFIER)
+                .valueType(Constants.VALUE_TYPE_IDENTIFIER)
                 .enabled(true)
                 .editable(true)
                 .build();
@@ -175,7 +175,7 @@ public class Parameter {
     private static Value type(MetaData metadata) {
         return new Value.ValueBuilder()
                 .setMetadata(metadata)
-                .valueType(ServiceModelGeneratorConstants.VALUE_TYPE_TYPE)
+                .valueType(Constants.VALUE_TYPE_TYPE)
                 .enabled(true)
                 .editable(true)
                 .build();
@@ -184,7 +184,7 @@ public class Parameter {
     private static Value defaultValue(MetaData metadata) {
         return new Value.ValueBuilder()
                 .setMetadata(metadata)
-                .valueType(ServiceModelGeneratorConstants.VALUE_TYPE_EXPRESSION)
+                .valueType(Constants.VALUE_TYPE_EXPRESSION)
                 .enabled(true)
                 .editable(true)
                 .optional(true)

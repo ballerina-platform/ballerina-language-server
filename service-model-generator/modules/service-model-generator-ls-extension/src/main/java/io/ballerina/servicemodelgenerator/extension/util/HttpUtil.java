@@ -38,7 +38,6 @@ import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.TypeDefinitionNode;
 import io.ballerina.modelgenerator.commons.CommonUtils;
-import io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants;
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.FunctionReturnType;
 import io.ballerina.servicemodelgenerator.extension.model.HttpResponse;
@@ -263,7 +262,7 @@ public final class HttpUtil {
         Service serviceModel = Service.getEmptyServiceModel();
         Value serviceContractType = new Value.ValueBuilder()
                 .enabled(true)
-                .valueType(ServiceModelGeneratorConstants.VALUE_TYPE_IDENTIFIER)
+                .valueType(Constants.VALUE_TYPE_IDENTIFIER)
                 .value(serviceTypeNode.typeName().text().trim())
                 .build();
         serviceModel.setServiceContractTypeName(serviceContractType);
@@ -278,7 +277,7 @@ public final class HttpUtil {
                 continue;
             }
             String[] annotStrings = annotName.split(":");
-            if (!annotStrings[0].trim().equals(ServiceModelGeneratorConstants.HTTP)) {
+            if (!annotStrings[0].trim().equals(Constants.HTTP)) {
                 continue;
             }
             return Optional.of(annotStrings[annotStrings.length - 1].trim().toUpperCase(Locale.ROOT));

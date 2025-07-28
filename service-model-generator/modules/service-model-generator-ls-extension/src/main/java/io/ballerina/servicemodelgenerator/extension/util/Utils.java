@@ -52,7 +52,6 @@ import io.ballerina.compiler.syntax.tree.Token;
 import io.ballerina.compiler.syntax.tree.TypeDefinitionNode;
 import io.ballerina.compiler.syntax.tree.TypeDescriptorNode;
 import io.ballerina.projects.Document;
-import io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants;
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.FunctionReturnType;
@@ -62,8 +61,8 @@ import io.ballerina.servicemodelgenerator.extension.model.Parameter;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
 import io.ballerina.servicemodelgenerator.extension.model.TriggerProperty;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
-import io.ballerina.servicemodelgenerator.extension.request.TriggerListRequest;
-import io.ballerina.servicemodelgenerator.extension.request.TriggerRequest;
+import io.ballerina.servicemodelgenerator.extension.model.request.TriggerListRequest;
+import io.ballerina.servicemodelgenerator.extension.model.request.TriggerRequest;
 import io.ballerina.tools.text.LinePosition;
 import io.ballerina.tools.text.LineRange;
 import io.ballerina.tools.text.TextDocument;
@@ -87,22 +86,22 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.GET;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.KIND_DEFAULT;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.KIND_DEFAULTABLE;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.KIND_MUTATION;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.KIND_QUERY;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.KIND_REMOTE;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.KIND_REQUIRED;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.KIND_RESOURCE;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.KIND_SUBSCRIPTION;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.NEW_LINE;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.REMOTE;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.RESOURCE;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.SPACE;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.SUBSCRIBE;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.VALUE_TYPE_EXPRESSION;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.VALUE_TYPE_IDENTIFIER;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.GET;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_DEFAULT;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_DEFAULTABLE;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_MUTATION;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_QUERY;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_REMOTE;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_REQUIRED;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_RESOURCE;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_SUBSCRIPTION;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.REMOTE;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.RESOURCE;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.SPACE;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.SUBSCRIBE;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_EXPRESSION;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_IDENTIFIER;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceClassUtil.ServiceClassContext.SERVICE_DIAGRAM;
 
 /**
@@ -162,7 +161,7 @@ public final class Utils {
     }
 
     public static void populateRequiredFunctions(Service service) {
-        Value value = service.getProperty(ServiceModelGeneratorConstants.PROPERTY_REQUIRED_FUNCTIONS);
+        Value value = service.getProperty(Constants.PROPERTY_REQUIRED_FUNCTIONS);
         if (Objects.nonNull(value) && value.isEnabledWithValue()) {
             String requiredFunction = value.getValue();
             service.getFunctions()
@@ -189,7 +188,7 @@ public final class Utils {
             designApproach.getChoices().stream()
                     .filter(Value::isEnabled).findFirst()
                     .ifPresent(selectedApproach -> service.addProperties(selectedApproach.getProperties()));
-            service.getProperties().remove(ServiceModelGeneratorConstants.PROPERTY_DESIGN_APPROACH);
+            service.getProperties().remove(Constants.PROPERTY_DESIGN_APPROACH);
         }
     }
 
@@ -317,11 +316,11 @@ public final class Utils {
     }
 
     public static boolean isInitFunction(FunctionDefinitionNode functionDefinitionNode) {
-        return functionDefinitionNode.functionName().text().trim().equals(ServiceModelGeneratorConstants.INIT);
+        return functionDefinitionNode.functionName().text().trim().equals(Constants.INIT);
     }
 
     public static boolean isInitFunction(MethodDeclarationNode functionDefinitionNode) {
-        return functionDefinitionNode.methodName().text().trim().equals(ServiceModelGeneratorConstants.INIT);
+        return functionDefinitionNode.methodName().text().trim().equals(Constants.INIT);
     }
 
     public static Optional<Parameter> getParameterModel(ParameterNode parameterNode) {
@@ -366,7 +365,7 @@ public final class Utils {
         }
         Optional<AnnotationNode> httpServiceConfig = metadata.get().annotations().stream()
                 .filter(annotation -> annotation.annotReference().toString().trim().equals(
-                        ServiceModelGeneratorConstants.TYPE_HTTP_SERVICE_CONFIG))
+                        Constants.TYPE_HTTP_SERVICE_CONFIG))
                 .findFirst();
         if (httpServiceConfig.isEmpty()) {
             return Optional.empty();
@@ -379,7 +378,7 @@ public final class Utils {
                 .filter(fieldNode -> fieldNode.kind().equals(SyntaxKind.SPECIFIC_FIELD))
                 .map(fieldNode -> (SpecificFieldNode) fieldNode)
                 .filter(fieldNode -> fieldNode.fieldName().toString().trim()
-                        .equals(ServiceModelGeneratorConstants.BASE_PATH))
+                        .equals(Constants.BASE_PATH))
                 .findFirst();
         if (basePathField.isEmpty()) {
             return Optional.empty();
@@ -837,7 +836,7 @@ public final class Utils {
      * @return generated import statement
      */
     public static String getImportStmt(String org, String module) {
-        return String.format(ServiceModelGeneratorConstants.IMPORT_STMT_TEMPLATE, org, module);
+        return String.format(Constants.IMPORT_STMT_TEMPLATE, org, module);
     }
 
     public static boolean filterTriggers(TriggerProperty triggerProperty, TriggerListRequest request) {

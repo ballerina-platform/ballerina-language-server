@@ -26,7 +26,6 @@ import io.ballerina.compiler.syntax.tree.ParameterNode;
 import io.ballerina.compiler.syntax.tree.ReturnTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
 import io.ballerina.compiler.syntax.tree.Token;
-import io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants;
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Field;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
@@ -43,9 +42,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.FUNCTION_NAME_METADATA;
-import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.FUNCTION_RETURN_TYPE_METADATA;
-import static io.ballerina.servicemodelgenerator.extension.function.GraphqlFunctionBuilder.getGraphqlParameterModel;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.FUNCTION_NAME_METADATA;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.FUNCTION_RETURN_TYPE_METADATA;
+import static io.ballerina.servicemodelgenerator.extension.builder.function.GraphqlFunctionBuilder.getGraphqlParameterModel;
 
 /**
  * Util class for service class related operations.
@@ -90,7 +89,7 @@ public class ServiceClassUtil {
 
     private static String getClassType(ClassDefinitionNode classDef) {
         if (classDef.classTypeQualifiers().isEmpty()) {
-            return ServiceModelGeneratorConstants.CLASS_TYPE_DEFAULT;
+            return Constants.CLASS_TYPE_DEFAULT;
         }
         return classDef.classTypeQualifiers().get(0).text().trim();
     }
@@ -98,13 +97,13 @@ public class ServiceClassUtil {
     private static Value buildClassNameProperty(String className, LineRange lineRange, ServiceClassContext context) {
         Value value = new Value();
         value.setMetadata(context == ServiceClassContext.TYPE_DIAGRAM
-                ? ServiceModelGeneratorConstants.SERCVICE_CLASS_NAME_METADATA
-                : ServiceModelGeneratorConstants.GRAPHQL_CLASS_NAME_METADATA);
+                ? Constants.SERCVICE_CLASS_NAME_METADATA
+                : Constants.GRAPHQL_CLASS_NAME_METADATA);
         value.setCodedata(new Codedata(lineRange));
         value.setEnabled(true);
         value.setEditable(false);
         value.setValue(className);
-        value.setValueType(ServiceModelGeneratorConstants.VALUE_TYPE_IDENTIFIER);
+        value.setValueType(Constants.VALUE_TYPE_IDENTIFIER);
         value.setValueTypeConstraint("Global");
         value.setPlaceholder("");
         return value;
@@ -153,7 +152,7 @@ public class ServiceClassUtil {
             FunctionReturnType returnType = functionModel.getReturnType();
             if (Objects.nonNull(returnType)) {
                 returnType.setValue(returnTypeDesc.get().type().toString().trim());
-                returnType.setValueType(ServiceModelGeneratorConstants.VALUE_TYPE_TYPE);
+                returnType.setValueType(Constants.VALUE_TYPE_TYPE);
                 returnType.setEnabled(true);
                 returnType.setEditable(true);
                 returnType.setOptional(true);
@@ -176,11 +175,11 @@ public class ServiceClassUtil {
         Parameter parameterModel = Parameter.getNewField();
         Value type = parameterModel.getType();
         type.setValue(objectField.typeName().toSourceCode().trim());
-        type.setValueType(ServiceModelGeneratorConstants.VALUE_TYPE_TYPE);
+        type.setValueType(Constants.VALUE_TYPE_TYPE);
         type.setEnabled(true);
         Value name = parameterModel.getName();
         name.setValue(objectField.fieldName().text().trim());
-        name.setValueType(ServiceModelGeneratorConstants.VALUE_TYPE_IDENTIFIER);
+        name.setValueType(Constants.VALUE_TYPE_IDENTIFIER);
         name.setEnabled(true);
         name.setEditable(false);
         name.setCodedata(new Codedata(objectField.fieldName().lineRange()));
@@ -188,7 +187,7 @@ public class ServiceClassUtil {
         if (objectField.expression().isPresent()) {
             Value defaultValue = parameterModel.getDefaultValue();
             defaultValue.setValue(objectField.expression().get().toString().trim());
-            defaultValue.setValueType(ServiceModelGeneratorConstants.VALUE_TYPE_EXPRESSION);
+            defaultValue.setValueType(Constants.VALUE_TYPE_EXPRESSION);
             defaultValue.setEnabled(true);
         }
 
@@ -202,13 +201,13 @@ public class ServiceClassUtil {
 
     private static FunctionKind getFunctionKind(FunctionDefinitionNode functionDefinitionNode) {
         for (Token qualifier : functionDefinitionNode.qualifierList()) {
-            if (qualifier.text().trim().matches(ServiceModelGeneratorConstants.REMOTE)) {
+            if (qualifier.text().trim().matches(Constants.REMOTE)) {
                 return FunctionKind.REMOTE;
-            } else if (qualifier.text().trim().matches(ServiceModelGeneratorConstants.RESOURCE)) {
+            } else if (qualifier.text().trim().matches(Constants.RESOURCE)) {
                 return FunctionKind.RESOURCE;
             }
         }
-        if (functionDefinitionNode.functionName().text().trim().equals(ServiceModelGeneratorConstants.INIT)) {
+        if (functionDefinitionNode.functionName().text().trim().equals(Constants.INIT)) {
             return FunctionKind.INIT;
         }
         return FunctionKind.DEFAULT;
