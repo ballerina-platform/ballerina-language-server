@@ -35,7 +35,6 @@ import io.ballerina.modelgenerator.commons.ServiceDatabaseManager;
 import io.ballerina.modelgenerator.commons.ServiceDeclaration;
 import io.ballerina.modelgenerator.commons.ServiceTypeFunction;
 import io.ballerina.projects.Project;
-import io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants;
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.FunctionReturnType;
@@ -106,7 +105,7 @@ public class ServiceModelUtils {
             foundSourceParam.ifPresent(value -> updateParameter(targetParameter, value));
         }
         updateValue(target.getReturnType(), source.getReturnType());
-        Value requiredFunctions = service.getProperty(ServiceModelGeneratorConstants.PROPERTY_REQUIRED_FUNCTIONS);
+        Value requiredFunctions = service.getProperty(Constants.PROPERTY_REQUIRED_FUNCTIONS);
         if (Objects.nonNull(requiredFunctions)) {
             if (source.isEnabled() && requiredFunctions.getItems().contains(source.getName().getValue())) {
                 requiredFunctions.setValue(source.getName().getValue());
@@ -173,7 +172,7 @@ public class ServiceModelUtils {
                 .returnType(functionReturnType)
                 .parameters(parameters);
 
-        if (function.kind().equals(ServiceModelGeneratorConstants.KIND_RESOURCE)) {
+        if (function.kind().equals(Constants.KIND_RESOURCE)) {
             Value.ValueBuilder accessor = new Value.ValueBuilder()
                     .metadata("Accessor", "The accessor of the resource function")
                     .setCodedata(new Codedata("ACCESSOR"))
