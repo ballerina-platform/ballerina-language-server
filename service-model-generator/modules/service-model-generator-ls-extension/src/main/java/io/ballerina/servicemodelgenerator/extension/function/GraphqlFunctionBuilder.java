@@ -20,12 +20,24 @@ package io.ballerina.servicemodelgenerator.extension.function;
 
 import com.google.gson.Gson;
 import com.google.gson.stream.JsonReader;
+import io.ballerina.compiler.syntax.tree.DefaultableParameterNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
+import io.ballerina.compiler.syntax.tree.FunctionSignatureNode;
+import io.ballerina.compiler.syntax.tree.ParameterNode;
+import io.ballerina.compiler.syntax.tree.RequiredParameterNode;
+import io.ballerina.compiler.syntax.tree.ReturnTypeDescriptorNode;
+import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
+import io.ballerina.compiler.syntax.tree.Token;
 import io.ballerina.modelgenerator.commons.Annotation;
 import io.ballerina.modelgenerator.commons.ServiceDatabaseManager;
+import io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants;
+import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
+import io.ballerina.servicemodelgenerator.extension.model.FunctionReturnType;
 import io.ballerina.servicemodelgenerator.extension.model.GetModelContext;
+import io.ballerina.servicemodelgenerator.extension.model.MetaData;
 import io.ballerina.servicemodelgenerator.extension.model.ModelFromSourceContext;
+import io.ballerina.servicemodelgenerator.extension.model.Parameter;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
 import io.ballerina.servicemodelgenerator.extension.util.Utils;
 
@@ -33,18 +45,33 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.KIND_DEFAULT;
+import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.KIND_DEFAULTABLE;
+import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.KIND_MUTATION;
+import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.KIND_QUERY;
+import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.KIND_REQUIRED;
 import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.KIND_RESOURCE;
+import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.KIND_SUBSCRIPTION;
+import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.REMOTE;
+import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.SUBSCRIBE;
+import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.VALUE_TYPE_EXPRESSION;
+import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.VALUE_TYPE_IDENTIFIER;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.BALLERINA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.GRAPHQL;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.OBJECT_METHOD;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.RESOURCE;
-import static io.ballerina.servicemodelgenerator.extension.util.Utils.getFunctionModel;
+import static io.ballerina.servicemodelgenerator.extension.util.ServiceClassUtil.ServiceClassContext.GRAPHQL_DIAGRAM;
+import static io.ballerina.servicemodelgenerator.extension.util.ServiceClassUtil.ServiceClassContext.SERVICE_DIAGRAM;
+import static io.ballerina.servicemodelgenerator.extension.util.Utils.getPath;
+import static io.ballerina.servicemodelgenerator.extension.util.Utils.isInitFunction;
+import static io.ballerina.servicemodelgenerator.extension.util.Utils.updateAnnotationAttachmentProperty;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.updateValue;
 
 public class GraphqlFunctionBuilder extends AbstractFunctionBuilder {
@@ -71,12 +98,11 @@ public class GraphqlFunctionBuilder extends AbstractFunctionBuilder {
         List<Annotation> annotationAttachments = databaseManager.
                 getAnnotationAttachments(BALLERINA, GRAPHQL, OBJECT_METHOD);
         Map<String, Value> annotations = Function.createAnnotationsMap(annotationAttachments);
-        Function functionModel = getFunctionModel((FunctionDefinitionNode) context.node(), context.semanticModel(),
-                true, annotations);
+        Function functionModel = getGraphqlFunctionModel((FunctionDefinitionNode) context.node(), annotations);
         functionModel.setEditable(true);
 
         if (functionModel.getKind().equals(KIND_RESOURCE)) {
-            Optional<Function> resourceFunctionOp = getGraphqlFunctionModel(RESOURCE);
+            Optional<Function> resourceFunctionOp = getGraphqlResourceModel(RESOURCE);
             if (resourceFunctionOp.isPresent()) {
                 Function resourceFunction = resourceFunctionOp.get();
                 if (resourceFunction.getReturnType().getResponses().size() > 1) {
@@ -92,7 +118,12 @@ public class GraphqlFunctionBuilder extends AbstractFunctionBuilder {
         return functionModel;
     }
 
-    private static Optional<Function> getGraphqlFunctionModel(String functionType) {
+    @Override
+    public String kind() {
+        return GRAPHQL;
+    }
+
+    private static Optional<Function> getGraphqlResourceModel(String functionType) {
         InputStream resourceStream = Utils.class.getClassLoader()
                 .getResourceAsStream(String.format(GRAPHQL_FUNCTION_MODEL_LOCATION, functionType));
         if (resourceStream == null) {
@@ -122,8 +153,97 @@ public class GraphqlFunctionBuilder extends AbstractFunctionBuilder {
                 .forEach(functionModel::addParameter);
     }
 
-    @Override
-    public String kind() {
-        return GRAPHQL;
+    public static Function getGraphqlFunctionModel(FunctionDefinitionNode functionDefinitionNode,
+                                                   Map<String, Value> annotations) {
+        Function functionModel;
+        if (isInitFunction(functionDefinitionNode)) {
+            functionModel = Function.getNewFunctionModel(SERVICE_DIAGRAM);
+            functionModel.setKind(KIND_DEFAULT);
+        } else {
+            functionModel = Function.getNewFunctionModel(GRAPHQL_DIAGRAM);
+        }
+        functionModel.setAnnotations(annotations);
+
+        Value functionName = functionModel.getName();
+        functionName.setValue(functionDefinitionNode.functionName().text().trim());
+        functionName.setValueType(VALUE_TYPE_IDENTIFIER);
+
+        setKind(functionDefinitionNode, functionModel);
+
+        FunctionSignatureNode functionSignatureNode = functionDefinitionNode.functionSignature();
+        Optional<ReturnTypeDescriptorNode> returnTypeDesc = functionSignatureNode.returnTypeDesc();
+        if (returnTypeDesc.isPresent()) {
+            FunctionReturnType returnType = functionModel.getReturnType();
+            returnType.setValue(returnTypeDesc.get().type().toString().trim());
+        }
+
+        List<Parameter> parameterModels = getGraphqlParameterModelList(functionSignatureNode);
+
+        functionModel.setParameters(parameterModels);
+        functionModel.setCodedata(new Codedata(functionDefinitionNode.lineRange()));
+        functionModel.setCanAddParameters(true);
+        updateAnnotationAttachmentProperty(functionDefinitionNode, functionModel);
+        return functionModel;
+    }
+
+    public static Optional<Parameter> getGraphqlParameterModel(ParameterNode parameterNode) {
+        if (parameterNode instanceof RequiredParameterNode parameter) {
+            if (parameter.paramName().isEmpty()) {
+                return Optional.empty();
+            }
+            String paramName = parameter.paramName().get().text().trim();
+            Parameter parameterModel = createGraphqlParameter(paramName, KIND_REQUIRED,
+                    parameter.typeName().toString().trim());
+            return Optional.of(parameterModel);
+        } else if (parameterNode instanceof DefaultableParameterNode parameter) {
+            if (parameter.paramName().isEmpty()) {
+                return Optional.empty();
+            }
+            String paramName = parameter.paramName().get().text().trim();
+            Parameter parameterModel = createGraphqlParameter(paramName, KIND_DEFAULTABLE,
+                    parameter.typeName().toString().trim());
+            Value defaultValue = parameterModel.getDefaultValue();
+            defaultValue.setValue(parameter.expression().toString().trim());
+            defaultValue.setValueType(VALUE_TYPE_EXPRESSION);
+            defaultValue.setEnabled(true);
+            return Optional.of(parameterModel);
+        }
+        return Optional.empty();
+    }
+
+    private static Parameter createGraphqlParameter(String paramName, String paramKind, String typeName) {
+        Parameter parameterModel = Parameter.getNewGraphqlParameter();
+        parameterModel.setMetadata(new MetaData(paramName, paramName));
+        parameterModel.setKind(paramKind);
+        parameterModel.getType().setValue(typeName);
+        parameterModel.getName().setValue(paramName);
+        return parameterModel;
+    }
+
+    private static void setKind(FunctionDefinitionNode functionDefinitionNode, Function functionModel) {
+        Value accessor = functionModel.getAccessor();
+        for (Token qualifier : functionDefinitionNode.qualifierList()) {
+            String qualifierText = qualifier.text().trim();
+            if (qualifierText.matches(REMOTE)) {
+                functionModel.setKind(KIND_MUTATION);
+                break;
+            } else if (qualifierText.matches(ServiceModelGeneratorConstants.RESOURCE)) {
+                functionModel.setKind(functionModel.getName().getValue().equals(SUBSCRIBE) ? KIND_SUBSCRIPTION :
+                        KIND_QUERY);
+                accessor.setValue(functionDefinitionNode.functionName().text().trim());
+                functionModel.getName().setValue(getPath(functionDefinitionNode.relativeResourcePath()));
+                break;
+            }
+        }
+    }
+
+    private static List<Parameter> getGraphqlParameterModelList(FunctionSignatureNode functionSignatureNode) {
+        SeparatedNodeList<ParameterNode> parameters = functionSignatureNode.parameters();
+        List<Parameter> parameterModels = new ArrayList<>();
+        parameters.forEach(parameterNode -> {
+            Optional<Parameter> parameterModel = getGraphqlParameterModel(parameterNode);
+            parameterModel.ifPresent(parameterModels::add);
+        });
+        return parameterModels;
     }
 }

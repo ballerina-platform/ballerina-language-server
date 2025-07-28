@@ -103,7 +103,6 @@ import static io.ballerina.servicemodelgenerator.extension.ServiceModelGenerator
 import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.SUBSCRIBE;
 import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.VALUE_TYPE_EXPRESSION;
 import static io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants.VALUE_TYPE_IDENTIFIER;
-import static io.ballerina.servicemodelgenerator.extension.util.ServiceClassUtil.ServiceClassContext.GRAPHQL_DIAGRAM;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceClassUtil.ServiceClassContext.SERVICE_DIAGRAM;
 
 /**
@@ -238,29 +237,27 @@ public final class Utils {
         return paths.stream().map(Node::toString).map(String::trim).collect(Collectors.joining(""));
     }
 
-    public static Function getFunctionModel(MethodDeclarationNode functionDefinitionNode, SemanticModel semanticModel,
-            boolean isGraphQL, Map<String, Value> annotations) {
-        boolean isInit = isInitFunction(functionDefinitionNode);
-        ServiceClassUtil.ServiceClassContext context = deriveContext(isGraphQL, isInit);
-        Function functionModel = Function.getNewFunctionModel(context);
+    public static Function getFunctionModel(MethodDeclarationNode methodDeclarationNode,
+                                            Map<String, Value> annotations) {
+        Function functionModel = Function.getNewFunctionModel(SERVICE_DIAGRAM);
         functionModel.setAnnotations(annotations);
 
         Value functionName = functionModel.getName();
-        functionName.setValue(functionDefinitionNode.methodName().text().trim());
+        functionName.setValue(methodDeclarationNode.methodName().text().trim());
         functionName.setValueType(VALUE_TYPE_IDENTIFIER);
 
         Value accessor = functionModel.getAccessor();
-        for (Token qualifier : functionDefinitionNode.qualifierList()) {
+        for (Token qualifier : methodDeclarationNode.qualifierList()) {
             String qualifierText = qualifier.text().trim();
             if (qualifierText.matches(REMOTE)) {
                 functionModel.setKind(KIND_REMOTE);
             } else if (qualifierText.matches(RESOURCE)) {
                 functionModel.setKind(KIND_RESOURCE);
-                accessor.setValue(functionDefinitionNode.methodName().text().trim());
-                functionName.setValue(getPath(functionDefinitionNode.relativeResourcePath()));
+                accessor.setValue(methodDeclarationNode.methodName().text().trim());
+                functionName.setValue(getPath(methodDeclarationNode.relativeResourcePath()));
             }
         }
-        FunctionSignatureNode functionSignatureNode = functionDefinitionNode.methodSignature();
+        FunctionSignatureNode functionSignatureNode = methodDeclarationNode.methodSignature();
         Optional<ReturnTypeDescriptorNode> returnTypeDesc = functionSignatureNode.returnTypeDesc();
         if (returnTypeDesc.isPresent()) {
             FunctionReturnType returnType = functionModel.getReturnType();
@@ -269,26 +266,19 @@ public final class Utils {
         SeparatedNodeList<ParameterNode> parameters = functionSignatureNode.parameters();
         List<Parameter> parameterModels = new ArrayList<>();
         parameters.forEach(parameterNode -> {
-            Optional<Parameter> parameterModel = getParameterModel(parameterNode, isGraphQL);
+            Optional<Parameter> parameterModel = getParameterModel(parameterNode);
             parameterModel.ifPresent(parameterModels::add);
         });
         functionModel.setParameters(parameterModels);
-        functionModel.setCodedata(new Codedata(functionDefinitionNode.lineRange()));
+        functionModel.setCodedata(new Codedata(methodDeclarationNode.lineRange()));
         return functionModel;
     }
 
-    public static Function getFunctionModel(FunctionDefinitionNode functionDefinitionNode, SemanticModel semanticModel,
-                                            boolean isGraphQL, Map<String, Value> annotations) {
-        boolean isInit = isInitFunction(functionDefinitionNode);
-        ServiceClassUtil.ServiceClassContext context = deriveContext(isGraphQL, isInit);
-
-        Function functionModel = Function.getNewFunctionModel(context);
+    public static Function getFunctionModel(FunctionDefinitionNode functionDefinitionNode,
+                                            Map<String, Value> annotations) {
+        Function functionModel = Function.getNewFunctionModel(SERVICE_DIAGRAM);
         functionModel.setAnnotations(annotations);
-
-        if (isInit) {
-            functionModel.setKind(KIND_DEFAULT);
-        }
-
+        functionModel.setKind(KIND_DEFAULT);
         Value functionName = functionModel.getName();
         functionName.setValue(functionDefinitionNode.functionName().text().trim());
         functionName.setValueType(VALUE_TYPE_IDENTIFIER);
@@ -297,14 +287,10 @@ public final class Utils {
         for (Token qualifier : functionDefinitionNode.qualifierList()) {
             String qualifierText = qualifier.text().trim();
             if (qualifierText.matches(REMOTE)) {
-                functionModel.setKind(isGraphQL ? KIND_MUTATION : KIND_REMOTE);
+                functionModel.setKind(KIND_REMOTE);
                 break;
             } else if (qualifierText.matches(RESOURCE)) {
-                if (isGraphQL) {
-                    functionModel.setKind(functionName.getValue().equals(SUBSCRIBE) ? KIND_SUBSCRIPTION : KIND_QUERY);
-                } else {
-                    functionModel.setKind(KIND_RESOURCE);
-                }
+                functionModel.setKind(KIND_RESOURCE);
                 accessor.setValue(functionDefinitionNode.functionName().text().trim());
                 functionName.setValue(getPath(functionDefinitionNode.relativeResourcePath()));
                 break;
@@ -320,7 +306,7 @@ public final class Utils {
         SeparatedNodeList<ParameterNode> parameters = functionSignatureNode.parameters();
         List<Parameter> parameterModels = new ArrayList<>();
         parameters.forEach(parameterNode -> {
-            Optional<Parameter> parameterModel = getParameterModel(parameterNode, isGraphQL);
+            Optional<Parameter> parameterModel = getParameterModel(parameterNode);
             parameterModel.ifPresent(parameterModels::add);
         });
         functionModel.setParameters(parameterModels);
@@ -328,13 +314,6 @@ public final class Utils {
         functionModel.setCanAddParameters(true);
         updateAnnotationAttachmentProperty(functionDefinitionNode, functionModel);
         return functionModel;
-    }
-
-    private static ServiceClassUtil.ServiceClassContext deriveContext(boolean isGraphQL, boolean isInit) {
-        if (isGraphQL && !isInit) {
-            return GRAPHQL_DIAGRAM;
-        }
-        return SERVICE_DIAGRAM;
     }
 
     public static boolean isInitFunction(FunctionDefinitionNode functionDefinitionNode) {
@@ -345,14 +324,14 @@ public final class Utils {
         return functionDefinitionNode.methodName().text().trim().equals(ServiceModelGeneratorConstants.INIT);
     }
 
-    public static Optional<Parameter> getParameterModel(ParameterNode parameterNode, boolean isGraphQL) {
+    public static Optional<Parameter> getParameterModel(ParameterNode parameterNode) {
         if (parameterNode instanceof RequiredParameterNode parameter) {
             if (parameter.paramName().isEmpty()) {
                 return Optional.empty();
             }
             String paramName = parameter.paramName().get().text().trim();
-            Parameter parameterModel = createParameter(paramName, KIND_REQUIRED, parameter.typeName().toString().trim(),
-                    parameter.annotations(), isGraphQL);
+            Parameter parameterModel = createParameter(paramName, KIND_REQUIRED,
+                    parameter.typeName().toString().trim());
             return Optional.of(parameterModel);
         } else if (parameterNode instanceof DefaultableParameterNode parameter) {
             if (parameter.paramName().isEmpty()) {
@@ -360,7 +339,7 @@ public final class Utils {
             }
             String paramName = parameter.paramName().get().text().trim();
             Parameter parameterModel = createParameter(paramName, KIND_DEFAULTABLE,
-                    parameter.typeName().toString().trim(), parameter.annotations(), isGraphQL);
+                    parameter.typeName().toString().trim());
             Value defaultValue = parameterModel.getDefaultValue();
             defaultValue.setValue(parameter.expression().toString().trim());
             defaultValue.setValueType(VALUE_TYPE_EXPRESSION);
@@ -371,9 +350,8 @@ public final class Utils {
     }
 
 
-    private static Parameter createParameter(String paramName, String paramKind, String typeName,
-                                             NodeList<AnnotationNode> annotationNodes, boolean isGraphQL) {
-        Parameter parameterModel = Parameter.getNewParameter(isGraphQL);
+    private static Parameter createParameter(String paramName, String paramKind, String typeName) {
+        Parameter parameterModel = Parameter.getNewFunctionParameter();
         parameterModel.setMetadata(new MetaData(paramName, paramName));
         parameterModel.setKind(paramKind);
         parameterModel.getType().setValue(typeName);

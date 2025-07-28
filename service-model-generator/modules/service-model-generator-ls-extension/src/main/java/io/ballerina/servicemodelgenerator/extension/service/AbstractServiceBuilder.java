@@ -29,7 +29,6 @@ import io.ballerina.modelgenerator.commons.AnnotationAttachment;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.ServiceDatabaseManager;
 import io.ballerina.modelgenerator.commons.ServiceDeclaration;
-import io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants;
 import io.ballerina.servicemodelgenerator.extension.model.AddModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
@@ -278,11 +277,9 @@ public abstract class AbstractServiceBuilder implements NodeBuilder<Service> {
         ServiceDeclarationNode serviceNode = (ServiceDeclarationNode) context.node();
         extractServicePathInfo(serviceNode, serviceModel);
 
-        boolean isGraphql = serviceModel.getModuleName().equals(ServiceModelGeneratorConstants.GRAPHQL);
         List<Function> functionsInSource = serviceNode.members().stream()
                 .filter(member -> member instanceof FunctionDefinitionNode)
-                .map(member -> getFunctionModel((FunctionDefinitionNode) member, context.semanticModel(),
-                        isGraphql, Map.of()))
+                .map(member -> getFunctionModel((FunctionDefinitionNode) member, Map.of()))
                 .toList();
 
         updateServiceInfoNew(serviceModel, functionsInSource);
@@ -332,7 +329,7 @@ public abstract class AbstractServiceBuilder implements NodeBuilder<Service> {
      * Return a list of required method definitions for the service.
      *
      * @param service the service model
-     * @param context the function add context
+     * @param context the function-add context
      * @param imports a map of imports to be used in the function definitions
      * @return a list of method definitions as strings
      */
@@ -360,7 +357,7 @@ public abstract class AbstractServiceBuilder implements NodeBuilder<Service> {
         builder.append(String.join(TWO_NEW_LINES, functions)).append(NEW_LINE).append(CLOSE_BRACE);
     }
 
-    private static void extractServicePathInfo(ServiceDeclarationNode serviceNode, Service serviceModel) {
+    public static void extractServicePathInfo(ServiceDeclarationNode serviceNode, Service serviceModel) {
         String attachPoint = getPath(serviceNode.absoluteResourcePath());
         if (!attachPoint.isEmpty()) {
             boolean isStringLiteral = attachPoint.startsWith(DOUBLE_QUOTE) && attachPoint.endsWith(DOUBLE_QUOTE);
