@@ -61,8 +61,6 @@ public class ServiceModelUtils {
     public static void updateServiceInfoNew(Service serviceModel, List<Function> functionsInSource) {
         Utils.populateRequiredFunctions(serviceModel);
 
-        boolean isGraphql = serviceModel.getModuleName().equals(ServiceModelGeneratorConstants.GRAPHQL);
-
         // mark the enabled functions as true if they present in the source
         serviceModel.getFunctions().forEach(functionModel -> {
             Optional<Function> function = functionsInSource.stream()
@@ -76,21 +74,16 @@ public class ServiceModelUtils {
             );
         });
 
-        // functions contains in source but not enforced using the service contract type
+        // functions contains in a source but not enforced using the service contract type
         functionsInSource.forEach(funcInSource -> {
             if (serviceModel.getFunctions().stream().noneMatch(newFunction -> isPresent(funcInSource, newFunction))) {
-                if (isGraphql) {
-                    GraphqlUtil.updateGraphqlFunctionMetaData(funcInSource);
-                    serviceModel.addFunction(funcInSource);
-                } else {
-                    serviceModel.addFunction(funcInSource);
-                    funcInSource.setEditable(false);
-                }
+                serviceModel.addFunction(funcInSource);
+                funcInSource.setEditable(false);
             }
         });
     }
 
-    private static void updateFunction(Function target, Function source, Service service) {
+    public static void updateFunction(Function target, Function source, Service service) {
         target.setEnabled(source.isEnabled());
         target.setCodedata(source.getCodedata());
         updateValue(target.getAccessor(), source.getAccessor());

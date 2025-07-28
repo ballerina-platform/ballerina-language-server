@@ -21,10 +21,13 @@ package io.ballerina.servicemodelgenerator.extension.service;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.modelgenerator.commons.ServiceDatabaseManager;
+import io.ballerina.servicemodelgenerator.extension.ServiceModelGeneratorConstants;
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
+import io.ballerina.servicemodelgenerator.extension.model.MetaData;
 import io.ballerina.servicemodelgenerator.extension.model.ModelFromSourceContext;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
+import io.ballerina.servicemodelgenerator.extension.util.Utils;
 
 import java.util.List;
 import java.util.Map;
@@ -35,12 +38,14 @@ import static io.ballerina.servicemodelgenerator.extension.function.GraphqlFunct
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.GRAPHQL;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getFunction;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.serviceTypeWithoutPrefix;
+import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.updateFunction;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.updateListenerItems;
-import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.updateServiceInfoNew;
+import static io.ballerina.servicemodelgenerator.extension.util.Utils.isPresent;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.populateListenerInfo;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.updateAnnotationAttachmentProperty;
 
 public class GraphqlServiceBuilder extends AbstractServiceBuilder {
+
     @Override
     public Service getModelFromSource(ModelFromSourceContext context) {
         if (Objects.isNull(context.moduleName())) {
@@ -65,7 +70,7 @@ public class GraphqlServiceBuilder extends AbstractServiceBuilder {
                 .map(member -> getGraphqlFunctionModel((FunctionDefinitionNode) member, Map.of()))
                 .toList();
 
-        updateServiceInfoNew(serviceModel, functionsInSource);
+        updateGraphqlServiceInfo(serviceModel, functionsInSource);
         serviceModel.setCodedata(new Codedata(serviceNode.lineRange()));
         populateListenerInfo(serviceModel, serviceNode);
         updateAnnotationAttachmentProperty(serviceNode, serviceModel);
@@ -76,5 +81,47 @@ public class GraphqlServiceBuilder extends AbstractServiceBuilder {
     @Override
     public String kind() {
         return GRAPHQL;
+    }
+
+    public static void updateGraphqlServiceInfo(Service serviceModel, List<Function> functionsInSource) {
+        Utils.populateRequiredFunctions(serviceModel);
+
+        // mark the enabled functions as true if they present in the source
+        serviceModel.getFunctions().forEach(functionModel -> {
+            Optional<Function> function = functionsInSource.stream()
+                    .filter(newFunction -> isPresent(functionModel, newFunction)
+                            && newFunction.getKind().equals(functionModel.getKind()))
+                    .findFirst();
+            functionModel.setEditable(false);
+            function.ifPresentOrElse(
+                    func -> updateFunction(functionModel, func, serviceModel),
+                    () -> functionModel.setEnabled(false));
+        });
+
+        functionsInSource.forEach(funcInSource -> {
+            if (serviceModel.getFunctions().stream().noneMatch(newFunction -> isPresent(funcInSource, newFunction))) {
+                updateGraphqlFunctionMetaData(funcInSource);
+                serviceModel.addFunction(funcInSource);
+            }
+        });
+    }
+
+    public static void updateGraphqlFunctionMetaData(Function function) {
+        switch (function.getKind()) {
+            case ServiceModelGeneratorConstants.KIND_QUERY -> {
+                function.setMetadata(new MetaData("Graphql Query", "Graphql Query"));
+                function.getName().setMetadata(new MetaData("Field Name", "The name of the field"));
+            }
+            case ServiceModelGeneratorConstants.KIND_MUTATION -> {
+                function.setMetadata(new MetaData("Graphql Mutation", "Graphql Mutation"));
+                function.getName().setMetadata(new MetaData("Mutation Name", "The name of the mutation"));
+            }
+            case ServiceModelGeneratorConstants.KIND_SUBSCRIPTION -> {
+                function.setMetadata(new MetaData("Graphql Subscription", "Graphql Subscription"));
+                function.getName().setMetadata(
+                        new MetaData("Subscription Name", "The name of the subscription"));
+            }
+            default -> { }
+        }
     }
 }

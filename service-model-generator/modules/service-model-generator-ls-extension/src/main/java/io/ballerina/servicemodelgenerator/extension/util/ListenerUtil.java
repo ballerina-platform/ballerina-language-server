@@ -166,7 +166,7 @@ public class ListenerUtil {
                 continue;
             }
             Optional<ModuleSymbol> module = variableSymbol.typeDescriptor().getModule();
-            if (module.isEmpty() || !module.get().id().moduleName().equals("http") ||
+            if (module.isEmpty() || !module.get().id().moduleName().equals(HTTP) ||
                     variableSymbol.getName().isEmpty()) {
                 continue;
             }
