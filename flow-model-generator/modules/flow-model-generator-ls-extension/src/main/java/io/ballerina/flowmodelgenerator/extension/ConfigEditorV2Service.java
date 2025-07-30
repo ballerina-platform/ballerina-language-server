@@ -95,6 +95,7 @@ import java.util.concurrent.CompletableFuture;
 import static io.ballerina.flowmodelgenerator.core.model.Property.CONFIG_VALUE_KEY;
 import static io.ballerina.flowmodelgenerator.core.model.Property.CONFIG_VAR_DOC_KEY;
 import static io.ballerina.flowmodelgenerator.core.model.Property.DEFAULT_VALUE_KEY;
+import static io.ballerina.flowmodelgenerator.core.model.Property.ENV_VAR_NAME_KEY;
 import static io.ballerina.flowmodelgenerator.core.model.Property.VARIABLE_KEY;
 
 /**
@@ -126,6 +127,9 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
 
     // TOML and Config Statement Format Constants
     private static final String CONFIG_STATEMENT_FORMAT = "configurable %s %s = %s;";
+    private static final String ENV_CONFIG_STATEMENT_FORMAT = "configurable string %s = os:getEnv(\"%s\")";
+    private static final String ENV_CONFIG_STATEMENT_WITH_DEFAULT_FORMAT =
+            "configurable string %s = os:getEnv(\"%s\") == \"\" ? %s : os:getEnv(\"%s\")";
     private static final String TOML_KEY_VALUE_FORMAT = "%s = %s";
     private static final String TOML_MODULE_SECTION_FORMAT = "[%s.%s]";
     private static final String TOML_MODULE_WITH_SUBMODULE_SECTION_FORMAT = "[%s.%s.%s]";
@@ -338,15 +342,27 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
 
         String variableType = node.properties().get(Property.TYPE_KEY).toSourceCode();
         String variableName = node.properties().get(Property.VARIABLE_KEY).toSourceCode();
-        String effectiveDefaultValue = defaultValue.isEmpty() ? QUESTION_MARK : defaultValue;
 
-        configStatementBuilder.append(String.format(CONFIG_STATEMENT_FORMAT,
-                variableType,
-                variableName,
-                effectiveDefaultValue)
-        );
+        // TODO: Add import statement for 'os' module if not already present.
+        if (isEnvVariable(node)) {
+            String envVarName = node.properties().get(ENV_VAR_NAME_KEY).toSourceCode();
+            if (defaultValue.isEmpty()) {
+                configStatementBuilder.append(String.format(ENV_CONFIG_STATEMENT_FORMAT, variableName, envVarName));
+            } else {
+                configStatementBuilder.append(String.format(ENV_CONFIG_STATEMENT_WITH_DEFAULT_FORMAT, variableName,
+                        envVarName, defaultValue, envVarName));
+            }
+        } else {
+            String effectiveDefaultValue = defaultValue.isEmpty() ? QUESTION_MARK : defaultValue;
+            configStatementBuilder.append(String.format(CONFIG_STATEMENT_FORMAT, variableType, variableName,
+                    effectiveDefaultValue));
+        }
 
         return configStatementBuilder.toString();
+    }
+
+    private static boolean isEnvVariable(FlowNode node) {
+        return node.properties().containsKey(ENV_VAR_NAME_KEY);
     }
 
     /**
@@ -911,7 +927,7 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
                                     String.format("%s = %s%n", variableName, configValue)));
                         }
                     } else {
-                        // Section doesn't exist - append to end of file
+                        // Section doesn't exist - append to the end of file
                         TomlTableNode rootNode = existingConfigToml.rootNode();
                         LinePosition insertPos;
 
@@ -930,7 +946,7 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
                                 String.format("%n%s%n", newContent)));
                     }
                 } else {
-                    // Config.toml doesn't exist - create new file with the content
+                    // Config.toml doesn't exist - create a new file with the content
                     if (!Files.exists(configTomlPath)) {
                         try {
                             Files.createFile(configTomlPath);
@@ -1047,11 +1063,13 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
         Property variableType = configVariable.properties().get(Property.TYPE_KEY);
         Property defaultValue = configVariable.properties().get(DEFAULT_VALUE_KEY);
         Property documentation = configVariable.properties().get(CONFIG_VAR_DOC_KEY);
+        Property envVariableName = configVariable.properties().get(ENV_VAR_NAME_KEY);
 
         return (variableName != null && Boolean.TRUE.equals(variableName.modified()))
                 || (variableType != null && Boolean.TRUE.equals(variableType.modified()))
                 || (defaultValue != null && Boolean.TRUE.equals(defaultValue.modified()))
-                || (documentation != null && Boolean.TRUE.equals(documentation.modified()));
+                || (documentation != null && Boolean.TRUE.equals(documentation.modified()))
+                || (envVariableName != null && Boolean.TRUE.equals(envVariableName.modified()));
     }
 
     /**
