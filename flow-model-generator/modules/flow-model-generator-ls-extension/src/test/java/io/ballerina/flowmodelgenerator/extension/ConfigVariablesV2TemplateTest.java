@@ -41,11 +41,13 @@ public class ConfigVariablesV2TemplateTest extends AbstractLSTest {
         Path configJsonPath = configDir.resolve(config);
         TestConfig testConfig = gson.fromJson(Files.newBufferedReader(configJsonPath), TestConfig.class);
 
-        ConfigVariableNodeTemplateRequest request = new ConfigVariableNodeTemplateRequest(testConfig.isNew());
+        ConfigVariableNodeTemplateRequest request = new ConfigVariableNodeTemplateRequest(testConfig.isNew(),
+                testConfig.isEnvVariable());
         ConfigVariableResponse actualResponse = gson.fromJson(getResponse(request), ConfigVariableResponse.class);
 
         if (!actualResponse.flowNode().equals(testConfig.flowNode())) {
-//            updateConfig(configJsonPath, new TestConfig(request.isNew(), actualResponse.flowNode()));
+            updateConfig(configJsonPath, new TestConfig(request.isNew(), request.isEnvVariable(),
+                    actualResponse.flowNode()));
             Assert.fail(String.format("Failed test: '%s'", configJsonPath));
         }
     }
@@ -70,7 +72,7 @@ public class ConfigVariablesV2TemplateTest extends AbstractLSTest {
         return "configEditorV2";
     }
 
-    private record TestConfig(boolean isNew, FlowNode flowNode) {
+    private record TestConfig(boolean isNew, boolean isEnvVariable, FlowNode flowNode) {
 
     }
 

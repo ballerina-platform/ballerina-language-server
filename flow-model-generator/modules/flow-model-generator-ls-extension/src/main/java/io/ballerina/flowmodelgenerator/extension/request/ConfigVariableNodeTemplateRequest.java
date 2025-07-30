@@ -24,6 +24,6 @@ package io.ballerina.flowmodelgenerator.extension.request;
  * @param isNew Indicates whether the node template is related to variable creation or not.
  * @since 1.0.0
  */
-public record ConfigVariableNodeTemplateRequest(boolean isNew) {
+public record ConfigVariableNodeTemplateRequest(boolean isNew, boolean isEnvVariable) {
 
 }

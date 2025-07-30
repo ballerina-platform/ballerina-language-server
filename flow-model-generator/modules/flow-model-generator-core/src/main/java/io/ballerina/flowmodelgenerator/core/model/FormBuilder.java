@@ -799,6 +799,21 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
         return this;
     }
 
+    public FormBuilder<T> envVariableName(ExpressionNode expr) {
+        propertyBuilder
+                .metadata()
+                .label(Property.ENV_VAR_NAME_LABEL)
+                .description(Property.ENV_VAR_NAME_DOC)
+                .stepOut()
+                .value((expr != null && expr.kind() != SyntaxKind.REQUIRED_EXPRESSION) ? expr.toSourceCode() : "")
+                .type(Property.ValueType.EXPRESSION)
+                .optional(true)
+                .modified(false)
+                .editable();
+        addProperty(Property.ENV_VAR_NAME_KEY, expr);
+        return this;
+    }
+
     public FormBuilder<T> documentation(Node docNode) {
         return documentation(docNode, true);
     }

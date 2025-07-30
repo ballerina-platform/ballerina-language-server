@@ -238,7 +238,6 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
                 allTextEdits.putAll(constructSourceTextEdits(rootProject, configFilePath, configVariable, true));
 
                 // Text edits for Config.toml.
-
                 Toml existingConfigToml = parseConfigToml(rootProject);
                 handleConfigTomlErrors(existingConfigToml, response);
                 Path configTomlPath = rootProject.sourceRoot().resolve(CONFIG_TOML_FILENAME);
@@ -267,7 +266,10 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
         return CompletableFuture.supplyAsync(() -> {
             ConfigVariableNodeTemplateResponse response = new ConfigVariableNodeTemplateResponse();
             try {
-                FlowNode flowNode = getConfigVariableFlowNodeTemplate(request.isNew());
+                boolean isEnvVariable = request.isEnvVariable();
+                FlowNode flowNode = isEnvVariable ? getEnvConfigTemplate(request.isNew())
+                        : getDefaultConfigTemplate(request.isNew());
+
                 JsonElement nodeTemplate = gson.toJsonTree(flowNode);
                 response.setFlowNode(nodeTemplate);
             } catch (Throwable e) {
@@ -749,7 +751,7 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
     }
 
     /**
-     * Extracts the markdown documentation from the variable node.
+     * Extracts the Markdown documentation from the variable node.
      */
     private static Optional<Node> extractVariableDocs(ModuleVariableDeclarationNode variableNode) {
         Optional<MetadataNode> metadata = variableNode.metadata();
@@ -759,10 +761,46 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
         return metadata.get().documentationString();
     }
 
+    private static FlowNode getEnvConfigTemplate(boolean isNew) {
+        NodeBuilder nodeBuilder = NodeBuilder
+                .getNodeFromKind(NodeKind.CONFIG_VARIABLE)
+                .defaultModuleName(null);
+
+        nodeBuilder = nodeBuilder
+                .metadata()
+                .stepOut()
+                .codedata()
+                .node(NodeKind.CONFIG_VARIABLE)
+                .lineRange(null)
+                .isNew(isNew)
+                .stepOut();
+
+        if (isNew) {
+            nodeBuilder = nodeBuilder
+                    .properties()
+                    .variableName(null, true, false)
+                    .type(null, true, false)
+                    .envVariableName(null)
+                    .defaultValue(null)
+                    .documentation(null)
+                    .stepOut();
+        } else {
+            nodeBuilder = nodeBuilder
+                    .properties()
+                    .variableName(null, true, false)
+                    .type(null, true, false)
+                    .defaultValue(null)
+                    .documentation(null)
+                    .stepOut();
+        }
+
+        return nodeBuilder.build();
+    }
+
     /**
      * Creates a template {@link FlowNode} for a configuration variable.
      */
-    private static FlowNode getConfigVariableFlowNodeTemplate(boolean isNew) {
+    private static FlowNode getDefaultConfigTemplate(boolean isNew) {
         NodeBuilder nodeBuilder = NodeBuilder
                 .getNodeFromKind(NodeKind.CONFIG_VARIABLE)
                 .defaultModuleName(null);
@@ -842,10 +880,10 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
                 LineRange newlineRange = LineRange.from(fileName, startPos, endPos);
                 textEdits.add(new TextEdit(CommonUtils.toRange(newlineRange), newContent));
             } else {
-                // if the variable is new, we need to find the relevant section in Config.toml file and add the new
+                // if the variable is new, we need to find the relevant section in the Config.toml file and add the new
                 // entry after the last entry of the section.
                 if (existingConfigToml != null) {
-                    // Try to find existing section for the module
+                    // Try to find an existing section for the module
                     String sectionKey = moduleName.isEmpty() ? String.format("%s.%s", orgName, pkgName)
                             : String.format("%s.%s.%s", orgName, pkgName, moduleName);
 

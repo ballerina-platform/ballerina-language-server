@@ -221,6 +221,10 @@ public record Property(Metadata metadata, String valueType, Object valueTypeCons
     public static final String CONFIG_VALUE_LABEL = "Config Value";
     public static final String CONFIG_VALUE_DOC = "Config value of the variable, to be used in Config.toml";
 
+    public static final String ENV_VAR_NAME_KEY = "envVariableName";
+    public static final String ENV_VAR_NAME_LABEL = "Environment Variable Name";
+    public static final String ENV_VAR_NAME_DOC = "Name of the environment variable";
+
     public static final String CONFIG_VAR_DOC_KEY = "documentation";
     public static final String CONFIG_VAR_DOC_LABEL = "Documentation";
     public static final String CONFIG_VAR_DOC_DOC = "Variable documentation in Markdown format";
