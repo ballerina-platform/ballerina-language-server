@@ -43,6 +43,11 @@ import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtil
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.importExists;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.populateRequiredFuncsDesignApproachAndServiceType;
 
+/**
+ * Builder class for AI chat service.
+ *
+ * @since 1.2.1
+ */
 public final class AiChatServiceBuilder extends AbstractServiceBuilder {
 
     @Override

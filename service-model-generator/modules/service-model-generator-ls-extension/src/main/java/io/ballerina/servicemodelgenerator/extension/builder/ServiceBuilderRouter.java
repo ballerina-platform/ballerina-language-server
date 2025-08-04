@@ -52,6 +52,12 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.HTTP;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.RABBITMQ;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.TCP;
 
+/**
+ * ServiceBuilderRouter is responsible for routing service building requests to the appropriate service builder
+ * based on the protocol type.
+ *
+ * @since 1.2.1
+ */
 public class ServiceBuilderRouter {
 
     private static final Map<String, Supplier<? extends NodeBuilder<Service>>> CONSTRUCTOR_MAP = new HashMap<>() {{

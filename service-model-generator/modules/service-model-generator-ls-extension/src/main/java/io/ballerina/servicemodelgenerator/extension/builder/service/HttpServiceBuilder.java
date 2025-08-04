@@ -65,6 +65,11 @@ import static io.ballerina.servicemodelgenerator.extension.util.Utils.getImportS
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.importExists;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.populateRequiredFuncsDesignApproachAndServiceType;
 
+/**
+ * Builder class for HTTP service.
+ *
+ * @since 1.2.1
+ */
 public final class HttpServiceBuilder extends AbstractServiceBuilder {
 
     private static final String HTTP_SERVICE_MODEL_LOCATION = "services/http.json";

@@ -93,6 +93,11 @@ import static io.ballerina.servicemodelgenerator.extension.util.Utils.populateLi
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.populateRequiredFuncsDesignApproachAndServiceType;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.updateAnnotationAttachmentProperty;
 
+/**
+ * Abstract class for building service models.
+ *
+ * @since 1.2.1
+ */
 public abstract class AbstractServiceBuilder implements NodeBuilder<Service> {
 
     @Override

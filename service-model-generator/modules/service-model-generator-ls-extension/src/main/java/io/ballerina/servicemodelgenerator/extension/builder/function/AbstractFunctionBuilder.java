@@ -83,7 +83,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Utils.updateAnno
 /**
  * Represents the abstract function builder of the service model generator.
  *
- * @since 1.2.0
+ * @since 1.2.1
  */
 public abstract class AbstractFunctionBuilder implements NodeBuilder<Function> {
 

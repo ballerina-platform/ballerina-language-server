@@ -28,6 +28,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * Interface for building service models and function models.
+ * This interface defines methods to get model templates, add, update, and extract models from source code.
+ *
+ * @param <T> the type of the model being built
+ */
 public interface NodeBuilder<T> {
 
     /**

@@ -20,6 +20,19 @@ package io.ballerina.servicemodelgenerator.extension.model.context;
 
 import java.util.Locale;
 
+/**
+ * GetModelContext class to hold the context parameters for getting a service model.
+ * This context is used to identify the specific service model based on organization,
+ * package, module, service type, and function type.
+ *
+ * @param orgName      Name of the organization
+ * @param packageName  Name of the package
+ * @param moduleName   Name of the module
+ * @param serviceType  Type of the service
+ * @param functionType Type of the function
+ *
+ * @since 1.2.1
+ */
 public record GetModelContext(String orgName, String packageName, String moduleName, String serviceType,
                               String functionType) {
     public GetModelContext {

@@ -74,6 +74,11 @@ import static io.ballerina.servicemodelgenerator.extension.util.Utils.isInitFunc
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.updateAnnotationAttachmentProperty;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.updateValue;
 
+/**
+ * Represents the GraphQL function builder of the service model generator.
+ *
+ * @since 1.2.1
+ */
 public class GraphqlFunctionBuilder extends AbstractFunctionBuilder {
     private static final String GRAPHQL_FUNCTION_MODEL_LOCATION = "functions/graphql_%s.json";
 
