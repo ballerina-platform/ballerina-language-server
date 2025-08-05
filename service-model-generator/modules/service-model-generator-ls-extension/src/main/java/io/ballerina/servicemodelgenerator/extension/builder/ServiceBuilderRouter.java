@@ -68,7 +68,7 @@ public class ServiceBuilderRouter {
         put(GRAPHQL, GraphqlServiceBuilder::new);
     }};
 
-    public static NodeBuilder<?> getServiceBuilder(String protocol) {
+    public static NodeBuilder<Service> getServiceBuilder(String protocol) {
         return CONSTRUCTOR_MAP.getOrDefault(protocol, DefaultServiceBuilder::new).get();
     }
 
@@ -90,18 +90,18 @@ public class ServiceBuilderRouter {
         if (Objects.isNull(serviceMetadata.orgName()) || Objects.isNull(serviceMetadata.packageName())) {
             return null;
         }
-        NodeBuilder<?> serviceBuilder = getServiceBuilder(serviceMetadata.moduleName());
+        NodeBuilder<Service> serviceBuilder = getServiceBuilder(serviceMetadata.moduleName());
         ModelFromSourceContext context = new ModelFromSourceContext(node, project, semanticModel,
                 workspaceManager, serviceMetadata.serviceType(), serviceMetadata.orgName(),
                 serviceMetadata.packageName(), serviceMetadata.moduleName());
-        return (Service) serviceBuilder.getModelFromSource(context);
+        return serviceBuilder.getModelFromSource(context);
     }
 
     public static Map<String, List<TextEdit>> addService(Service service,
                                                          SemanticModel semanticModel, Project project,
                                                          WorkspaceManager workspaceManager,
                                                          String filePath, Document document) throws Exception {
-        NodeBuilder<?> serviceBuilder = getServiceBuilder(service.getModuleName());
+        NodeBuilder<Service> serviceBuilder = getServiceBuilder(service.getModuleName());
         AddModelContext context = new AddModelContext(service, null, semanticModel, project,
                 workspaceManager, filePath, document, null);
         return serviceBuilder.addModel(context);

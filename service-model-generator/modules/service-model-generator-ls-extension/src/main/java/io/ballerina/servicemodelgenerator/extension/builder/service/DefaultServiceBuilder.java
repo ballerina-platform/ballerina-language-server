@@ -18,6 +18,8 @@
 
 package io.ballerina.servicemodelgenerator.extension.builder.service;
 
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.DEFAULT;
+
 /**
  * Concrete implementation of the {@link AbstractServiceBuilder} for a common service.
  *
@@ -27,7 +29,7 @@ public final class DefaultServiceBuilder extends AbstractServiceBuilder {
 
     @Override
     public String kind() {
-        return "default";
+        return DEFAULT;
     }
 }
 

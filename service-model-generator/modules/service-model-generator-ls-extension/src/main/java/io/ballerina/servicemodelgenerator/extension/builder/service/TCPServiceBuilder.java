@@ -81,6 +81,6 @@ public final class TCPServiceBuilder extends AbstractServiceBuilder {
 
     @Override
     public String kind() {
-        return "tcp";
+        return TCP;
     }
 }

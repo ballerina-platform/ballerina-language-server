@@ -60,10 +60,10 @@ public interface NodeBuilder<T> {
     Map<String, List<TextEdit>> updateModel(UpdateModelContext context);
 
     /**
-     * Get the ser from the source code.
+     * Get the service from the source code.
      *
      * @param context the context information for extracting the ser
-     * @return the ser extracted from the source code
+     * @return the service extracted from the source code
      */
     T getModelFromSource(ModelFromSourceContext context);
 

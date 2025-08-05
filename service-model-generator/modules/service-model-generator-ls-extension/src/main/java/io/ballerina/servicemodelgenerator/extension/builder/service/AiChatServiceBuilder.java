@@ -99,6 +99,6 @@ public final class AiChatServiceBuilder extends AbstractServiceBuilder {
 
     @Override
     public String kind() {
-        return "ai";
+        return AI;
     }
 }
