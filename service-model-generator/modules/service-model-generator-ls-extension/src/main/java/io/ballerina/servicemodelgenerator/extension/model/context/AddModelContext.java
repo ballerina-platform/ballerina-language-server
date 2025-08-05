@@ -38,7 +38,7 @@ import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
  * @param document        the document representing the Ballerina file
  * @param node            the syntax tree node where the service is defined
  *
- * @since 1.2.1
+ * @since 1.2.0
  */
 public record AddModelContext(Service service, Function function, SemanticModel semanticModel, Project project,
                               WorkspaceManager workspaceManager, String filePath, Document document,

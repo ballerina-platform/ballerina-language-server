@@ -23,7 +23,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.DEFAUL
 /**
  * Represents the default function builder of the service model generator.
  *
- * @since 1.2.1
+ * @since 1.2.0
  */
 public final class DefaultFunctionBuilder extends AbstractFunctionBuilder {
     @Override

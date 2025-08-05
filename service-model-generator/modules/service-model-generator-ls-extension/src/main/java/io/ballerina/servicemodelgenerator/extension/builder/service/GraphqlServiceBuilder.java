@@ -48,7 +48,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Utils.updateAnno
 /**
  * Builder class for GraphQL service.
  *
- * @since 1.2.1
+ * @since 1.2.0
  */
 public class GraphqlServiceBuilder extends AbstractServiceBuilder {
 

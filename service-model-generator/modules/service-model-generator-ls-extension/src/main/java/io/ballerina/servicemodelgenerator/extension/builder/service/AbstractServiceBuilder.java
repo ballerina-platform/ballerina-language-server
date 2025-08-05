@@ -96,7 +96,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Utils.updateAnno
 /**
  * Abstract class for building service models.
  *
- * @since 1.2.1
+ * @since 1.2.0
  */
 public abstract class AbstractServiceBuilder implements NodeBuilder<Service> {
 

@@ -65,7 +65,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Utils.updateAnno
 /**
  * Represents the HTTP function builder of the service model generator.
  *
- * @since 1.2.1
+ * @since 1.2.0
  */
 public class HttpFunctionBuilder extends AbstractFunctionBuilder {
     private static final String HTTP_FUNCTION_MODEL_LOCATION = "functions/http_%s.json";

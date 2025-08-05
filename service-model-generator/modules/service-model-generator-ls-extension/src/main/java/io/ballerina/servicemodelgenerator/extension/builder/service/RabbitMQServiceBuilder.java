@@ -29,7 +29,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.RABBIT
 /**
  * Builder class for RabbitMQ service.
  *
- * @since 1.2.1
+ * @since 1.2.0
  */
 public final class RabbitMQServiceBuilder extends AbstractServiceBuilder {
 

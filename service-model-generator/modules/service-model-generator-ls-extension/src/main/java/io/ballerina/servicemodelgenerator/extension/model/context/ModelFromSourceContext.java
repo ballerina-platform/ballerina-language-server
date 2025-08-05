@@ -35,7 +35,7 @@ import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
  * @param packageName     name of the package
  * @param moduleName      name of the module
  *
- * @since 1.2.1
+ * @since 1.2.0
  */
 public record ModelFromSourceContext(Node node, Project project, SemanticModel semanticModel,
                                      WorkspaceManager workspaceManager, String serviceType,

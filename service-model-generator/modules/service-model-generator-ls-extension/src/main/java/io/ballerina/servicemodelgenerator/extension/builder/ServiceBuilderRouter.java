@@ -56,7 +56,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.TCP;
  * ServiceBuilderRouter is responsible for routing service building requests to the appropriate service builder
  * based on the protocol type.
  *
- * @since 1.2.1
+ * @since 1.2.0
  */
 public class ServiceBuilderRouter {
 

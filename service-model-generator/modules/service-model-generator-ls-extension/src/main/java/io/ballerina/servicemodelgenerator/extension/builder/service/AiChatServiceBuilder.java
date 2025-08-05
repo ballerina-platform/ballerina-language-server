@@ -46,7 +46,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Utils.populateRe
 /**
  * Builder class for AI chat service.
  *
- * @since 1.2.1
+ * @since 1.2.0
  */
 public final class AiChatServiceBuilder extends AbstractServiceBuilder {
 

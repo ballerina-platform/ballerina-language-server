@@ -45,7 +45,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.HTTP;
 /**
  * Represents the function builder router of the service model generator.
  *
- * @since 1.2.1
+ * @since 1.2.0
  */
 public class FunctionBuilderRouter {
     private static final Map<String, Supplier<? extends NodeBuilder<Function>>> CONSTRUCTOR_MAP = new HashMap<>() {{

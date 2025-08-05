@@ -41,7 +41,7 @@ import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
  * @param serviceNode     the syntax tree node representing the service declaration
  * @param functionNode    the syntax tree node representing the function definition
  *
- * @since 1.2.1
+ * @since 1.2.0
  */
 public record UpdateModelContext(Service service, Function function, SemanticModel semanticModel, Project project,
                                  WorkspaceManager workspaceManager, String filePath, Document document,

@@ -68,7 +68,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Utils.populateRe
 /**
  * Builder class for HTTP service.
  *
- * @since 1.2.1
+ * @since 1.2.0
  */
 public final class HttpServiceBuilder extends AbstractServiceBuilder {
 

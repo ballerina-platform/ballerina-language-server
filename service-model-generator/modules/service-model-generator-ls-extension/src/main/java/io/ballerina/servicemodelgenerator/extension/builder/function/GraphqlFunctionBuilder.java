@@ -77,7 +77,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Utils.updateValu
 /**
  * Represents the GraphQL function builder of the service model generator.
  *
- * @since 1.2.1
+ * @since 1.2.0
  */
 public class GraphqlFunctionBuilder extends AbstractFunctionBuilder {
     private static final String GRAPHQL_FUNCTION_MODEL_LOCATION = "functions/graphql_%s.json";
