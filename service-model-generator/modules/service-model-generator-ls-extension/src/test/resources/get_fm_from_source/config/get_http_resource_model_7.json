@@ -34,7 +34,6 @@
         "HEAD",
         "DEFAULT"
       ],
-      "imports": {},
       "enabled": true,
       "editable": true,
       "optional": false,
@@ -49,7 +48,6 @@
       "valueType": "IDENTIFIER",
       "valueTypeConstraint": "string",
       "value": "allUnion",
-      "imports": {},
       "enabled": true,
       "editable": true,
       "optional": false,
@@ -63,30 +61,20 @@
         },
         "kind": "REQUIRED",
         "type": {
-          "metadata": {
-            "label": "",
-            "description": ""
-          },
           "placeholder": "string",
           "valueType": "TYPE",
           "valueTypeConstraint": "http:Request",
           "value": "http:Request",
-          "imports": {},
           "enabled": true,
           "editable": false,
           "optional": false,
           "advanced": false
         },
         "name": {
-          "metadata": {
-            "label": "",
-            "description": ""
-          },
           "placeholder": "request",
           "valueType": "IDENTIFIER",
           "valueTypeConstraint": "string",
           "value": "",
-          "imports": {},
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -104,30 +92,20 @@
         },
         "kind": "REQUIRED",
         "type": {
-          "metadata": {
-            "label": "",
-            "description": ""
-          },
           "placeholder": "string",
           "valueType": "TYPE",
           "valueTypeConstraint": "http:Caller",
           "value": "http:Caller",
-          "imports": {},
           "enabled": true,
           "editable": false,
           "optional": false,
           "advanced": false
         },
         "name": {
-          "metadata": {
-            "label": "",
-            "description": ""
-          },
           "placeholder": "caller",
           "valueType": "IDENTIFIER",
           "valueTypeConstraint": "string",
           "value": "",
-          "imports": {},
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -145,30 +123,20 @@
         },
         "kind": "REQUIRED",
         "type": {
-          "metadata": {
-            "label": "",
-            "description": ""
-          },
           "placeholder": "string",
           "valueType": "TYPE",
           "valueTypeConstraint": "http:Headers",
           "value": "http:Headers",
-          "imports": {},
           "enabled": true,
           "editable": false,
           "optional": false,
           "advanced": false
         },
         "name": {
-          "metadata": {
-            "label": "",
-            "description": ""
-          },
           "placeholder": "headers",
           "valueType": "IDENTIFIER",
           "valueTypeConstraint": "string",
           "value": "",
-          "imports": {},
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -188,30 +156,20 @@
         },
         "kind": "REQUIRED",
         "type": {
-          "metadata": {
-            "label": "",
-            "description": ""
-          },
           "placeholder": "",
           "valueType": "TYPE",
           "valueTypeConstraint": "anydata",
           "value": "",
-          "imports": {},
           "enabled": true,
           "editable": true,
           "optional": false,
           "advanced": false
         },
         "name": {
-          "metadata": {
-            "label": "",
-            "description": ""
-          },
           "placeholder": "",
           "valueType": "IDENTIFIER",
           "valueTypeConstraint": "string",
           "value": "",
-          "imports": {},
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -226,7 +184,6 @@
           "valueType": "EXPRESSION",
           "valueTypeConstraint": "string",
           "value": "",
-          "imports": {},
           "enabled": false,
           "editable": true,
           "optional": true,
@@ -245,30 +202,20 @@
         },
         "kind": "REQUIRED",
         "type": {
-          "metadata": {
-            "label": "",
-            "description": ""
-          },
           "placeholder": "string",
           "valueType": "TYPE",
           "valueTypeConstraint": "anydata",
           "value": "",
-          "imports": {},
           "enabled": true,
           "editable": true,
           "optional": false,
           "advanced": false
         },
         "name": {
-          "metadata": {
-            "label": "",
-            "description": ""
-          },
           "placeholder": "name",
           "valueType": "IDENTIFIER",
           "valueTypeConstraint": "string",
           "value": "",
-          "imports": {},
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -283,7 +230,6 @@
           "valueType": "EXPRESSION",
           "valueTypeConstraint": "anydata",
           "value": "",
-          "imports": {},
           "enabled": false,
           "editable": true,
           "optional": true,
@@ -302,30 +248,20 @@
         },
         "kind": "REQUIRED",
         "type": {
-          "metadata": {
-            "label": "",
-            "description": ""
-          },
           "placeholder": "",
           "valueType": "TYPE",
           "valueTypeConstraint": "anydata",
           "value": "",
-          "imports": {},
           "enabled": true,
           "editable": true,
           "optional": false,
           "advanced": false
         },
         "name": {
-          "metadata": {
-            "label": "",
-            "description": ""
-          },
           "placeholder": "",
           "valueType": "IDENTIFIER",
           "valueTypeConstraint": "string",
           "value": "",
-          "imports": {},
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -342,10 +278,6 @@
       "responses": [
         {
           "statusCode": {
-            "metadata": {
-              "label": "",
-              "description": ""
-            },
             "valueType": "SINGLE_SELECT",
             "value": "200",
             "imports": {},
@@ -355,10 +287,6 @@
             "advanced": false
           },
           "body": {
-            "metadata": {
-              "label": "",
-              "description": ""
-            },
             "valueType": "TYPE",
             "value": "http:Response",
             "imports": {},
@@ -368,10 +296,6 @@
             "advanced": false
           },
           "name": {
-            "metadata": {
-              "label": "",
-              "description": ""
-            },
             "valueType": "IDENTIFIER",
             "value": "",
             "imports": {},
@@ -381,12 +305,16 @@
             "advanced": false
           },
           "type": {
-            "metadata": {
-              "label": "",
-              "description": ""
-            },
             "valueType": "TYPE",
-            "value": "http:Response",
+            "value": {
+              "valueType": "TYPE",
+              "value": "http:Response",
+              "imports": {},
+              "enabled": true,
+              "editable": true,
+              "optional": true,
+              "advanced": false
+            },
             "imports": {},
             "enabled": true,
             "editable": true,
@@ -394,10 +322,6 @@
             "advanced": false
           },
           "headers": {
-            "metadata": {
-              "label": "",
-              "description": ""
-            },
             "valueType": "HEADER_SET",
             "value": "",
             "imports": {},
@@ -413,10 +337,6 @@
         },
         {
           "statusCode": {
-            "metadata": {
-              "label": "",
-              "description": ""
-            },
             "valueType": "SINGLE_SELECT",
             "value": "200",
             "imports": {},
@@ -426,10 +346,6 @@
             "advanced": false
           },
           "body": {
-            "metadata": {
-              "label": "",
-              "description": ""
-            },
             "valueType": "TYPE",
             "value": "",
             "imports": {},
@@ -439,10 +355,6 @@
             "advanced": false
           },
           "name": {
-            "metadata": {
-              "label": "",
-              "description": ""
-            },
             "valueType": "IDENTIFIER",
             "value": "",
             "imports": {},
@@ -452,10 +364,6 @@
             "advanced": false
           },
           "type": {
-            "metadata": {
-              "label": "",
-              "description": ""
-            },
             "valueType": "TYPE",
             "value": "http:Ok",
             "imports": {},
@@ -465,10 +373,6 @@
             "advanced": false
           },
           "headers": {
-            "metadata": {
-              "label": "",
-              "description": ""
-            },
             "valueType": "HEADER_SET",
             "value": "",
             "imports": {},
@@ -484,10 +388,6 @@
         },
         {
           "statusCode": {
-            "metadata": {
-              "label": "",
-              "description": ""
-            },
             "valueType": "SINGLE_SELECT",
             "value": "200",
             "imports": {},
@@ -497,10 +397,6 @@
             "advanced": false
           },
           "body": {
-            "metadata": {
-              "label": "",
-              "description": ""
-            },
             "valueType": "TYPE",
             "value": "int",
             "imports": {},
@@ -510,12 +406,8 @@
             "advanced": false
           },
           "name": {
-            "metadata": {
-              "label": "",
-              "description": ""
-            },
             "valueType": "IDENTIFIER",
-            "value": "HttpOk",
+            "value": "",
             "imports": {},
             "enabled": true,
             "editable": false,
@@ -523,10 +415,6 @@
             "advanced": false
           },
           "type": {
-            "metadata": {
-              "label": "",
-              "description": ""
-            },
             "valueType": "TYPE",
             "value": "HttpOk",
             "imports": {},
@@ -536,10 +424,6 @@
             "advanced": false
           },
           "headers": {
-            "metadata": {
-              "label": "",
-              "description": ""
-            },
             "valueType": "HEADER_SET",
             "value": [],
             "imports": {},
@@ -555,10 +439,6 @@
         },
         {
           "statusCode": {
-            "metadata": {
-              "label": "",
-              "description": ""
-            },
             "valueType": "SINGLE_SELECT",
             "value": "200",
             "imports": {},
@@ -568,10 +448,6 @@
             "advanced": false
           },
           "body": {
-            "metadata": {
-              "label": "",
-              "description": ""
-            },
             "valueType": "EXPRESSION",
             "value": "",
             "imports": {},
@@ -581,10 +457,6 @@
             "advanced": false
           },
           "name": {
-            "metadata": {
-              "label": "",
-              "description": ""
-            },
             "valueType": "EXPRESSION",
             "value": "",
             "imports": {},
@@ -594,10 +466,6 @@
             "advanced": false
           },
           "type": {
-            "metadata": {
-              "label": "",
-              "description": ""
-            },
             "valueType": "EXPRESSION",
             "value": "record {|...|}",
             "imports": {},
@@ -607,10 +475,6 @@
             "advanced": false
           },
           "headers": {
-            "metadata": {
-              "label": "",
-              "description": ""
-            },
             "valueType": "HEADER_SET",
             "value": "",
             "imports": {},
@@ -626,10 +490,6 @@
         },
         {
           "statusCode": {
-            "metadata": {
-              "label": "",
-              "description": ""
-            },
             "valueType": "SINGLE_SELECT",
             "value": "200",
             "imports": {},
@@ -639,10 +499,6 @@
             "advanced": false
           },
           "body": {
-            "metadata": {
-              "label": "",
-              "description": ""
-            },
             "valueType": "TYPE",
             "value": "int",
             "imports": {},
@@ -652,10 +508,6 @@
             "advanced": false
           },
           "name": {
-            "metadata": {
-              "label": "",
-              "description": ""
-            },
             "valueType": "IDENTIFIER",
             "value": "",
             "imports": {},
@@ -665,12 +517,16 @@
             "advanced": false
           },
           "type": {
-            "metadata": {
-              "label": "",
-              "description": ""
-            },
             "valueType": "TYPE",
-            "value": "int",
+            "value": {
+              "valueType": "TYPE",
+              "value": "int",
+              "imports": {},
+              "enabled": true,
+              "editable": true,
+              "optional": true,
+              "advanced": false
+            },
             "imports": {},
             "enabled": true,
             "editable": true,
@@ -678,10 +534,6 @@
             "advanced": false
           },
           "headers": {
-            "metadata": {
-              "label": "",
-              "description": ""
-            },
             "valueType": "HEADER_SET",
             "value": "",
             "imports": {},
@@ -719,7 +571,6 @@
               "405",
               "500"
             ],
-            "imports": {},
             "enabled": true,
             "editable": true,
             "optional": false,
@@ -732,7 +583,6 @@
             },
             "valueType": "TYPE",
             "value": "",
-            "imports": {},
             "enabled": true,
             "editable": true,
             "optional": true,
@@ -745,7 +595,6 @@
             },
             "valueType": "IDENTIFIER",
             "value": "",
-            "imports": {},
             "enabled": true,
             "editable": true,
             "optional": true,
@@ -758,7 +607,6 @@
             },
             "valueType": "TYPE",
             "value": "",
-            "imports": {},
             "enabled": true,
             "editable": true,
             "optional": true,
@@ -771,7 +619,6 @@
             },
             "valueType": "HEADER_SET",
             "value": "",
-            "imports": {},
             "enabled": true,
             "editable": true,
             "optional": true,
@@ -837,7 +684,6 @@
             "selected": false
           }
         ],
-        "imports": {},
         "enabled": true,
         "editable": true,
         "optional": true,

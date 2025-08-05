@@ -45,6 +45,11 @@ import static io.ballerina.servicemodelgenerator.extension.util.Utils.isPresent;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.populateListenerInfo;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.updateAnnotationAttachmentProperty;
 
+/**
+ * Builder class for GraphQL service.
+ *
+ * @since 1.2.0
+ */
 public class GraphqlServiceBuilder extends AbstractServiceBuilder {
 
     @Override

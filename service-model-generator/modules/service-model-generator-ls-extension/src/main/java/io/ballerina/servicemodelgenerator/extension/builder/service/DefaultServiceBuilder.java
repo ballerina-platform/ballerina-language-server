@@ -18,6 +18,11 @@
 
 package io.ballerina.servicemodelgenerator.extension.builder.service;
 
+/**
+ * Concrete implementation of the {@link AbstractServiceBuilder} for a common service.
+ *
+ * @since 1.2.0
+ */
 public final class DefaultServiceBuilder extends AbstractServiceBuilder {
 
     @Override

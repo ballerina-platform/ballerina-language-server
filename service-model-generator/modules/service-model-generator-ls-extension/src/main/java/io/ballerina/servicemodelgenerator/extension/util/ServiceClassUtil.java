@@ -37,6 +37,7 @@ import io.ballerina.servicemodelgenerator.extension.model.Value;
 import io.ballerina.tools.text.LineRange;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -45,6 +46,9 @@ import java.util.Optional;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.FUNCTION_NAME_METADATA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.FUNCTION_RETURN_TYPE_METADATA;
 import static io.ballerina.servicemodelgenerator.extension.builder.function.GraphqlFunctionBuilder.getGraphqlParameterModel;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.GRAPHQL_CLASS_NAME_METADATA;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.SERCVICE_CLASS_NAME_METADATA;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_IDENTIFIER;
 
 /**
  * Util class for service class related operations.
@@ -95,18 +99,18 @@ public class ServiceClassUtil {
     }
 
     private static Value buildClassNameProperty(String className, LineRange lineRange, ServiceClassContext context) {
-        Value value = new Value();
-        value.setMetadata(context == ServiceClassContext.TYPE_DIAGRAM
-                ? Constants.SERCVICE_CLASS_NAME_METADATA
-                : Constants.GRAPHQL_CLASS_NAME_METADATA);
-        value.setCodedata(new Codedata(lineRange));
-        value.setEnabled(true);
-        value.setEditable(false);
-        value.setValue(className);
-        value.setValueType(Constants.VALUE_TYPE_IDENTIFIER);
-        value.setValueTypeConstraint("Global");
-        value.setPlaceholder("");
-        return value;
+        MetaData metaData = context == ServiceClassContext.TYPE_DIAGRAM ? SERCVICE_CLASS_NAME_METADATA
+                : GRAPHQL_CLASS_NAME_METADATA;
+
+        return new Value.ValueBuilder()
+                .metadata(metaData.label(), metaData.description())
+                .valueType(VALUE_TYPE_IDENTIFIER)
+                .value(className)
+                .setValueTypeConstraint("Global")
+                .enabled(true)
+                .setCodedata(new Codedata(lineRange))
+                .setImports(new HashMap<>())
+                .build();
     }
 
     private static void populateFunctionsAndFields(ClassDefinitionNode classDef, List<Function> functions,
@@ -179,7 +183,7 @@ public class ServiceClassUtil {
         type.setEnabled(true);
         Value name = parameterModel.getName();
         name.setValue(objectField.fieldName().text().trim());
-        name.setValueType(Constants.VALUE_TYPE_IDENTIFIER);
+        name.setValueType(VALUE_TYPE_IDENTIFIER);
         name.setEnabled(true);
         name.setEditable(false);
         name.setCodedata(new Codedata(objectField.fieldName().lineRange()));

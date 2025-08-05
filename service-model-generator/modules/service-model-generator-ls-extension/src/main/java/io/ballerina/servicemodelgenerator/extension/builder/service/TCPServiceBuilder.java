@@ -22,6 +22,11 @@ import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtil
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.importExists;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.populateRequiredFuncsDesignApproachAndServiceType;
 
+/**
+ * Builder class for TCP service.
+ *
+ * @since 1.2.0
+ */
 public final class TCPServiceBuilder extends AbstractServiceBuilder {
 
     private static final String TCP_SERVICE_CLASS_NAME = "TcpEchoService";

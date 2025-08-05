@@ -26,6 +26,11 @@ import java.util.List;
 
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.RABBITMQ;
 
+/**
+ * Builder class for RabbitMQ service.
+ *
+ * @since 1.2.0
+ */
 public final class RabbitMQServiceBuilder extends AbstractServiceBuilder {
 
     private static final String ON_MESSAGE = "onMessage";

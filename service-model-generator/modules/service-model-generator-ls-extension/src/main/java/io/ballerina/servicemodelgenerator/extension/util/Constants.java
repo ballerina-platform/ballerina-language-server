@@ -87,6 +87,8 @@ public class Constants {
     public static final String GET = "get";
     public static final String INIT = "init";
 
+    public static final String VALUE_TYPE_HEADER_SET = "HEADER_SET";
+    public static final String VALUE_TYPE_SINGLE_SELECT = "SINGLE_SELECT";
     public static final String VALUE_TYPE_EXPRESSION = "EXPRESSION";
     public static final String VALUE_TYPE_IDENTIFIER = "IDENTIFIER";
     public static final String VALUE_TYPE_TYPE = "TYPE";

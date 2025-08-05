@@ -49,41 +49,6 @@ public class Value {
     private boolean optional;
     private boolean advanced;
 
-    public Value() {
-        this(new MetaData("", ""), false, true, null, null,
-                null, null, false, false,
-                null, null, null, new HashMap<>());
-    }
-
-    public Value(Object value, String valueType, boolean isEnabled) {
-        this(null, isEnabled, true, value, valueType, null, null,
-                false, false, null, null, null, new HashMap<>());
-    }
-
-    public Value(Object value, String valueType, boolean isEnabled, boolean editable, boolean optional) {
-        this(null, isEnabled, editable, value, valueType, null, null,
-                optional, false, null, null, null, new HashMap<>());
-    }
-
-    public Value(MetaData metadata, boolean enabled, boolean editable, Object value, String valueType,
-                 String valueTypeConstraint, String placeholder, boolean optional,
-                 boolean advanced, Map<String, Value> properties, List<Object> items, Codedata codedata,
-                 Map<String, String> imports) {
-        this.metadata = metadata;
-        this.enabled = enabled;
-        this.editable = editable;
-        this.value = value;
-        this.valueType = valueType;
-        this.valueTypeConstraint = valueTypeConstraint;
-        this.placeholder = placeholder;
-        this.optional = optional;
-        this.advanced = advanced;
-        this.properties = properties;
-        this.items = items;
-        this.codedata = codedata;
-        this.imports = imports;
-    }
-
     public Value(Value value) {
         this.metadata = value.metadata;
         this.enabled = value.enabled;

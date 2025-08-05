@@ -55,6 +55,7 @@ import io.ballerina.tools.text.TextRange;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -90,6 +91,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.SF_DEF
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.TCP;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.TCP_DEFAULT_LISTENER_EXPR;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.TRIGGER_GITHUB;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_EXPRESSION;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.removeLeadingSingleQuote;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.upperCaseFirstLetter;
 
@@ -347,16 +349,13 @@ public class ListenerUtil {
     }
 
     private static Value getHttpDefaultListenerValue() {
-        Value value = new Value();
-        value.setMetadata(new MetaData("HTTP Default Listener",
-                "The default HTTP listener"));
-        value.setEnabled(true);
-        value.setEditable(false);
-        value.setAdvanced(false);
-        value.setOptional(false);
-        value.setValueType(Constants.VALUE_TYPE_EXPRESSION);
-        value.setValue(HTTP_DEFAULT_LISTENER_EXPR);
-        return value;
+        return new Value.ValueBuilder()
+                .metadata("HTTP Default Listener", "The default HTTP listener")
+                .valueType(VALUE_TYPE_EXPRESSION)
+                .value(HTTP_DEFAULT_LISTENER_EXPR)
+                .enabled(true)
+                .setImports(new HashMap<>())
+                .build();
     }
 
     private static void setParameterProperties(FunctionData function, Map<String, Value> properties) {

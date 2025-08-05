@@ -45,7 +45,6 @@
           "default:globalListener",
           "new http:Listener(port = 8080)"
         ],
-        "imports": {},
         "enabled": true,
         "editable": false,
         "optional": false,
@@ -63,7 +62,6 @@
         "valueType": "SERVICE_PATH",
         "valueTypeConstraint": "string",
         "value": "/api/test",
-        "imports": {},
         "enabled": true,
         "editable": true,
         "optional": false,
@@ -90,7 +88,6 @@
             "selected": true
           }
         ],
-        "imports": {},
         "enabled": true,
         "editable": true,
         "optional": true,
