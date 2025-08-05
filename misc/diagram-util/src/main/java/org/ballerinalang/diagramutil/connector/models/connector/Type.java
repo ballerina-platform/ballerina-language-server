@@ -21,7 +21,9 @@ import com.google.gson.annotations.Expose;
 import io.ballerina.compiler.api.ModuleID;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.ArrayTypeSymbol;
+import io.ballerina.compiler.api.symbols.ConstantSymbol;
 import io.ballerina.compiler.api.symbols.Documentation;
+import io.ballerina.compiler.api.symbols.EnumSymbol;
 import io.ballerina.compiler.api.symbols.ErrorTypeSymbol;
 import io.ballerina.compiler.api.symbols.IntersectionTypeSymbol;
 import io.ballerina.compiler.api.symbols.MapTypeSymbol;
@@ -53,6 +55,7 @@ import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.TableTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.UnionTypeDescriptorNode;
 import org.ballerinalang.diagramutil.connector.models.connector.types.ArrayType;
+import org.ballerinalang.diagramutil.connector.models.connector.types.ConstType;
 import org.ballerinalang.diagramutil.connector.models.connector.types.EnumType;
 import org.ballerinalang.diagramutil.connector.models.connector.types.ErrorType;
 import org.ballerinalang.diagramutil.connector.models.connector.types.InclusionType;
@@ -373,6 +376,11 @@ public class Type {
                 type.defaultable = parameterSymbol.paramKind() == ParameterKind.DEFAULTABLE;
             }
         } else if (symbol instanceof VariableSymbol variableSymbol) {
+            if (variableSymbol.kind() == SymbolKind.CONSTANT) {
+                String name = variableSymbol.getName().orElse(null);
+                type = new ConstType(name, ((ConstantSymbol) (variableSymbol)).broaderTypeDescriptor().signature());
+                return type;
+            }
             type = fromSemanticSymbol(variableSymbol.typeDescriptor(), documentationMap, semanticModel);
         } else if (symbol instanceof TypeSymbol typeSymbol) {
             String typeName = typeSymbol.signature();
@@ -380,6 +388,8 @@ public class Type {
                 typeName = typeName.substring(1, typeName.length() - 1);
             }
             type = new PrimitiveType(typeName);
+        } else if (symbol instanceof EnumSymbol enumSymbol) {
+            type = getEnumType(enumSymbol, documentationMap, semanticModel);
         } else if (symbol instanceof TypeDefinitionSymbol typeDefinitionSymbol) {
             AtomicReference<String> typeDocumentation = new AtomicReference<>();
             typeDefinitionSymbol.documentation().ifPresent(doc -> {
@@ -448,6 +458,21 @@ public class Type {
         } else {
             type = unionType;
         }
+        return type;
+    }
+
+    private static Type getEnumType(EnumSymbol enumSymbol, Map<String, String> documentationMap,
+                                    SemanticModel semanticModel) {
+        Type type;
+        List<Type> fields = new ArrayList<>();
+        enumSymbol.members().forEach(member -> {
+            Type semanticSymbol = fromSemanticSymbol(member.typeDescriptor(), documentationMap, semanticModel);
+            if (semanticSymbol != null) {
+                fields.add(semanticSymbol);
+            }
+        });
+        type = new EnumType(fields);
+        setTypeInfo(enumSymbol.getName().orElse(null), enumSymbol, type);
         return type;
     }
 

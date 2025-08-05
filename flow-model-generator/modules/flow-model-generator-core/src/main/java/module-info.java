@@ -41,6 +41,8 @@ module io.ballerina.flow.model.generator {
     requires org.apache.commons.lang3;
     requires java.xml;
     requires org.eclipse.lsp4j.jsonrpc;
+    requires io.ballerina.centralconnector;
+    requires io.swagger.core;
 
     exports io.ballerina.flowmodelgenerator.core;
     exports io.ballerina.flowmodelgenerator.core.utils;

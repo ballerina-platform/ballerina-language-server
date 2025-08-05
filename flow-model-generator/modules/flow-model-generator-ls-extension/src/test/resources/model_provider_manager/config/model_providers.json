@@ -17,11 +17,9 @@
               "org": "ballerina",
               "module": "ai",
               "packageName": "ai",
-              "symbol": "getDefaultModelProvider",
-              "version": "1.1.0"
+              "symbol": "getDefaultModelProvider"
             },
-            "enabled": true,
-            "more": false
+            "enabled": true
           },
           {
             "metadata": {
@@ -34,11 +32,9 @@
               "module": "ai.openai",
               "packageName": "ai.openai",
               "object": "ModelProvider",
-              "symbol": "init",
-              "version": "1.1.0"
+              "symbol": "init"
             },
-            "enabled": true,
-            "more": false
+            "enabled": true
           },
           {
             "metadata": {
@@ -51,11 +47,9 @@
               "module": "ai.azure",
               "packageName": "ai.azure",
               "object": "OpenAiModelProvider",
-              "symbol": "init",
-              "version": "1.0.1"
+              "symbol": "init"
             },
-            "enabled": true,
-            "more": false
+            "enabled": true
           },
           {
             "metadata": {
@@ -68,11 +62,9 @@
               "module": "ai.anthropic",
               "packageName": "ai.anthropic",
               "object": "ModelProvider",
-              "symbol": "init",
-              "version": "1.0.1"
+              "symbol": "init"
             },
-            "enabled": true,
-            "more": false
+            "enabled": true
           },
           {
             "metadata": {
@@ -85,11 +77,9 @@
               "module": "ai.deepseek",
               "packageName": "ai.deepseek",
               "object": "ModelProvider",
-              "symbol": "init",
-              "version": "1.0.1"
+              "symbol": "init"
             },
-            "enabled": true,
-            "more": false
+            "enabled": true
           },
           {
             "metadata": {
@@ -102,11 +92,9 @@
               "module": "ai.mistral",
               "packageName": "ai.mistral",
               "object": "ModelProvider",
-              "symbol": "init",
-              "version": "1.0.1"
+              "symbol": "init"
             },
-            "enabled": true,
-            "more": false
+            "enabled": true
           },
           {
             "metadata": {
@@ -119,28 +107,9 @@
               "module": "ai.ollama",
               "packageName": "ai.ollama",
               "object": "ModelProvider",
-              "symbol": "init",
-              "version": "1.0.1"
+              "symbol": "init"
             },
-            "enabled": true,
-            "more": false
-          },
-          {
-            "metadata": {
-              "label": "WSO2 Model Provider",
-              "description": "Provides an interface to interact with WSO2-hosted Large Language Models."
-            },
-            "codedata": {
-              "node": "MODEL_PROVIDER",
-              "org": "ballerina",
-              "module": "ai",
-              "packageName": "ai",
-              "object": "Wso2ModelProvider",
-              "symbol": "init",
-              "version": "1.1.0"
-            },
-            "enabled": true,
-            "more": false
+            "enabled": true
           }
         ]
       }

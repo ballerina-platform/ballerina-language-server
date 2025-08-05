@@ -1,67 +1,26 @@
 {
   "source": "variable20.bal",
   "description": "Sample diagram node",
-  "diagram": {
-    "id": "32874",
-    "metadata": {
-      "label": "Variable",
-      "description": "Assign a value to a variable"
-    },
-    "codedata": {
-      "node": "VARIABLE",
-      "lineRange": {
-        "fileName": "variable20.bal",
-        "startLine": {
-          "line": 0,
-          "offset": 0
-        },
-        "endLine": {
-          "line": 0,
-          "offset": 0
-        }
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable20.bal",
+      "startLine": {
+        "line": 35,
+        "offset": 12
       },
-      "sourceCode": ""
-    },
-    "returning": false,
-    "properties": {
-      "expression": {
-        "metadata": {
-          "label": "Expression",
-          "description": "Expression"
-        },
-        "valueType": "EXPRESSION",
-        "value": "{user2: {user3: {i3: 0, user4: {user5: {u: [user.name, user.name]}}}}, s1: user.name}",
-        "optional": false,
-        "editable": true
-      },
-      "variable": {
-        "metadata": {
-          "label": "Variable",
-          "description": "Name of the variable"
-        },
-        "valueType": "IDENTIFIER",
-        "value": "user1",
-        "optional": false,
-        "editable": true
-      },
-      "type": {
-        "metadata": {
-          "label": "Type",
-          "description": "Type of the variable"
-        },
-        "valueType": "TYPE",
-        "value": "User1",
-        "optional": false,
-        "editable": true
+      "endLine": {
+        "line": 35,
+        "offset": 112
       }
     },
-    "flags": 0
+    "sourceCode": ""
   },
-  "propertyKey": "expression",
   "position": {
     "line": 34,
     "offset": 12
   },
+  "propertyKey": "expression",
   "model": {
     "inputs": [
       {
@@ -70,14 +29,16 @@
             "id": "user.name",
             "variableName": "name",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           }
         ],
         "id": "user",
         "variableName": "user",
         "typeName": "User",
         "kind": "record",
-        "category": "parameter"
+        "category": "parameter",
+        "optional": false
       }
     ],
     "output": {
@@ -93,55 +54,65 @@
                         {
                           "member": {
                             "id": "user1.user2.user3.user4.user5.u",
+                            "variableName": "<uItem>",
                             "typeName": "string",
-                            "kind": "string"
+                            "kind": "string",
+                            "optional": false
                           },
                           "id": "user1.user2.user3.user4.user5.u",
                           "variableName": "u",
                           "typeName": "string[]",
-                          "kind": "array"
+                          "kind": "array",
+                          "optional": false
                         }
                       ],
                       "id": "user1.user2.user3.user4.user5",
                       "variableName": "user5",
                       "typeName": "User5",
-                      "kind": "record"
+                      "kind": "record",
+                      "optional": false
                     }
                   ],
                   "id": "user1.user2.user3.user4",
                   "variableName": "user4",
                   "typeName": "User4",
-                  "kind": "record"
+                  "kind": "record",
+                  "optional": false
                 },
                 {
                   "id": "user1.user2.user3.i3",
                   "variableName": "i3",
                   "typeName": "int",
-                  "kind": "int"
+                  "kind": "int",
+                  "optional": false
                 }
               ],
               "id": "user1.user2.user3",
               "variableName": "user3",
               "typeName": "User3",
-              "kind": "record"
+              "kind": "record",
+              "optional": false
             }
           ],
           "id": "user1.user2",
           "variableName": "user2",
           "typeName": "User2",
-          "kind": "record"
+          "kind": "record",
+          "optional": false
         },
         {
           "id": "user1.s1",
           "variableName": "s1",
           "typeName": "string",
-          "kind": "string"
+          "kind": "string",
+          "optional": false
         }
       ],
       "id": "user1",
       "variableName": "user1",
       "typeName": "User1",
-      "kind": "record"
+      "kind": "record",
+      "optional": false
     },
     "mappings": [
       {
@@ -150,7 +121,8 @@
         "expression": "0",
         "diagnostics": [],
         "elements": [],
-        "isQueryExpression": false
+        "isQueryExpression": false,
+        "isFunctionCall": false
       },
       {
         "output": "user1.user2.user3.user4.user5.u",
@@ -168,7 +140,8 @@
                 "expression": "user.name",
                 "diagnostics": [],
                 "elements": [],
-                "isQueryExpression": false
+                "isQueryExpression": false,
+                "isFunctionCall": false
               }
             ]
           },
@@ -182,7 +155,8 @@
                 "expression": "user.name",
                 "diagnostics": [],
                 "elements": [],
-                "isQueryExpression": false
+                "isQueryExpression": false,
+                "isFunctionCall": false
               }
             ]
           }
@@ -196,7 +170,8 @@
         "expression": "user.name",
         "diagnostics": [],
         "elements": [],
-        "isQueryExpression": false
+        "isQueryExpression": false,
+        "isFunctionCall": false
       }
     ]
   }

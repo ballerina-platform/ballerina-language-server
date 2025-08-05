@@ -56,11 +56,22 @@
     },
     {
       "metadata": {
-        "label": "Available Functions",
-        "description": "Functions available in the library",
+        "label": "Current Organization",
+        "description": "Components in the current organization",
         "keywords": [
-          "Available",
+          "Organization",
           "Function",
+          "Library"
+        ]
+      },
+      "items": []
+    },
+    {
+      "metadata": {
+        "label": "Standard Library",
+        "description": "Components supported officially by Ballerina",
+        "keywords": [
+          "Ballerina",
           "Library"
         ]
       },
@@ -86,8 +97,7 @@
                 "symbol": "hashSha1",
                 "version": "2.9.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -103,8 +113,7 @@
                 "symbol": "hmacSha1",
                 "version": "2.9.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             }
           ]
         },
@@ -129,8 +138,7 @@
                 "symbol": "call",
                 "version": "0.0.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             }
           ]
         },
@@ -155,8 +163,7 @@
                 "symbol": "iterator",
                 "version": "0.0.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             }
           ]
         }

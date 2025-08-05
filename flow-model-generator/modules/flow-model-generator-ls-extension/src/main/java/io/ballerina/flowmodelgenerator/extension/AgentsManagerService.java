@@ -18,9 +18,11 @@
 
 package io.ballerina.flowmodelgenerator.extension;
 
+import com.google.gson.JsonArray;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.flowmodelgenerator.core.AgentsGenerator;
+import io.ballerina.flowmodelgenerator.core.McpClient;
 import io.ballerina.flowmodelgenerator.extension.request.GenToolRequest;
 import io.ballerina.flowmodelgenerator.extension.request.GetAiModuleOrgRequest;
 import io.ballerina.flowmodelgenerator.extension.request.GetAllAgentsRequest;
@@ -30,10 +32,12 @@ import io.ballerina.flowmodelgenerator.extension.request.GetConnectorActionsRequ
 import io.ballerina.flowmodelgenerator.extension.request.GetModelsRequest;
 import io.ballerina.flowmodelgenerator.extension.request.GetToolRequest;
 import io.ballerina.flowmodelgenerator.extension.request.GetToolsRequest;
+import io.ballerina.flowmodelgenerator.extension.request.McpToolsRequest;
 import io.ballerina.flowmodelgenerator.extension.response.GenToolResponse;
 import io.ballerina.flowmodelgenerator.extension.response.GetAgentsResponse;
 import io.ballerina.flowmodelgenerator.extension.response.GetAiModuleOrgResponse;
 import io.ballerina.flowmodelgenerator.extension.response.GetConnectorActionsResponse;
+import io.ballerina.flowmodelgenerator.extension.response.GetMcpToolsResponse;
 import io.ballerina.flowmodelgenerator.extension.response.GetMemoryManagersResponse;
 import io.ballerina.flowmodelgenerator.extension.response.GetModelsResponse;
 import io.ballerina.flowmodelgenerator.extension.response.GetToolResponse;
@@ -42,14 +46,11 @@ import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.Project;
 import org.ballerinalang.annotation.JavaSPIService;
-import org.ballerinalang.langserver.commons.eventsync.exceptions.EventSyncException;
 import org.ballerinalang.langserver.commons.service.spi.ExtendedLanguageServerService;
-import org.ballerinalang.langserver.commons.workspace.WorkspaceDocumentException;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 import org.eclipse.lsp4j.jsonrpc.services.JsonRequest;
 import org.eclipse.lsp4j.jsonrpc.services.JsonSegment;
 import org.eclipse.lsp4j.services.LanguageServer;
-import org.wso2.ballerinalang.compiler.tree.BLangPackage;
 
 import java.nio.file.Path;
 import java.util.Optional;
@@ -58,7 +59,6 @@ import java.util.concurrent.CompletableFuture;
 import static io.ballerina.flowmodelgenerator.core.Constants.AI;
 import static io.ballerina.flowmodelgenerator.core.Constants.BALLERINA;
 import static io.ballerina.flowmodelgenerator.core.Constants.BALLERINAX;
-import static io.ballerina.modelgenerator.commons.CommonUtils.importExists;
 
 @JavaSPIService("org.ballerinalang.langserver.commons.service.spi.ExtendedLanguageServerService")
 @JsonSegment("agentManager")
@@ -80,7 +80,7 @@ public class AgentsManagerService implements ExtendedLanguageServerService {
         return CompletableFuture.supplyAsync(() -> {
             GetAiModuleOrgResponse response = new GetAiModuleOrgResponse();
             try {
-                response.setOrg(getAiModuleOrgName(request.projectPath(), workspaceManager));
+                response.setOrg(AgentsGenerator.getAiModuleOrgName(request.projectPath(), workspaceManager));
             } catch (Throwable e) {
                 throw new RuntimeException(e);
             }
@@ -88,26 +88,18 @@ public class AgentsManagerService implements ExtendedLanguageServerService {
         });
     }
 
-    public static String getAiModuleOrgName(String path, WorkspaceManager workspaceManager)
-            throws WorkspaceDocumentException, EventSyncException {
-        Path projectPath = Path.of(path);
-        Project project = workspaceManager.loadProject(projectPath);
-        BLangPackage bLangPackage = PackageUtil.getCompilation(project.currentPackage()).defaultModuleBLangPackage();
-        return importExists(bLangPackage, BALLERINAX, AI) ? BALLERINAX : BALLERINA;
-    }
-
     @JsonRequest
     public CompletableFuture<GetAgentsResponse> getAllAgents(GetAllAgentsRequest request) {
         return CompletableFuture.supplyAsync(() -> {
             GetAgentsResponse response = new GetAgentsResponse();
             try {
+                AgentsGenerator agentsGenerator  = new AgentsGenerator();
                 String orgName = request.orgName() != null ? request.orgName() : BALLERINAX;
                 Optional<SemanticModel> semanticModel = PackageUtil.getSemanticModel(orgName, AI);
                 if (semanticModel.isEmpty()) {
                     return response;
                 }
 
-                AgentsGenerator agentsGenerator = new AgentsGenerator();
                 response.setAgents(agentsGenerator.getAllAgents(semanticModel.get()));
             } catch (Throwable e) {
                 throw new RuntimeException(e);
@@ -140,13 +132,13 @@ public class AgentsManagerService implements ExtendedLanguageServerService {
         return CompletableFuture.supplyAsync(() -> {
             GetMemoryManagersResponse response = new GetMemoryManagersResponse();
             try {
+                AgentsGenerator agentsGenerator  = new AgentsGenerator();
                 String orgName = request.orgName() != null ? request.orgName() : BALLERINAX;
                 Optional<SemanticModel> semanticModel = PackageUtil.getSemanticModel(orgName, AI);
                 if (semanticModel.isEmpty()) {
                     return response;
                 }
 
-                AgentsGenerator agentsGenerator  = new AgentsGenerator();
                 response.setMemoryManagers(agentsGenerator.getAllMemoryManagers(semanticModel.get()));
             } catch (Throwable e) {
                 throw new RuntimeException(e);
@@ -195,6 +187,22 @@ public class AgentsManagerService implements ExtendedLanguageServerService {
                 throw new RuntimeException(e);
             }
             return response;
+        });
+    }
+
+    @JsonRequest
+    public CompletableFuture<GetMcpToolsResponse> getMcpTools(McpToolsRequest request) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                String sessionId = McpClient.sendInitializeRequest(request.serviceUrl());
+                JsonArray toolsJsonArray = McpClient.sendToolsListRequest(request.serviceUrl(), sessionId);
+
+                GetMcpToolsResponse response = new GetMcpToolsResponse();
+                response.setTools(toolsJsonArray);
+                return response;
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to get MCP tools", e);
+            }
         });
     }
 

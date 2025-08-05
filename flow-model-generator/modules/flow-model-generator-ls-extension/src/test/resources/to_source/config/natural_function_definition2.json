@@ -1,14 +1,27 @@
 {
   "source": "natural_functions/functions.bal",
-  "description": "Sample diagram node",
+  "description": "Update an existing natural function definition which used the default model provider",
   "diagram": {
-    "id": "38969",
+    "id": "36923",
     "metadata": {
       "label": "Natural Function",
       "description": "Define a natural function"
     },
     "codedata": {
-      "node": "NP_FUNCTION_DEFINITION"
+      "node": "NP_FUNCTION_DEFINITION",
+      "org": "ballerina",
+      "module": "ai",
+      "lineRange": {
+        "fileName": "functions.bal",
+        "startLine": {
+          "line": 5,
+          "offset": 0
+        },
+        "endLine": {
+          "line": 12,
+          "offset": 2
+        }
+      }
     },
     "returning": false,
     "properties": {
@@ -28,12 +41,12 @@
           "lineRange": {
             "fileName": "functions.bal",
             "startLine": {
-              "line": 7,
+              "line": 5,
               "offset": 9
             },
             "endLine": {
-              "line": 7,
-              "offset": 26
+              "line": 5,
+              "offset": 30
             }
           }
         }
@@ -106,7 +119,58 @@
           "advanced": false,
           "hidden": false
         },
-        "value": {},
+        "value": {
+          "genre": {
+            "metadata": {
+              "label": "Parameter",
+              "description": "Function parameter"
+            },
+            "valueType": "FIXED_PROPERTY",
+            "value": {
+              "type": {
+                "metadata": {
+                  "label": "Type",
+                  "description": "Type of the parameter"
+                },
+                "valueType": "TYPE",
+                "value": "string",
+                "optional": false,
+                "editable": true,
+                "advanced": false,
+                "hidden": false
+              },
+              "variable": {
+                "metadata": {
+                  "label": "Name",
+                  "description": "Name of the parameter"
+                },
+                "valueType": "IDENTIFIER",
+                "value": "genre",
+                "optional": false,
+                "editable": true,
+                "advanced": false,
+                "hidden": false
+              },
+              "parameterDescription": {
+                "metadata": {
+                  "label": "Description",
+                  "description": "Description of the parameter"
+                },
+                "valueType": "STRING",
+                "value": "",
+                "optional": true,
+                "editable": true,
+                "advanced": false,
+                "hidden": false,
+                "type": "TEXTAREA"
+              }
+            },
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false
+          }
+        },
         "optional": true,
         "editable": false,
         "advanced": false,
@@ -118,7 +182,7 @@
           "description": "Prompt for the function"
         },
         "valueType": "RAW_TEMPLATE",
-        "value": "",
+        "value": "**Assumption**\nThink yourself as a movie expert\n\n**What to do**\nSuggest a movie name matching to the genre given:\n${genre}",
         "optional": false,
         "editable": true,
         "advanced": false,
@@ -128,27 +192,46 @@
           "lineRange": {
             "fileName": "functions.bal",
             "startLine": {
-              "line": 8,
+              "line": 6,
               "offset": 0
             },
             "endLine": {
-              "line": 16,
+              "line": 12,
               "offset": 0
             }
           }
         }
       },
-      "enableModelContext": {
+      "modelProvider": {
         "metadata": {
-          "label": "Enable model configuration",
-          "description": "Allow specifying Large Language Model (LLM) choice"
+          "label": "Configure the model",
+          "description": "The large language model (LLM) to use",
+          "data": {
+            "type": "Wso2ModelProvider",
+            "module": "ai"
+          }
         },
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "Wso2ModelProvider",
+        "value": "_suggestMovieGenreModel",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": true,
+        "codedata": {
+          "kind": "REQUIRED"
+        }
+      },
+      "modelProviderAsParameter": {
         "valueType": "FLAG",
         "value": false,
-        "optional": true,
+        "optional": false,
         "editable": true,
-        "advanced": true,
-        "hidden": false
+        "advanced": false,
+        "hidden": true,
+        "codedata": {
+          "kind": "REQUIRED"
+        }
       }
     },
     "flags": 0
@@ -158,15 +241,28 @@
       {
         "range": {
           "start": {
-            "line": 43,
-            "character": 2
+            "line": 1,
+            "character": 0
           },
           "end": {
-            "line": 43,
+            "line": 1,
+            "character": 0
+          }
+        },
+        "newText": "\nimport ballerina/ai;"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 5,
+            "character": 0
+          },
+          "end": {
+            "line": 12,
             "character": 2
           }
         },
-        "newText": "\nfunction suggestMovieGenre_new( ) returns string|error => natural {\n\n};\n"
+        "newText": "function suggestMovieGenre_new( string genre) returns string|error => natural (_suggestMovieGenreModel) {\n**Assumption**\nThink yourself as a movie expert\n\n**What to do**\nSuggest a movie name matching to the genre given:\n${genre}\n};\n"
       }
     ]
   }

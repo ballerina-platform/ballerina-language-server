@@ -45,6 +45,7 @@ import io.ballerina.compiler.syntax.tree.StatementNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.flowmodelgenerator.core.model.Diagram;
+import io.ballerina.flowmodelgenerator.core.model.ExtendedDiagram;
 import io.ballerina.flowmodelgenerator.core.model.FlowNode;
 import io.ballerina.flowmodelgenerator.core.model.Property;
 import io.ballerina.modelgenerator.commons.CommonUtils;
@@ -74,6 +75,8 @@ import java.util.Set;
 import java.util.function.Function;
 
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAgentClass;
+import static io.ballerina.modelgenerator.commons.CommonUtils.isAiVectorKnowledgeBase;
+import static io.ballerina.modelgenerator.commons.CommonUtils.isAiVectorStore;
 
 /**
  * Generator for the flow model.
@@ -158,14 +161,25 @@ public class ModelGenerator {
     }
 
     public JsonElement getModuleNodes() {
-        List<FlowNode> connectionsList = semanticModel.moduleSymbols().stream()
-                .flatMap(symbol -> buildConnection(symbol).stream())
-                .sorted(Comparator.comparing(
-                        node -> Optional.ofNullable(node.properties().get(Property.VARIABLE_KEY))
-                                .map(property -> property.value().toString())
-                                .orElse("")))
-                .toList();
-        Diagram diagram = new Diagram(filePath.toString(), List.of(), connectionsList);
+        List<FlowNode> connectionsList = new ArrayList<>();
+        List<FlowNode> variablesList = new ArrayList<>();
+        List<Symbol> symbols = semanticModel.moduleSymbols();
+
+        for (Symbol symbol : symbols) {
+            buildConnection(symbol).ifPresent(connectionsList::add);
+            if (symbol instanceof VariableSymbol) {
+                buildVariables(symbol).ifPresent(variablesList::add);
+            }
+        }
+        Comparator<FlowNode> comparator = Comparator.comparing(
+            node -> Optional.ofNullable(node.properties().get(Property.VARIABLE_KEY))
+                          .map(property -> property.value().toString())
+                          .orElse("")
+        );
+        connectionsList.sort(comparator);
+        variablesList.sort(comparator);
+
+        ExtendedDiagram diagram = new ExtendedDiagram(filePath.toString(), List.of(), connectionsList, variablesList);
         return gson.toJsonTree(diagram);
     }
 
@@ -287,9 +301,59 @@ public class ModelGenerator {
         return connections.stream().findFirst();
     }
 
+    private Optional<FlowNode> buildVariables(Symbol symbol) {
+        Function<NonTerminalNode, NonTerminalNode> getStatementNode;
+        NonTerminalNode statementNode;
+        TypeSymbol typeSymbol;
+        String scope;
+        Document document;
+
+        switch (symbol.kind()) {
+            case VARIABLE -> {
+                getStatementNode = (NonTerminalNode node) -> node.parent().parent();
+                typeSymbol = ((VariableSymbol) symbol).typeDescriptor();
+                scope = Property.GLOBAL_SCOPE;
+            }
+            case CLASS_FIELD -> {
+                getStatementNode = (NonTerminalNode node) -> node;
+                typeSymbol = ((ClassFieldSymbol) symbol).typeDescriptor();
+                scope = Property.SERVICE_SCOPE;
+            }
+            default -> {
+                return Optional.empty();
+            }
+        }
+        try {
+            TypeSymbol typeDescriptorSymbol = CommonUtils.getRawType(typeSymbol);
+            if (isClassOrObject(typeDescriptorSymbol)) {
+                return Optional.empty();
+            }
+            Location location = symbol.getLocation().orElseThrow();
+            DocumentId documentId = project.documentId(
+                    project.kind() == ProjectKind.SINGLE_FILE_PROJECT ? project.sourceRoot() :
+                            project.sourceRoot().resolve(location.lineRange().fileName()));
+            document = project.currentPackage().getDefaultModule().document(documentId);
+            NonTerminalNode childNode =
+                    symbol.getLocation().map(loc -> CommonUtils.getNode(document.syntaxTree(), loc.textRange()))
+                            .orElseThrow();
+            statementNode = getStatementNode.apply(childNode);
+        } catch (RuntimeException ignored) {
+            return Optional.empty();
+        }
+        if (statementNode == null) {
+            return Optional.empty();
+        }
+        CodeAnalyzer codeAnalyzer = new CodeAnalyzer(project, semanticModel, scope, Map.of(), Map.of(),
+                document.textDocument(), ModuleInfo.from(document.module().descriptor()), false);
+        statementNode.accept(codeAnalyzer);
+        List<FlowNode> connections = codeAnalyzer.getFlowNodes();
+        return connections.stream().findFirst();
+    }
+
     private boolean isClassOrObject(TypeSymbol typeSymbol) {
         if (typeSymbol.kind() == SymbolKind.CLASS) {
-            if (((ClassSymbol) typeSymbol).qualifiers().contains(Qualifier.CLIENT) || isAgentClass(typeSymbol)) {
+            if (((ClassSymbol) typeSymbol).qualifiers().contains(Qualifier.CLIENT) || isAgentClass(typeSymbol)
+                    || isAiVectorStore(typeSymbol) || isAiVectorKnowledgeBase(typeSymbol)) {
                 return true;
             }
         }

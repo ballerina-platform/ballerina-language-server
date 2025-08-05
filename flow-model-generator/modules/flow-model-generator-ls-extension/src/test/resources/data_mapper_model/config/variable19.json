@@ -1,106 +1,74 @@
 {
-  "source": "variable9.bal",
+  "source": "variable9_1.bal",
   "description": "Sample diagram node",
-  "diagram": {
-    "id": "32874",
-    "metadata": {
-      "label": "Variable",
-      "description": "Assign a value to a variable"
-    },
-    "codedata": {
-      "node": "VARIABLE",
-      "lineRange": {
-        "fileName": "variable9.bal",
-        "startLine": {
-          "line": 0,
-          "offset": 0
-        },
-        "endLine": {
-          "line": 0,
-          "offset": 0
-        }
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable9_1.bal",
+      "startLine": {
+        "line": 20,
+        "offset": 12
       },
-      "sourceCode": ""
-    },
-    "returning": false,
-    "properties": {
-      "expression": {
-        "metadata": {
-          "label": "Expression",
-          "description": "Expression"
-        },
-        "valueType": "EXPRESSION",
-        "value": "from var item in userInfo select {username: item.username, password: item.password}",
-        "optional": false,
-        "editable": true
-      },
-      "variable": {
-        "metadata": {
-          "label": "Variable",
-          "description": "Name of the variable"
-        },
-        "valueType": "IDENTIFIER",
-        "value": "credentials",
-        "optional": false,
-        "editable": true
-      },
-      "type": {
-        "metadata": {
-          "label": "Type",
-          "description": "Type of the variable"
-        },
-        "valueType": "TYPE",
-        "value": "Credentials[]",
-        "optional": false,
-        "editable": true
+      "endLine": {
+        "line": 20,
+        "offset": 124
       }
     },
-    "flags": 0
+    "sourceCode": ""
   },
-  "propertyKey": "expression",
   "position": {
     "line": 19,
     "offset": 119
   },
+  "propertyKey": "expression",
   "model": {
     "inputs": [
       {
         "id": "CONST",
-        "typeName": "CONST",
-        "kind": "CONST",
-        "category": "constant"
+        "variableName": "CONST",
+        "typeName": "string",
+        "kind": "string",
+        "category": "constant",
+        "optional": false
       },
       {
         "member": {
           "fields": [
             {
-              "id": "userInfo.username",
+              "id": "userInfo.0.username",
               "variableName": "username",
               "typeName": "string",
-              "kind": "string"
+              "kind": "string",
+              "optional": false
             },
             {
-              "id": "userInfo.password",
+              "id": "userInfo.0.password",
               "variableName": "password",
               "typeName": "string",
-              "kind": "string"
+              "kind": "string",
+              "optional": false
             },
             {
-              "id": "userInfo.id",
+              "id": "userInfo.0.id",
               "variableName": "id",
               "typeName": "int",
-              "kind": "int"
+              "kind": "int",
+              "optional": false
             }
           ],
-          "id": "userInfo",
+          "id": "userInfo.0",
+          "variableName": "<userInfoItem>",
           "typeName": "UserInfo",
-          "kind": "record"
+          "kind": "record",
+          "optional": false
         },
+        "focusedMemberId": "item",
         "id": "userInfo",
         "variableName": "userInfo",
         "typeName": "UserInfo[]",
         "kind": "array",
-        "category": "variable"
+        "category": "variable",
+        "optional": false
       },
       {
         "fields": [
@@ -108,25 +76,30 @@
             "id": "item.username",
             "variableName": "username",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           },
           {
             "id": "item.password",
             "variableName": "password",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           },
           {
             "id": "item.id",
             "variableName": "id",
             "typeName": "int",
-            "kind": "int"
+            "kind": "int",
+            "optional": false
           }
         ],
         "id": "item",
         "variableName": "item",
         "typeName": "UserInfo",
-        "kind": "record"
+        "kind": "record",
+        "isFocused": true,
+        "optional": false
       }
     ],
     "output": {
@@ -136,23 +109,28 @@
             "id": "credentials.username",
             "variableName": "username",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           },
           {
             "id": "credentials.password",
             "variableName": "password",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           }
         ],
         "id": "credentials",
+        "variableName": "<credentialsItem>",
         "typeName": "Credentials",
-        "kind": "record"
+        "kind": "record",
+        "optional": false
       },
       "id": "credentials",
       "variableName": "credentials",
       "typeName": "Credentials[]",
-      "kind": "array"
+      "kind": "array",
+      "optional": false
     },
     "mappings": [
       {
@@ -163,7 +141,8 @@
         "expression": "item.username",
         "diagnostics": [],
         "elements": [],
-        "isQueryExpression": false
+        "isQueryExpression": false,
+        "isFunctionCall": false
       },
       {
         "output": "credentials.password",
@@ -173,20 +152,30 @@
         "expression": "item.password",
         "diagnostics": [],
         "elements": [],
-        "isQueryExpression": false
+        "isQueryExpression": false,
+        "isFunctionCall": false
       }
     ],
     "query": {
+      "output": "credentials",
       "inputs": [
         "userInfo"
       ],
       "fromClause": {
-        "type": "UserInfo",
-        "name": "item",
-        "expression": "userInfo"
+        "type": "from",
+        "properties": {
+          "name": "item",
+          "type": "UserInfo",
+          "expression": "userInfo"
+        }
       },
       "intermediateClauses": [],
-      "resultClause": "{username: item.username, password: item.password}"
+      "resultClause": {
+        "type": "select",
+        "properties": {
+          "expression": "{username: item.username, password: item.password}"
+        }
+      }
     }
   }
 }

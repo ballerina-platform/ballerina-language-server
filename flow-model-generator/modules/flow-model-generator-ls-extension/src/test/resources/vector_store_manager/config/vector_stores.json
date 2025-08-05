@@ -18,11 +18,9 @@
               "module": "ai.pinecone",
               "packageName": "ai.pinecone",
               "object": "VectorStore",
-              "symbol": "init",
-              "version": "1.0.1"
+              "symbol": "init"
             },
-            "enabled": true,
-            "more": false
+            "enabled": true
           },
           {
             "metadata": {
@@ -35,11 +33,9 @@
               "module": "ai",
               "packageName": "ai",
               "object": "InMemoryVectorStore",
-              "symbol": "init",
-              "version": "1.1.0"
+              "symbol": "init"
             },
-            "enabled": true,
-            "more": false
+            "enabled": true
           }
         ]
       }

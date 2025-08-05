@@ -172,8 +172,12 @@ import java.util.Queue;
 import java.util.Stack;
 import java.util.stream.Collectors;
 
-import static io.ballerina.modelgenerator.commons.CommonUtils.isAiModelModule;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAgentClass;
+import static io.ballerina.modelgenerator.commons.CommonUtils.isAiEmbeddingProvider;
+import static io.ballerina.modelgenerator.commons.CommonUtils.isAiModelModule;
+import static io.ballerina.modelgenerator.commons.CommonUtils.isAiModelProvider;
+import static io.ballerina.modelgenerator.commons.CommonUtils.isAiVectorKnowledgeBase;
+import static io.ballerina.modelgenerator.commons.CommonUtils.isAiVectorStore;
 
 /**
  * Analyzes the source code and generates the flow model.
@@ -199,6 +203,10 @@ public class CodeAnalyzer extends NodeVisitor {
     private final Stack<NodeBuilder> flowNodeBuilderStack;
     private TypedBindingPatternNode typedBindingPatternNode;
     private static final String AI_AGENT = "ai";
+    public static final String ICON_PATH = CommonUtils.generateIcon("ballerina", "mcp", "0.4.2");
+    public static final String MCP_TOOL_KIT = "McpToolKit";
+    public static final String MCP_SERVER = "MCP Server";
+    public static final String NAME = "name";
 
     public CodeAnalyzer(Project project, SemanticModel semanticModel, String connectionScope,
                         Map<String, LineRange> dataMappings, Map<String, LineRange> naturalFunctions,
@@ -451,8 +459,28 @@ public class CodeAnalyzer extends NodeVisitor {
                     continue;
                 }
                 SimpleNameReferenceNode simpleNameReferenceNode = (SimpleNameReferenceNode) node;
+                Optional<Symbol> nodeSymbol = semanticModel.symbol(node);
+                if (nodeSymbol.isEmpty()) {
+                    String toolName = simpleNameReferenceNode.name().text();
+                    toolsData.add(new ToolData(toolName, getIcon(toolName), getToolDescription(toolName), null));
+                    continue;
+                }
+
+                Symbol symbol = nodeSymbol.get();
                 String toolName = simpleNameReferenceNode.name().text();
-                toolsData.add(new ToolData(toolName, getIcon(toolName), getToolDescription(toolName)));
+                boolean isMcpToolKit = nodeSymbol
+                        .filter(newSymbol -> symbol.kind() == SymbolKind.VARIABLE)
+                        .map(newSymbol -> ((VariableSymbol) symbol).typeDescriptor())
+                        .filter(typeSymbol -> typeSymbol.getModule().isPresent()
+                                && typeSymbol.nameEquals(MCP_TOOL_KIT)
+                                && typeSymbol.getModule().get().id().moduleName().equals(AI_AGENT))
+                        .isPresent();
+                if (isMcpToolKit) {
+                    toolsData.add(new ToolData(toolName, ICON_PATH, getToolDescription(""), MCP_SERVER));
+                } else {
+                    toolName = simpleNameReferenceNode.name().text();
+                    toolsData.add(new ToolData(toolName, getIcon(toolName), getToolDescription(toolName), null));
+                }
             }
             nodeBuilder.metadata().addData("tools", toolsData);
         }
@@ -1282,10 +1310,20 @@ public class CodeAnalyzer extends NodeVisitor {
         ClassSymbol classSymbol = optClassSymbol.get();
         if (isAgentClass(classSymbol)) {
             startNode(NodeKind.AGENT, newExpressionNode);
+        } else if (isAiModelProvider(classSymbol)) {
+            startNode(NodeKind.MODEL_PROVIDER, newExpressionNode);
+        } else if (isAiEmbeddingProvider(classSymbol)) {
+            startNode(NodeKind.EMBEDDING_PROVIDER, newExpressionNode);
+        } else if (isAiVectorKnowledgeBase(classSymbol)) {
+            startNode(NodeKind.VECTOR_KNOWLEDGE_BASE, newExpressionNode);
+        } else if (isAiVectorStore(classSymbol)) {
+            startNode(NodeKind.VECTOR_STORE, newExpressionNode);
         } else if (isAIModel(classSymbol)) {
             startNode(NodeKind.CLASS_INIT, newExpressionNode);
         } else if (classSymbol.qualifiers().contains(Qualifier.CLIENT)) {
             startNode(NodeKind.NEW_CONNECTION, newExpressionNode);
+        } else if (classSymbol.nameEquals(MCP_TOOL_KIT)) {
+            startNode(NodeKind.MCP_TOOLKIT, newExpressionNode);
         } else {
             handleExpressionNode(newExpressionNode);
             return;
@@ -1296,7 +1334,7 @@ public class CodeAnalyzer extends NodeVisitor {
                 .parentSymbol(classSymbol)
                 .semanticModel(semanticModel)
                 .name(NewConnectionBuilder.INIT_SYMBOL)
-                .functionResultKind(FunctionData.Kind.CONNECTOR)
+                .functionResultKind(getFunctionResultKind(classSymbol))
                 .userModuleInfo(moduleInfo);
 
         FunctionData functionData;
@@ -1327,6 +1365,22 @@ public class CodeAnalyzer extends NodeVisitor {
                 .properties()
                 .scope(connectionScope)
                 .checkError(true, NewConnectionBuilder.CHECK_ERROR_DOC, false);
+    }
+
+    private FunctionData.Kind getFunctionResultKind(ClassSymbol classSymbol) {
+        if (isAiModelProvider(classSymbol)) {
+            return FunctionData.Kind.MODEL_PROVIDER;
+        }
+        if (isAiEmbeddingProvider(classSymbol)) {
+            return FunctionData.Kind.EMBEDDING_PROVIDER;
+        }
+        if (isAiVectorKnowledgeBase(classSymbol)) {
+            return FunctionData.Kind.VECTOR_KNOWLEDGE_BASE;
+        }
+        if (isAiVectorStore(classSymbol)) {
+            return FunctionData.Kind.VECTOR_STORE;
+        }
+        return FunctionData.Kind.CONNECTOR;
     }
 
     private Optional<ClassSymbol> getClassSymbol(ExpressionNode newExpressionNode) {
@@ -1557,6 +1611,8 @@ public class CodeAnalyzer extends NodeVisitor {
         if (isAgentClass(classSymbol)) {
             startNode(NodeKind.AGENT_CALL, expressionNode.parent());
             populateAgentMetaData(expressionNode, methodCallExpressionNode, classSymbol);
+        } else if (isAiVectorKnowledgeBase(classSymbol)) {
+            startNode(NodeKind.VECTOR_KNOWLEDGE_BASE_CALL, expressionNode.parent());
         } else {
             startNode(NodeKind.METHOD_CALL, methodCallExpressionNode.parent());
         }
@@ -2246,7 +2302,7 @@ public class CodeAnalyzer extends NodeVisitor {
                 continue;
             }
             FunctionSymbol functionSymbol = (FunctionSymbol) symbol;
-            if (functionSymbol.getName().orElseThrow().equals(name)) {
+            if (functionSymbol.nameEquals(name)) {
                 for (AnnotationAttachmentSymbol annotAttachment : functionSymbol.annotAttachments()) {
                     if (annotAttachment.typeDescriptor().getName().orElseThrow().equals("display")) {
                         Optional<ConstantValue> optAttachmentValue = annotAttachment.attachmentValue();
@@ -2322,7 +2378,7 @@ public class CodeAnalyzer extends NodeVisitor {
 
     }
 
-    private record ToolData(String name, String path, String description) {
+    private record ToolData(String name, String path, String description, String type) {
 
     }
 

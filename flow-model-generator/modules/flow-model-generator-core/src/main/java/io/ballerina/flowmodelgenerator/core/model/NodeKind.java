@@ -9,6 +9,7 @@ package io.ballerina.flowmodelgenerator.core.model;
 public enum NodeKind {
     // Flow nodes
     EVENT_START,
+    MCP_TOOLKIT,
     IF,
     REMOTE_ACTION_CALL,
     RESOURCE_ACTION_CALL,
@@ -87,5 +88,6 @@ public enum NodeKind {
     VECTOR_STORE,
     VECTOR_STORES,
     VECTOR_KNOWLEDGE_BASE,
+    VECTOR_KNOWLEDGE_BASE_CALL,
     VECTOR_KNOWLEDGE_BASES
 }

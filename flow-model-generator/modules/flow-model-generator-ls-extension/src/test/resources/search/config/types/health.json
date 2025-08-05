@@ -20,11 +20,22 @@
     },
     {
       "metadata": {
-        "label": "Available Types",
-        "description": "Types available in the library",
+        "label": "Current Organization",
+        "description": "Components in the current organization",
         "keywords": [
-          "Available",
-          "Type",
+          "Organization",
+          "Function",
+          "Library"
+        ]
+      },
+      "items": []
+    },
+    {
+      "metadata": {
+        "label": "Standard Library",
+        "description": "Components supported officially by Ballerina",
+        "keywords": [
+          "Ballerina",
           "Library"
         ]
       },
@@ -50,8 +61,7 @@
                 "symbol": "HealthCareFacility",
                 "version": "0.9.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -67,8 +77,7 @@
                 "symbol": "HealthConcernAct",
                 "version": "0.9.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -84,8 +93,7 @@
                 "symbol": "HealthStatusEvaluationsandOutcomesSection",
                 "version": "0.9.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -101,8 +109,7 @@
                 "symbol": "HealthStatusObservation",
                 "version": "0.9.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -118,8 +125,7 @@
                 "symbol": "HealthConcernsSection",
                 "version": "0.9.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             }
           ]
         },
@@ -144,8 +150,7 @@
                 "symbol": "HealthIncident",
                 "version": "1.5.1"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             }
           ]
         },
@@ -170,8 +175,7 @@
                 "symbol": "HealthcareAssertion",
                 "version": "1.5.1"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -187,8 +191,7 @@
                 "symbol": "HealthcareLinkingProperties",
                 "version": "1.5.1"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -204,8 +207,7 @@
                 "symbol": "HealthcareEntityLink",
                 "version": "1.5.1"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -221,8 +223,7 @@
                 "symbol": "HealthcareEntity",
                 "version": "1.5.1"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -238,8 +239,7 @@
                 "symbol": "HealthcareTaskResult",
                 "version": "1.5.1"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -255,8 +255,7 @@
                 "symbol": "HealthcareResult",
                 "version": "1.5.1"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -272,8 +271,7 @@
                 "symbol": "HealthcareRelationEntity",
                 "version": "1.5.1"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -289,8 +287,7 @@
                 "symbol": "HealthcareJobState",
                 "version": "1.5.1"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             }
           ]
         },
@@ -305,7 +302,7 @@
               "metadata": {
                 "label": "HealthcareServiceAvailableTimeDaysOfWeek",
                 "description": "HealthcareServiceAvailableTimeDaysOfWeek enum",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_health.fhir.r4.international401_3.0.0.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_health.fhir.r4.international401_3.0.1.png"
               },
               "codedata": {
                 "node": "TYPEDESC",
@@ -313,16 +310,15 @@
                 "module": "health.fhir.r4.international401",
                 "packageName": "health.fhir.r4.international401",
                 "symbol": "HealthcareServiceAvailableTimeDaysOfWeek",
-                "version": "3.0.0"
+                "version": "3.0.1"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
                 "label": "HealthcareService",
                 "description": "FHIR HealthcareService resource record.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_health.fhir.r4.international401_3.0.0.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_health.fhir.r4.international401_3.0.1.png"
               },
               "codedata": {
                 "node": "TYPEDESC",
@@ -330,16 +326,15 @@
                 "module": "health.fhir.r4.international401",
                 "packageName": "health.fhir.r4.international401",
                 "symbol": "HealthcareService",
-                "version": "3.0.0"
+                "version": "3.0.1"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
                 "label": "HealthcareServiceEligibility",
                 "description": "FHIR HealthcareServiceEligibility datatype record.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_health.fhir.r4.international401_3.0.0.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_health.fhir.r4.international401_3.0.1.png"
               },
               "codedata": {
                 "node": "TYPEDESC",
@@ -347,10 +342,41 @@
                 "module": "health.fhir.r4.international401",
                 "packageName": "health.fhir.r4.international401",
                 "symbol": "HealthcareServiceEligibility",
-                "version": "3.0.0"
+                "version": "3.0.1"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "HealthcareServiceNotAvailable",
+                "description": "FHIR HealthcareServiceNotAvailable datatype record.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_health.fhir.r4.international401_3.0.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "health.fhir.r4.international401",
+                "packageName": "health.fhir.r4.international401",
+                "symbol": "HealthcareServiceNotAvailable",
+                "version": "3.0.1"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "HealthcareServiceAvailableTime",
+                "description": "FHIR HealthcareServiceAvailableTime datatype record.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_health.fhir.r4.international401_3.0.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "health.fhir.r4.international401",
+                "packageName": "health.fhir.r4.international401",
+                "symbol": "HealthcareServiceAvailableTime",
+                "version": "3.0.1"
+              },
+              "enabled": true
             }
           ]
         },
@@ -375,51 +401,7 @@
                 "symbol": "HealthcareSecurityError",
                 "version": "1.1.1"
               },
-              "enabled": true,
-              "more": false
-            }
-          ]
-        },
-        {
-          "metadata": {
-            "label": "health.fhir.r5.international500",
-            "description": "",
-            "keywords": []
-          },
-          "items": [
-            {
-              "metadata": {
-                "label": "HealthcareService",
-                "description": "FHIR HealthcareService resource record.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_health.fhir.r5.international500_0.9.1.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "health.fhir.r5.international500",
-                "packageName": "health.fhir.r5.international500",
-                "symbol": "HealthcareService",
-                "version": "0.9.1"
-              },
-              "enabled": true,
-              "more": false
-            },
-            {
-              "metadata": {
-                "label": "HealthcareServiceEligibility",
-                "description": "FHIR HealthcareServiceEligibility datatype record.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_health.fhir.r5.international500_0.9.1.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "health.fhir.r5.international500",
-                "packageName": "health.fhir.r5.international500",
-                "symbol": "HealthcareServiceEligibility",
-                "version": "0.9.1"
-              },
-              "enabled": true,
-              "more": false
+              "enabled": true
             }
           ]
         }

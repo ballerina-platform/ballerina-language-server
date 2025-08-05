@@ -54,11 +54,22 @@
     },
     {
       "metadata": {
-        "label": "Available Functions",
-        "description": "Functions available in the library",
+        "label": "Current Organization",
+        "description": "Components in the current organization",
         "keywords": [
-          "Available",
+          "Organization",
           "Function",
+          "Library"
+        ]
+      },
+      "items": []
+    },
+    {
+      "metadata": {
+        "label": "Standard Library",
+        "description": "Components supported officially by Ballerina",
+        "keywords": [
+          "Ballerina",
           "Library"
         ]
       },
@@ -84,8 +95,7 @@
                 "symbol": "printMetricsLog",
                 "version": "1.0.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             }
           ]
         },
@@ -110,8 +120,7 @@
                 "symbol": "getEDINames",
                 "version": "0.9.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -127,8 +136,7 @@
                 "symbol": "fromEdiString",
                 "version": "0.9.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -144,8 +152,7 @@
                 "symbol": "toEdiString",
                 "version": "0.9.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             }
           ]
         },
@@ -170,8 +177,7 @@
                 "symbol": "log",
                 "version": "0.0.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -187,8 +193,7 @@
                 "symbol": "log10",
                 "version": "0.0.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             }
           ]
         },
@@ -213,8 +218,7 @@
                 "symbol": "printDebug",
                 "version": "2.12.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -230,8 +234,7 @@
                 "symbol": "printInfo",
                 "version": "2.12.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -247,14 +250,13 @@
                 "symbol": "printWarn",
                 "version": "2.12.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             }
           ]
         },
         {
           "metadata": {
-            "label": "edifact.d03a.logistics.mIFTMCS",
+            "label": "edifact.d03a.logistics.mCHACCO",
             "description": "",
             "keywords": []
           },
@@ -268,13 +270,12 @@
               "codedata": {
                 "node": "FUNCTION_CALL",
                 "org": "ballerinax",
-                "module": "edifact.d03a.logistics.mIFTMCS",
+                "module": "edifact.d03a.logistics.mCHACCO",
                 "packageName": "edifact.d03a.logistics",
                 "symbol": "fromEdiString",
                 "version": "0.9.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -285,13 +286,12 @@
               "codedata": {
                 "node": "FUNCTION_CALL",
                 "org": "ballerinax",
-                "module": "edifact.d03a.logistics.mIFTMCS",
+                "module": "edifact.d03a.logistics.mCHACCO",
                 "packageName": "edifact.d03a.logistics",
                 "symbol": "toEdiString",
                 "version": "0.9.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -302,13 +302,12 @@
               "codedata": {
                 "node": "FUNCTION_CALL",
                 "org": "ballerinax",
-                "module": "edifact.d03a.logistics.mIFTMCS",
+                "module": "edifact.d03a.logistics.mCHACCO",
                 "packageName": "edifact.d03a.logistics",
                 "symbol": "getSchema",
                 "version": "0.9.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -319,13 +318,12 @@
               "codedata": {
                 "node": "FUNCTION_CALL",
                 "org": "ballerinax",
-                "module": "edifact.d03a.logistics.mIFTMCS",
+                "module": "edifact.d03a.logistics.mCHACCO",
                 "packageName": "edifact.d03a.logistics",
                 "symbol": "fromEdiStringWithSchema",
                 "version": "0.9.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -336,13 +334,12 @@
               "codedata": {
                 "node": "FUNCTION_CALL",
                 "org": "ballerinax",
-                "module": "edifact.d03a.logistics.mIFTMCS",
+                "module": "edifact.d03a.logistics.mCHACCO",
                 "packageName": "edifact.d03a.logistics",
                 "symbol": "toEdiStringWithSchema",
                 "version": "0.9.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -353,13 +350,12 @@
               "codedata": {
                 "node": "FUNCTION_CALL",
                 "org": "ballerinax",
-                "module": "edifact.d03a.logistics.mIFTMCS",
+                "module": "edifact.d03a.logistics.mCHACCO",
                 "packageName": "edifact.d03a.logistics",
                 "symbol": "transformFromEdiString",
                 "version": "0.9.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -370,19 +366,18 @@
               "codedata": {
                 "node": "FUNCTION_CALL",
                 "org": "ballerinax",
-                "module": "edifact.d03a.logistics.mIFTMCS",
+                "module": "edifact.d03a.logistics.mCHACCO",
                 "packageName": "edifact.d03a.logistics",
                 "symbol": "transformToEdiString",
                 "version": "0.9.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             }
           ]
         },
         {
           "metadata": {
-            "label": "edifact.d03a.logistics.mTANSTA",
+            "label": "edifact.d03a.logistics.mIFTDGN",
             "description": "",
             "keywords": []
           },
@@ -396,13 +391,12 @@
               "codedata": {
                 "node": "FUNCTION_CALL",
                 "org": "ballerinax",
-                "module": "edifact.d03a.logistics.mTANSTA",
+                "module": "edifact.d03a.logistics.mIFTDGN",
                 "packageName": "edifact.d03a.logistics",
                 "symbol": "fromEdiString",
                 "version": "0.9.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -413,13 +407,12 @@
               "codedata": {
                 "node": "FUNCTION_CALL",
                 "org": "ballerinax",
-                "module": "edifact.d03a.logistics.mTANSTA",
+                "module": "edifact.d03a.logistics.mIFTDGN",
                 "packageName": "edifact.d03a.logistics",
                 "symbol": "toEdiString",
                 "version": "0.9.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -430,13 +423,12 @@
               "codedata": {
                 "node": "FUNCTION_CALL",
                 "org": "ballerinax",
-                "module": "edifact.d03a.logistics.mTANSTA",
+                "module": "edifact.d03a.logistics.mIFTDGN",
                 "packageName": "edifact.d03a.logistics",
                 "symbol": "getSchema",
                 "version": "0.9.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -447,13 +439,12 @@
               "codedata": {
                 "node": "FUNCTION_CALL",
                 "org": "ballerinax",
-                "module": "edifact.d03a.logistics.mTANSTA",
+                "module": "edifact.d03a.logistics.mIFTDGN",
                 "packageName": "edifact.d03a.logistics",
                 "symbol": "fromEdiStringWithSchema",
                 "version": "0.9.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             }
           ]
         }

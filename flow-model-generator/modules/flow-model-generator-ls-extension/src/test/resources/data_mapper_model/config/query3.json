@@ -1,88 +1,27 @@
 {
   "source": "query3.bal",
   "description": "Sample diagram node",
-  "diagram": {
-    "id": "69725",
-    "metadata": {
-      "label": "Declare Variable",
-      "description": "Assign a value to a variable"
-    },
-    "codedata": {
-      "node": "VARIABLE",
-      "lineRange": {
-        "fileName": "main.bal",
-        "startLine": {
-          "line": 26,
-          "offset": 4
-        },
-        "endLine": {
-          "line": 31,
-          "offset": 6
-        }
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "main.bal",
+      "startLine": {
+        "line": 31,
+        "offset": 4
       },
-      "sourceCode": "Person p = {\n        contactDetails: {\n            phoneNumbers: from var secondaryPhonesItem in u.info.secondaryPhones\n where secondaryPhonesItem.code == \"123\"\n                select secondaryPhonesItem\n        }\n    };"
-    },
-    "returning": false,
-    "properties": {
-      "expression": {
-        "metadata": {
-          "label": "Expression",
-          "description": "Initialize with value"
-        },
-        "valueType": "EXPRESSION",
-        "value": "{\n        contactDetails: {\n            phoneNumbers: from var secondaryPhonesItem in u.info.secondaryPhones\n   where secondaryPhonesItem.code == \"123\" \n             select {code: secondaryPhonesItem.code, number: secondaryPhonesItem.number}\n        }\n    }",
-        "optional": true,
-        "editable": true,
-        "advanced": false,
-        "hidden": false
-      },
-      "variable": {
-        "metadata": {
-          "label": "Name",
-          "description": "Name of the variable"
-        },
-        "valueType": "IDENTIFIER",
-        "value": "p",
-        "optional": false,
-        "editable": false,
-        "advanced": false,
-        "hidden": false,
-        "codedata": {
-          "lineRange": {
-            "fileName": "main.bal",
-            "startLine": {
-              "line": 38,
-              "offset": 11
-            },
-            "endLine": {
-              "line": 38,
-              "offset": 12
-            }
-          }
-        }
-      },
-      "type": {
-        "metadata": {
-          "label": "Type",
-          "description": "Type of the variable"
-        },
-        "valueType": "TYPE",
-        "value": "Person",
-        "placeholder": "var",
-        "optional": false,
-        "editable": true,
-        "advanced": false,
-        "hidden": false,
-        "codedata": {}
+      "endLine": {
+        "line": 37,
+        "offset": 21
       }
     },
-    "flags": 0
+    "sourceCode": ""
   },
-  "propertyKey": "expression",
   "position": {
     "line": 31,
     "offset": 4
   },
+  "propertyKey": "expression",
+  "targetField": "p.contactDetails.phoneNumbers",
   "model": {
     "inputs": [
       {
@@ -93,66 +32,82 @@
                 "member": {
                   "fields": [
                     {
-                      "id": "u.info.secondaryPhones.code",
+                      "id": "u.info.secondaryPhones.0.code",
                       "variableName": "code",
                       "typeName": "string",
-                      "kind": "string"
+                      "kind": "string",
+                      "optional": false
                     },
                     {
-                      "id": "u.info.secondaryPhones.number",
+                      "id": "u.info.secondaryPhones.0.number",
                       "variableName": "number",
                       "typeName": "string",
-                      "kind": "string"
+                      "kind": "string",
+                      "optional": false
                     }
                   ],
-                  "id": "u.info.secondaryPhones",
+                  "id": "u.info.secondaryPhones.0",
+                  "variableName": "<secondaryPhonesItem>",
                   "typeName": "SecondaryPhones",
-                  "kind": "record"
+                  "kind": "record",
+                  "optional": false
                 },
+                "focusedMemberId": "secondaryPhonesItem",
                 "id": "u.info.secondaryPhones",
                 "variableName": "secondaryPhones",
                 "typeName": "SecondaryPhones[]",
-                "kind": "array"
+                "kind": "array",
+                "optional": false
               },
               {
                 "member": {
-                  "id": "u.info.emails",
+                  "id": "u.info.emails.0",
+                  "variableName": "<emailsItem>",
                   "typeName": "string",
-                  "kind": "string"
+                  "kind": "string",
+                  "optional": false
                 },
                 "id": "u.info.emails",
                 "variableName": "emails",
                 "typeName": "string[]",
-                "kind": "array"
+                "kind": "array",
+                "optional": false
               },
               {
                 "member": {
                   "member": {
-                    "id": "u.info.addresses",
+                    "id": "u.info.addresses.0.0",
+                    "variableName": "<addressesItemItem>",
                     "typeName": "string",
-                    "kind": "string"
+                    "kind": "string",
+                    "optional": false
                   },
-                  "id": "u.info.addresses",
+                  "id": "u.info.addresses.0",
+                  "variableName": "<addressesItem>",
                   "typeName": "string[]",
-                  "kind": "array"
+                  "kind": "array",
+                  "optional": false
                 },
                 "id": "u.info.addresses",
                 "variableName": "addresses",
                 "typeName": "string[][]",
-                "kind": "array"
+                "kind": "array",
+                "optional": false
               }
             ],
             "id": "u.info",
             "variableName": "info",
             "typeName": "Info",
-            "kind": "record"
+            "kind": "record",
+            "optional": false
           }
         ],
         "id": "u",
         "variableName": "u",
         "typeName": "User",
         "kind": "record",
-        "category": "variable"
+        "category": "variable",
+        "optional": false
       },
       {
         "fields": [
@@ -160,19 +115,23 @@
             "id": "secondaryPhonesItem.code",
             "variableName": "code",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           },
           {
             "id": "secondaryPhonesItem.number",
             "variableName": "number",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           }
         ],
         "id": "secondaryPhonesItem",
         "variableName": "secondaryPhonesItem",
         "typeName": "SecondaryPhones",
-        "kind": "record"
+        "kind": "record",
+        "isFocused": true,
+        "optional": false
       }
     ],
     "output": {
@@ -182,23 +141,28 @@
             "id": "phoneNumbers.code",
             "variableName": "code",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           },
           {
             "id": "phoneNumbers.number",
             "variableName": "number",
             "typeName": "string",
-            "kind": "string"
+            "kind": "string",
+            "optional": false
           }
         ],
         "id": "phoneNumbers",
+        "variableName": "<phoneNumbersItem>",
         "typeName": "SecondaryPhonesX",
-        "kind": "record"
+        "kind": "record",
+        "optional": false
       },
       "id": "phoneNumbers",
       "variableName": "phoneNumbers",
       "typeName": "SecondaryPhonesX[]",
-      "kind": "array"
+      "kind": "array",
+      "optional": false
     },
     "mappings": [
       {
@@ -209,7 +173,8 @@
         "expression": "secondaryPhonesItem.code",
         "diagnostics": [],
         "elements": [],
-        "isQueryExpression": false
+        "isQueryExpression": false,
+        "isFunctionCall": false
       },
       {
         "output": "phoneNumbers.number",
@@ -219,27 +184,37 @@
         "expression": "secondaryPhonesItem.number",
         "diagnostics": [],
         "elements": [],
-        "isQueryExpression": false
+        "isQueryExpression": false,
+        "isFunctionCall": false
       }
     ],
     "query": {
-      "output": "p.contactDetails.phoneNumbers",
+      "output": "phoneNumbers",
       "inputs": [
         "u.info.secondaryPhones"
       ],
       "fromClause": {
-        "type": "SecondaryPhones",
-        "name": "secondaryPhonesItem",
-        "expression": "u.info.secondaryPhones"
+        "type": "from",
+        "properties": {
+          "name": "secondaryPhonesItem",
+          "type": "SecondaryPhones",
+          "expression": "u.info.secondaryPhones"
+        }
       },
       "intermediateClauses": [
         {
           "type": "where",
-          "clause": "secondaryPhonesItem.code == \"123\""
+          "properties": {
+            "expression": "secondaryPhonesItem.code == \"123\""
+          }
         }
       ],
-      "resultClause": "{code: secondaryPhonesItem.code, number: secondaryPhonesItem.number}"
+      "resultClause": {
+        "type": "select",
+        "properties": {
+          "expression": "{code: secondaryPhonesItem.code, number: secondaryPhonesItem.number}"
+        }
+      }
     }
-  },
-  "targetField": "p.contactDetails.phoneNumbers"
+  }
 }

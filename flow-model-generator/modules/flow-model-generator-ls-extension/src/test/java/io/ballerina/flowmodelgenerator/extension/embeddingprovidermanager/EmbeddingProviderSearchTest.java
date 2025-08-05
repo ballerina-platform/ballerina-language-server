@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com)
+ *  Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com)
  *
  *  WSO2 LLC. licenses this file to you under the Apache License,
  *  Version 2.0 (the "License"); you may not use this file except
@@ -60,7 +60,9 @@ public class EmbeddingProviderSearchTest extends AbstractLSTest {
         if (!searchResult.equals(testConfig.expectedEmbeddingProviders())) {
             TestConfig updatedConfig = new TestConfig(testConfig.source(), testConfig.query(), searchResult);
             // updateConfig(configJsonPath, updatedConfig);
-            Assert.fail("Test failed. Updated the expected output in " + configJsonPath);
+            compareJsonElements(searchResult, testConfig.expectedEmbeddingProviders());
+            Assert.fail(String.format("Failed test: '%s' Actual: `%s` Expected `%s`", configJsonPath,
+                    searchResult, testConfig.expectedEmbeddingProviders()));
         }
     }
 

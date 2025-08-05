@@ -20,11 +20,22 @@
     },
     {
       "metadata": {
-        "label": "Available Types",
-        "description": "Types available in the library",
+        "label": "Current Organization",
+        "description": "Components in the current organization",
         "keywords": [
-          "Available",
-          "Type",
+          "Organization",
+          "Function",
+          "Library"
+        ]
+      },
+      "items": []
+    },
+    {
+      "metadata": {
+        "label": "Standard Library",
+        "description": "Components supported officially by Ballerina",
+        "keywords": [
+          "Ballerina",
           "Library"
         ]
       },
@@ -50,8 +61,7 @@
                 "symbol": "MedcomAssignedIdentifier",
                 "version": "1.0.1"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -67,8 +77,7 @@
                 "symbol": "MedcomAssignedIdentifierUse",
                 "version": "1.0.1"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -84,8 +93,7 @@
                 "symbol": "MedcomMessagingContactpoint",
                 "version": "1.0.1"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -101,8 +109,7 @@
                 "symbol": "MedcomMessagingContactpointSystem",
                 "version": "1.0.1"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -118,8 +125,7 @@
                 "symbol": "MedcomMessagingContactpointUse",
                 "version": "1.0.1"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -135,8 +141,7 @@
                 "symbol": "MedComCoreCareTeamStatus",
                 "version": "1.0.1"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -152,8 +157,7 @@
                 "symbol": "MedComCoreDiagnosticReportStatus",
                 "version": "1.0.1"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -169,8 +173,7 @@
                 "symbol": "MedComCoreEncounterStatusHistoryStatus",
                 "version": "1.0.1"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -186,8 +189,7 @@
                 "symbol": "MedComCoreEncounterLocationStatus",
                 "version": "1.0.1"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -203,8 +205,7 @@
                 "symbol": "MedComCoreEncounterStatus",
                 "version": "1.0.1"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -220,8 +221,7 @@
                 "symbol": "MedComCoreMediaStatus",
                 "version": "1.0.1"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -237,8 +237,7 @@
                 "symbol": "MedComCoreObservationValueComparator",
                 "version": "1.0.1"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -254,8 +253,7 @@
                 "symbol": "MedComCoreObservationComponentValueComparator",
                 "version": "1.0.1"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -271,8 +269,7 @@
                 "symbol": "MedComCoreObservationStatus",
                 "version": "1.0.1"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -288,8 +285,7 @@
                 "symbol": "MedComCoreOrganizationIdentifierUseOne",
                 "version": "1.0.1"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -305,8 +301,7 @@
                 "symbol": "MedComCoreOrganizationIdentifierUseTwo",
                 "version": "1.0.1"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -322,8 +317,7 @@
                 "symbol": "MedComCoreOrganizationIdentifierUse",
                 "version": "1.0.1"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -339,8 +333,7 @@
                 "symbol": "MedComCorePatientGender",
                 "version": "1.0.1"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -356,8 +349,7 @@
                 "symbol": "MedComCorePatientLinkType",
                 "version": "1.0.1"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -373,8 +365,7 @@
                 "symbol": "MedComCorePatientContactGender",
                 "version": "1.0.1"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             }
           ]
         }

@@ -56,11 +56,22 @@
     },
     {
       "metadata": {
-        "label": "Available Functions",
-        "description": "Functions available in the library",
+        "label": "Current Organization",
+        "description": "Components in the current organization",
         "keywords": [
-          "Available",
+          "Organization",
           "Function",
+          "Library"
+        ]
+      },
+      "items": []
+    },
+    {
+      "metadata": {
+        "label": "Standard Library",
+        "description": "Components supported officially by Ballerina",
+        "keywords": [
+          "Ballerina",
           "Library"
         ]
       },
@@ -76,7 +87,7 @@
               "metadata": {
                 "label": "fromJson",
                 "description": "Converts a JSON object to an XML representation.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_data.xmldata_1.4.1.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_data.xmldata_1.4.2.png"
               },
               "codedata": {
                 "node": "FUNCTION_CALL",
@@ -84,10 +95,9 @@
                 "module": "data.xmldata",
                 "packageName": "data.xmldata",
                 "symbol": "fromJson",
-                "version": "1.4.1"
+                "version": "1.4.2"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             }
           ]
         },
@@ -112,8 +122,7 @@
                 "symbol": "toJson",
                 "version": "0.0.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             }
           ]
         }

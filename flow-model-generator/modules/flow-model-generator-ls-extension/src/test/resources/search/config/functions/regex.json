@@ -56,11 +56,22 @@
     },
     {
       "metadata": {
-        "label": "Available Functions",
-        "description": "Functions available in the library",
+        "label": "Current Organization",
+        "description": "Components in the current organization",
         "keywords": [
-          "Available",
+          "Organization",
           "Function",
+          "Library"
+        ]
+      },
+      "items": []
+    },
+    {
+      "metadata": {
+        "label": "Standard Library",
+        "description": "Components supported officially by Ballerina",
+        "keywords": [
+          "Ballerina",
           "Library"
         ]
       },
@@ -86,8 +97,7 @@
                 "symbol": "find",
                 "version": "0.0.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -103,8 +113,7 @@
                 "symbol": "matchAt",
                 "version": "0.0.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -120,8 +129,7 @@
                 "symbol": "fromString",
                 "version": "0.0.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -137,8 +145,7 @@
                 "symbol": "replace",
                 "version": "0.0.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -154,8 +161,7 @@
                 "symbol": "findGroups",
                 "version": "0.0.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -171,8 +177,7 @@
                 "symbol": "matchGroupsAt",
                 "version": "0.0.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -188,8 +193,7 @@
                 "symbol": "fullMatchGroups",
                 "version": "0.0.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -205,8 +209,7 @@
                 "symbol": "replaceAll",
                 "version": "0.0.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -222,8 +225,7 @@
                 "symbol": "isFullMatch",
                 "version": "0.0.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -239,8 +241,7 @@
                 "symbol": "findAllGroups",
                 "version": "0.0.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -256,8 +257,7 @@
                 "symbol": "split",
                 "version": "0.0.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -273,8 +273,7 @@
                 "symbol": "findAll",
                 "version": "0.0.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             }
           ]
         },
@@ -299,8 +298,7 @@
                 "symbol": "filterDataByRegex",
                 "version": "0.8.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -316,8 +314,7 @@
                 "symbol": "categorizeRegex",
                 "version": "0.8.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -333,8 +330,7 @@
                 "symbol": "replaceText",
                 "version": "0.8.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             }
           ]
         },
@@ -359,8 +355,7 @@
                 "symbol": "includesMatch",
                 "version": "0.0.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -376,8 +371,7 @@
                 "symbol": "matches",
                 "version": "0.0.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             }
           ]
         }

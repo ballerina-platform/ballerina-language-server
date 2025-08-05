@@ -1,0 +1,174 @@
+{
+  "source": "enum2.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "enum2.bal",
+      "startLine": {
+        "line": 23,
+        "offset": 4
+      },
+      "endLine": {
+        "line": 26,
+        "offset": 6
+      }
+    },
+    "sourceCode": ""
+  },
+  "position": {
+    "line": 23,
+    "offset": 4
+  },
+  "propertyKey": "expression",
+  "model": {
+    "inputs": [
+      {
+        "members": [
+          {
+            "id": "DepartmentCode.FINANCE",
+            "variableName": "FINANCE",
+            "typeName": "FINANCE",
+            "kind": "FINANCE",
+            "optional": false
+          },
+          {
+            "id": "DepartmentCode.IT",
+            "variableName": "IT",
+            "typeName": "IT",
+            "kind": "IT",
+            "optional": false
+          },
+          {
+            "id": "DepartmentCode.HR",
+            "variableName": "HR",
+            "typeName": "HR",
+            "kind": "HR",
+            "optional": false
+          }
+        ],
+        "id": "DepartmentCode",
+        "variableName": "DepartmentCode",
+        "typeName": "DepartmentCode",
+        "kind": "enum",
+        "category": "enum",
+        "optional": false
+      },
+      {
+        "fields": [
+          {
+            "id": "engineering.name",
+            "variableName": "name",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "members": [
+              {
+                "id": "engineering.code.FINANCE",
+                "variableName": "FINANCE",
+                "typeName": "FINANCE",
+                "kind": "FINANCE",
+                "optional": false
+              },
+              {
+                "id": "engineering.code.IT",
+                "variableName": "IT",
+                "typeName": "IT",
+                "kind": "IT",
+                "optional": false
+              },
+              {
+                "id": "engineering.code.HR",
+                "variableName": "HR",
+                "typeName": "HR",
+                "kind": "HR",
+                "optional": false
+              }
+            ],
+            "id": "engineering.code",
+            "variableName": "code",
+            "typeName": "DepartmentCode",
+            "kind": "enum",
+            "optional": false
+          }
+        ],
+        "id": "engineering",
+        "variableName": "engineering",
+        "typeName": "Department",
+        "kind": "record",
+        "category": "local-variable",
+        "optional": false
+      }
+    ],
+    "output": {
+      "fields": [
+        {
+          "id": "engineering2.name",
+          "variableName": "name",
+          "typeName": "string",
+          "kind": "string",
+          "optional": false
+        },
+        {
+          "members": [
+            {
+              "id": "engineering2.code.FINANCE",
+              "variableName": "FINANCE",
+              "typeName": "FINANCE",
+              "kind": "FINANCE",
+              "optional": false
+            },
+            {
+              "id": "engineering2.code.IT",
+              "variableName": "IT",
+              "typeName": "IT",
+              "kind": "IT",
+              "optional": false
+            },
+            {
+              "id": "engineering2.code.HR",
+              "variableName": "HR",
+              "typeName": "HR",
+              "kind": "HR",
+              "optional": false
+            }
+          ],
+          "id": "engineering2.code",
+          "variableName": "code",
+          "typeName": "DepartmentCode",
+          "kind": "enum",
+          "optional": false
+        }
+      ],
+      "id": "engineering2",
+      "variableName": "engineering2",
+      "typeName": "Department",
+      "kind": "record",
+      "optional": false
+    },
+    "mappings": [
+      {
+        "output": "engineering2.name",
+        "inputs": [],
+        "expression": "\"Engineering\"",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false
+      },
+      {
+        "output": "engineering2.code",
+        "inputs": [
+          "engineering.code"
+        ],
+        "expression": "engineering.code\n",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false
+      }
+    ]
+  }
+}

@@ -17,11 +17,9 @@
               "org": "ballerina",
               "module": "ai",
               "packageName": "ai",
-              "symbol": "getDefaultEmbeddingProvider",
-              "version": "1.1.0"
+              "symbol": "getDefaultEmbeddingProvider"
             },
-            "enabled": true,
-            "more": false
+            "enabled": true
           },
           {
             "metadata": {
@@ -34,28 +32,9 @@
               "module": "ai.openai",
               "packageName": "ai.openai",
               "object": "EmbeddingProvider",
-              "symbol": "init",
-              "version": "1.1.0"
+              "symbol": "init"
             },
-            "enabled": true,
-            "more": false
-          },
-          {
-            "metadata": {
-              "label": "WSO2 Embedding Provider",
-              "description": "Provides an interface to interact with embedding models hosted by WSO2."
-            },
-            "codedata": {
-              "node": "EMBEDDING_PROVIDER",
-              "org": "ballerina",
-              "module": "ai",
-              "packageName": "ai",
-              "object": "Wso2EmbeddingProvider",
-              "symbol": "init",
-              "version": "1.1.0"
-            },
-            "enabled": true,
-            "more": false
+            "enabled": true
           }
         ]
       }

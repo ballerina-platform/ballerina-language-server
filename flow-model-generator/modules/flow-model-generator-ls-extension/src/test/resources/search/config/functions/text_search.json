@@ -56,11 +56,22 @@
     },
     {
       "metadata": {
-        "label": "Available Functions",
-        "description": "Functions available in the library",
+        "label": "Current Organization",
+        "description": "Components in the current organization",
         "keywords": [
-          "Available",
+          "Organization",
           "Function",
+          "Library"
+        ]
+      },
+      "items": []
+    },
+    {
+      "metadata": {
+        "label": "Standard Library",
+        "description": "Components supported officially by Ballerina",
+        "keywords": [
+          "Ballerina",
           "Library"
         ]
       },
@@ -86,8 +97,7 @@
                 "symbol": "fileWriteString",
                 "version": "1.8.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -103,8 +113,7 @@
                 "symbol": "fileWriteJson",
                 "version": "1.8.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -120,8 +129,7 @@
                 "symbol": "fileWriteBytes",
                 "version": "1.8.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -137,8 +145,7 @@
                 "symbol": "fileWriteXml",
                 "version": "1.8.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -154,8 +161,7 @@
                 "symbol": "fileWriteBlocksFromStream",
                 "version": "1.8.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -171,8 +177,7 @@
                 "symbol": "fileWriteLines",
                 "version": "1.8.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -188,8 +193,7 @@
                 "symbol": "fileWriteLinesFromStream",
                 "version": "1.8.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -205,8 +209,7 @@
                 "symbol": "fileWriteCsv",
                 "version": "1.8.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -222,8 +225,7 @@
                 "symbol": "fileWriteCsvFromStream",
                 "version": "1.8.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             }
           ]
         }

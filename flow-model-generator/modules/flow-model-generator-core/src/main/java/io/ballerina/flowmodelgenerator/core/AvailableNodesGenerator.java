@@ -64,7 +64,11 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static io.ballerina.flowmodelgenerator.core.Constants.Ai;
+import static io.ballerina.flowmodelgenerator.core.Constants.BALLERINA;
 import static io.ballerina.flowmodelgenerator.core.Constants.NaturalFunctions;
+import static io.ballerina.modelgenerator.commons.CommonUtils.isAiEmbeddingProvider;
+import static io.ballerina.modelgenerator.commons.CommonUtils.isAiModelProvider;
+import static io.ballerina.modelgenerator.commons.CommonUtils.isAiVectorKnowledgeBase;
 
 /**
  * Generates available nodes for a given position in the diagram.
@@ -78,7 +82,6 @@ public class AvailableNodesGenerator {
     private final Document document;
     private final Package pkg;
     private final Gson gson;
-    private static final String BALLERINA_ORG = "ballerina";
     private static final String HTTP_MODULE = "http";
     private static final List<String> HTTP_REMOTE_METHOD_SKIP_LIST = List.of("get", "put", "post", "head",
             "delete", "patch", "options");
@@ -247,6 +250,9 @@ public class AvailableNodesGenerator {
                         .description(NPFunctionCall.DESCRIPTION).icon(NaturalFunctions.ICON).build(),
                 new Codedata.Builder<>(null).node(NodeKind.NP_FUNCTION).build(), true);
 
+        Category directLlmCategory = new Category.Builder(null).name(Category.Name.DIRECT_LLM)
+                .items(List.of(modelProvider, npFunction)).build();
+
         AvailableNode vectorKnowledgeBase = new AvailableNode(
                 new Metadata.Builder<>(null).label(VectorKnowledgeBaseBuilder.LABEL)
                         .description(VectorKnowledgeBaseBuilder.DESCRIPTION).build(),
@@ -268,27 +274,34 @@ public class AvailableNodesGenerator {
                         .module(Ai.AI_PACKAGE).packageName(Ai.AI_PACKAGE).symbol(Ai.AUGMENT_USER_QUERY_METHOD_NAME)
                         .build(), !disableBallerinaAiNodes);
 
-        AvailableNode agentCall = new AvailableNode(
-                new Metadata.Builder<>(null).label(AgentBuilder.LABEL)
-                        .description(AgentBuilder.DESCRIPTION).build(),
-                new Codedata.Builder<>(null).node(NodeKind.AGENT_CALL).org(BALLERINAX).module(Ai.AI_PACKAGE)
-                        .packageName(Ai.AI_PACKAGE).symbol(Ai.AGENT_RUN_METHOD_NAME).object(Ai.AGENT_TYPE_NAME).build(),
-                true);
-
         AvailableNode vectorStore = new AvailableNode(
                 new Metadata.Builder<>(null).label(VectorStoreBuilder.LABEL)
                         .description(VectorStoreBuilder.DESCRIPTION).build(),
                 new Codedata.Builder<>(null).node(NodeKind.VECTOR_STORES).build(),
-                !disableBallerinaAiNodes, true);
+                !disableBallerinaAiNodes);
 
         AvailableNode embeddingProvider = new AvailableNode(
                 new Metadata.Builder<>(null).label(EmbeddingProviderBuilder.LABEL)
                         .description(EmbeddingProviderBuilder.DESCRIPTION).build(),
                 new Codedata.Builder<>(null).node(NodeKind.EMBEDDING_PROVIDERS).build(),
-                !disableBallerinaAiNodes, true);
+                !disableBallerinaAiNodes);
 
-        return List.of(modelProvider, npFunction, vectorKnowledgeBase, chunkers, augmentUserQuery,
-                vectorStore, embeddingProvider, agentCall);
+        Category ragCategory = new Category.Builder(null).name(Category.Name.RAG)
+                .items(List.of(vectorKnowledgeBase, chunkers, augmentUserQuery, vectorStore, embeddingProvider))
+                .build();
+
+        AvailableNode agentCall = new AvailableNode(
+                new Metadata.Builder<>(null).label(AgentBuilder.LABEL)
+                        .description(AgentBuilder.DESCRIPTION).build(),
+                new Codedata.Builder<>(null).node(NodeKind.AGENT_CALL).
+                        org(disableBallerinaAiNodes ? BALLERINAX : BALLERINA).module(Ai.AI_PACKAGE)
+                        .packageName(Ai.AI_PACKAGE).symbol(Ai.AGENT_RUN_METHOD_NAME)
+                        .object(Ai.AGENT_TYPE_NAME).build(), true);
+
+        Category agentCategory = new Category.Builder(null).name(Category.Name.AGENT)
+                .items(List.of(agentCall)).build();
+
+        return List.of(directLlmCategory, ragCategory, agentCategory);
     }
 
     private void setStopNode(NonTerminalNode node) {
@@ -356,7 +369,7 @@ public class AvailableNodesGenerator {
                 String org = methodFunction.org();
                 String packageName = methodFunction.packageName();
                 String version = methodFunction.version();
-                boolean isHttpModule = org.equals(BALLERINA_ORG) && packageName.equals(HTTP_MODULE);
+                boolean isHttpModule = org.equals(BALLERINA) && packageName.equals(HTTP_MODULE);
 
                 NodeBuilder nodeBuilder;
                 String label;
@@ -372,6 +385,8 @@ public class AvailableNodesGenerator {
                     FunctionData.Kind kind = methodFunction.kind();
                     if (kind == FunctionData.Kind.REMOTE) {
                         nodeBuilder = NodeBuilder.getNodeFromKind(NodeKind.REMOTE_ACTION_CALL);
+                    } else if (kind == FunctionData.Kind.FUNCTION && isAiVectorKnowledgeBase(classSymbol)) {
+                        nodeBuilder = NodeBuilder.getNodeFromKind(NodeKind.VECTOR_KNOWLEDGE_BASE_CALL);
                     } else if (kind == FunctionData.Kind.FUNCTION) {
                         nodeBuilder = NodeBuilder.getNodeFromKind(NodeKind.METHOD_CALL);
                     } else {
@@ -381,20 +396,20 @@ public class AvailableNodesGenerator {
 
                 Item node = nodeBuilder
                         .metadata()
-                            .label(label)
-                            .icon(CommonUtils.generateIcon(org, packageName, version))
-                            .description(methodFunction.description())
-                            .stepOut()
+                        .label(label)
+                        .icon(CommonUtils.generateIcon(org, packageName, version))
+                        .description(methodFunction.description())
+                        .stepOut()
                         .codedata()
-                            .org(org)
-                            .module(moduleInfo.moduleName())
-                            .packageName(moduleInfo.packageName())
-                            .object(className)
-                            .symbol(methodFunction.name())
-                            .version(version)
-                            .parentSymbol(parentSymbolName)
-                            .resourcePath(methodFunction.resourcePath())
-                            .stepOut()
+                        .org(org)
+                        .module(moduleInfo.moduleName())
+                        .packageName(moduleInfo.packageName())
+                        .object(className)
+                        .symbol(methodFunction.name())
+                        .version(version)
+                        .parentSymbol(parentSymbolName)
+                        .resourcePath(methodFunction.resourcePath())
+                        .stepOut()
                         .buildAvailableNode();
                 methods.add(node);
             }
@@ -421,38 +436,10 @@ public class AvailableNodesGenerator {
     }
 
     private Optional<Category> getKnowledgeBase(Symbol symbol) {
-        return getCategory(symbol, this::isAiKnowledgeBase);
+        return getCategory(symbol, CommonUtils::isAiVectorKnowledgeBase);
     }
 
     private Optional<Category> getVectorStore(Symbol symbol) {
-        return getCategory(symbol, this::isAiVectorStore);
-    }
-
-    private boolean hasAiTypeInclusion(ClassSymbol classSymbol, String includedTypeName) {
-        return classSymbol.typeInclusions().stream()
-                .filter(typeSymbol -> typeSymbol instanceof TypeReferenceTypeSymbol)
-                .map(typeSymbol -> (TypeReferenceTypeSymbol) typeSymbol)
-                .filter(typeRef -> typeRef.definition().nameEquals(includedTypeName))
-                .map(TypeSymbol::getModule)
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .anyMatch(moduleId -> Ai.BALLERINA_ORG.equals(moduleId.id().orgName()) &&
-                        Ai.AI_PACKAGE.equals(moduleId.id().moduleName()));
-    }
-
-    private boolean isAiModelProvider(ClassSymbol classSymbol) {
-        return hasAiTypeInclusion(classSymbol, Ai.MODEL_PROVIDER_TYPE_NAME);
-    }
-
-    private boolean isAiEmbeddingProvider(ClassSymbol classSymbol) {
-        return hasAiTypeInclusion(classSymbol, Ai.EMBEDDING_PROVIDER_TYPE_NAME);
-    }
-
-    private boolean isAiKnowledgeBase(ClassSymbol classSymbol) {
-        return hasAiTypeInclusion(classSymbol, Ai.KNOWLEDGE_BASE_TYPE_NAME);
-    }
-
-    private boolean isAiVectorStore(ClassSymbol classSymbol) {
-        return hasAiTypeInclusion(classSymbol, Ai.VECTOR_STORE_TYPE_NAME);
+        return getCategory(symbol, CommonUtils::isAiVectorStore);
     }
 }

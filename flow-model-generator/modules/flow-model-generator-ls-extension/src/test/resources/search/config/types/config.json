@@ -39,8 +39,7 @@
                 "symbol": "CookieConfig",
                 "version": "2.14.2"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             }
           ]
         }
@@ -48,11 +47,22 @@
     },
     {
       "metadata": {
-        "label": "Available Types",
-        "description": "Types available in the library",
+        "label": "Current Organization",
+        "description": "Components in the current organization",
         "keywords": [
-          "Available",
-          "Type",
+          "Organization",
+          "Function",
+          "Library"
+        ]
+      },
+      "items": []
+    },
+    {
+      "metadata": {
+        "label": "Standard Library",
+        "description": "Components supported officially by Ballerina",
+        "keywords": [
+          "Ballerina",
           "Library"
         ]
       },
@@ -78,8 +88,7 @@
                 "symbol": "ConnectionConfig",
                 "version": "1.0.1"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -95,8 +104,7 @@
                 "symbol": "AuthConfig",
                 "version": "1.0.1"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -112,8 +120,7 @@
                 "symbol": "CredentialBearer",
                 "version": "1.0.1"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -129,8 +136,7 @@
                 "symbol": "ProxyConfig",
                 "version": "1.0.1"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -146,8 +152,7 @@
                 "symbol": "OAuth2RefreshTokenGrantConfig",
                 "version": "1.0.1"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -163,8 +168,7 @@
                 "symbol": "ClientHttp1Settings",
                 "version": "1.0.1"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -180,8 +184,7 @@
                 "symbol": "KeepAlive",
                 "version": "1.0.1"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -197,8 +200,7 @@
                 "symbol": "OAuth2ClientCredentialsGrantConfig",
                 "version": "1.0.1"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -214,8 +216,7 @@
                 "symbol": "OAuth2PasswordGrantConfig",
                 "version": "1.0.1"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -231,8 +232,7 @@
                 "symbol": "OAuth2JwtBearerGrantConfig",
                 "version": "1.0.1"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             }
           ]
         },
@@ -257,8 +257,7 @@
                 "symbol": "OAuth2ClientCredentialsGrantConfig",
                 "version": "1.4.1"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             }
           ]
         },
@@ -283,8 +282,7 @@
                 "symbol": "ClientConfig",
                 "version": "2.3.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             }
           ]
         },
@@ -309,8 +307,7 @@
                 "symbol": "ConnectionConfig",
                 "version": "2.2.1"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             }
           ]
         },
@@ -335,8 +332,7 @@
                 "symbol": "ClientConfiguration",
                 "version": "2.13.1"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             }
           ]
         },
@@ -361,8 +357,7 @@
                 "symbol": "Graphiql",
                 "version": "1.16.1"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
             },
             {
               "metadata": {
@@ -378,34 +373,7 @@
                 "symbol": "CookieConfig",
                 "version": "1.16.1"
               },
-              "enabled": true,
-              "more": false
-            }
-          ]
-        },
-        {
-          "metadata": {
-            "label": "azure.ad",
-            "description": "",
-            "keywords": []
-          },
-          "items": [
-            {
-              "metadata": {
-                "label": "ConnectionConfig",
-                "description": "Client configuration details.",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_azure.ad_2.5.0.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "azure.ad",
-                "packageName": "azure.ad",
-                "symbol": "ConnectionConfig",
-                "version": "2.5.0"
-              },
-              "enabled": true,
-              "more": false
+              "enabled": true
             }
           ]
         },
@@ -430,112 +398,7 @@
                 "symbol": "ConnectionConfig",
                 "version": "2.4.0"
               },
-              "enabled": true,
-              "more": false
-            }
-          ]
-        },
-        {
-          "metadata": {
-            "label": "microsoft.teams",
-            "description": "",
-            "keywords": []
-          },
-          "items": [
-            {
-              "metadata": {
-                "label": "ConnectionConfig",
-                "description": "Client configuration details.",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_microsoft.teams_2.4.0.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "microsoft.teams",
-                "packageName": "microsoft.teams",
-                "symbol": "ConnectionConfig",
-                "version": "2.4.0"
-              },
-              "enabled": true,
-              "more": false
-            }
-          ]
-        },
-        {
-          "metadata": {
-            "label": "microsoft.onedrive",
-            "description": "",
-            "keywords": []
-          },
-          "items": [
-            {
-              "metadata": {
-                "label": "ConnectionConfig",
-                "description": "Client configuration details.",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_microsoft.onedrive_2.4.0.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "microsoft.onedrive",
-                "packageName": "microsoft.onedrive",
-                "symbol": "ConnectionConfig",
-                "version": "2.4.0"
-              },
-              "enabled": true,
-              "more": false
-            }
-          ]
-        },
-        {
-          "metadata": {
-            "label": "googleapis.people",
-            "description": "",
-            "keywords": []
-          },
-          "items": [
-            {
-              "metadata": {
-                "label": "ConnectionConfig",
-                "description": "Client configuration details.",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_googleapis.people_2.4.0.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "googleapis.people",
-                "packageName": "googleapis.people",
-                "symbol": "ConnectionConfig",
-                "version": "2.4.0"
-              },
-              "enabled": true,
-              "more": false
-            }
-          ]
-        },
-        {
-          "metadata": {
-            "label": "microsoft.excel",
-            "description": "",
-            "keywords": []
-          },
-          "items": [
-            {
-              "metadata": {
-                "label": "ConnectionConfig",
-                "description": "Client configuration details.",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_microsoft.excel_2.4.0.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "microsoft.excel",
-                "packageName": "microsoft.excel",
-                "symbol": "ConnectionConfig",
-                "version": "2.4.0"
-              },
-              "enabled": true,
-              "more": false
+              "enabled": true
             }
           ]
         },
@@ -560,8 +423,32 @@
                 "symbol": "ConnectionConfig",
                 "version": "3.5.1"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "salesforce.soap",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "ConnectionConfig",
+                "description": "Salesforce client configuration.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_salesforce_8.2.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "salesforce.soap",
+                "packageName": "salesforce",
+                "symbol": "ConnectionConfig",
+                "version": "8.2.0"
+              },
+              "enabled": true
             }
           ]
         },
@@ -586,8 +473,107 @@
                 "symbol": "ConnectionConfig",
                 "version": "8.2.0"
               },
-              "enabled": true,
-              "more": false
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "microsoft.onedrive",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "ConnectionConfig",
+                "description": "Client configuration details.",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_microsoft.onedrive_2.4.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "microsoft.onedrive",
+                "packageName": "microsoft.onedrive",
+                "symbol": "ConnectionConfig",
+                "version": "2.4.0"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "googleapis.people",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "ConnectionConfig",
+                "description": "Client configuration details.",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_googleapis.people_2.4.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "googleapis.people",
+                "packageName": "googleapis.people",
+                "symbol": "ConnectionConfig",
+                "version": "2.4.0"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "googleapis.calendar",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "ConnectionConfig",
+                "description": "Client configuration details.",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_googleapis.calendar_3.2.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "googleapis.calendar",
+                "packageName": "googleapis.calendar",
+                "symbol": "ConnectionConfig",
+                "version": "3.2.1"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "microsoft.excel",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "ConnectionConfig",
+                "description": "Client configuration details.",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_microsoft.excel_2.4.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "microsoft.excel",
+                "packageName": "microsoft.excel",
+                "symbol": "ConnectionConfig",
+                "version": "2.4.0"
+              },
+              "enabled": true
             }
           ]
         }

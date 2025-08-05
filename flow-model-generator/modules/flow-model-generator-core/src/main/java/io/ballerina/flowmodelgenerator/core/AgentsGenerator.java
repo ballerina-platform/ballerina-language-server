@@ -73,10 +73,13 @@ import io.ballerina.tools.text.TextDocument;
 import io.ballerina.tools.text.TextDocumentChange;
 import io.ballerina.tools.text.TextRange;
 import org.ballerinalang.langserver.common.utils.CommonUtil;
+import org.ballerinalang.langserver.commons.eventsync.exceptions.EventSyncException;
+import org.ballerinalang.langserver.commons.workspace.WorkspaceDocumentException;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.TextEdit;
+import org.wso2.ballerinalang.compiler.tree.BLangPackage;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -87,8 +90,11 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import static io.ballerina.flowmodelgenerator.core.Constants.MODEL_VERSION;
-import static io.ballerina.modelgenerator.commons.CommonUtils.AI_AZURE;
+import static io.ballerina.flowmodelgenerator.core.Constants.AI;
+import static io.ballerina.flowmodelgenerator.core.Constants.BALLERINA;
+import static io.ballerina.flowmodelgenerator.core.Constants.BALLERINAX;
+import static io.ballerina.flowmodelgenerator.core.Constants.DEFAULT_MODEL_PROVIDER;
+import static io.ballerina.modelgenerator.commons.CommonUtils.importExists;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiModule;
 
 /**
@@ -111,7 +117,6 @@ public class AgentsGenerator {
     private static final List<String> HTTP_REMOTE_METHOD_SKIP_LIST = List.of("get", "put", "post", "head",
             "delete", "patch", "options");
     private static final String OPENAI_MODEL_PROVIDER = "OpenAiModelProvider";
-    private static final String DEFAULT_MODEL_PROVIDER = "getDefaultModelProvider";
 
 
     public AgentsGenerator() {
@@ -122,6 +127,14 @@ public class AgentsGenerator {
     public AgentsGenerator(SemanticModel semanticModel) {
         this.gson = new Gson();
         this.semanticModel = semanticModel;
+    }
+
+    public static String getAiModuleOrgName(String path, WorkspaceManager workspaceManager)
+            throws WorkspaceDocumentException, EventSyncException {
+        Path projectPath = Path.of(path);
+        Project project = workspaceManager.loadProject(projectPath);
+        BLangPackage bLangPackage = PackageUtil.getCompilation(project.currentPackage()).defaultModuleBLangPackage();
+        return importExists(bLangPackage, BALLERINAX, AI) ? BALLERINAX : BALLERINA;
     }
 
     public JsonArray getAllAgents(SemanticModel agentSymbol) {
@@ -142,7 +155,6 @@ public class AgentsGenerator {
                         .org(id.orgName())
                         .module(id.moduleName())
                         .packageName(id.packageName())
-                        .version(id.version())
                         .object(classSymbol.getName().orElse(AGENT))
                         .symbol(INIT)
                         .build());
@@ -153,9 +165,12 @@ public class AgentsGenerator {
 
     public JsonArray getNewBallerinaxModels() {
         JsonArray models = new JsonArray();
-        CommonUtils.AI_MODULE_NAMES.stream().filter(model -> !model.equals(AI_AZURE))
-                .forEach(model -> models.add(createModelObject(model)));
-        models.add(createModelObject(NodeKind.CLASS_INIT, AI_AZURE, OPENAI_MODEL_PROVIDER));
+        models.add(createModelObject(CommonUtils.AI_OPENAI));
+        models.add(createModelObject(CommonUtils.AI_ANTHROPIC));
+        models.add(createModelObject(CommonUtils.AI_DEEPSEEK));
+        models.add(createModelObject(CommonUtils.AI_MISTRAL));
+        models.add(createModelObject(CommonUtils.AI_OLLAMA));
+        models.add(createModelObject(NodeKind.CLASS_INIT, CommonUtils.AI_AZURE, OPENAI_MODEL_PROVIDER));
         models.add(createModelObject(NodeKind.FUNCTION_CALL, Constants.AI, DEFAULT_MODEL_PROVIDER));
         return models;
     }
@@ -177,7 +192,6 @@ public class AgentsGenerator {
         } else {
             model.addProperty("symbol", objectOrFuncName);
         }
-        model.addProperty("version", MODEL_VERSION);
         return model;
     }
 
@@ -246,7 +260,6 @@ public class AgentsGenerator {
                     .org(id.orgName())
                     .module(id.moduleName())
                     .packageName(id.packageName())
-                    .version(id.version())
                     .object(model.getName().orElse(MEMORY))
                     .symbol(INIT)
                     .build());
@@ -398,7 +411,7 @@ public class AgentsGenerator {
 
             sourceBuilder.token()
                     .keyword(SyntaxKind.CLOSE_BRACE_TOKEN);
-            sourceBuilder.textEdit().acceptImport();
+            sourceBuilder.textEdit(SourceBuilder.SourceKind.DECLARATION).acceptImport();
             Map<Path, List<TextEdit>> textEdits = sourceBuilder.build();
             List<TextEdit> te = new ArrayList<>();
             Path p = addIsolateKeyword(optFuncName.get().value().toString().trim(), filePath, te, workspaceManager);
@@ -475,7 +488,7 @@ public class AgentsGenerator {
             }
             sourceBuilder.token()
                     .keyword(SyntaxKind.CLOSE_BRACE_TOKEN);
-            sourceBuilder.textEdit().acceptImport();
+            sourceBuilder.textEdit(SourceBuilder.SourceKind.DECLARATION).acceptImport();
             return gson.toJsonTree(sourceBuilder.build());
         } else if (nodeKind == NodeKind.RESOURCE_ACTION_CALL) {
             boolean hasDescription = genDescription(description, flowNode, sourceBuilder);
@@ -592,7 +605,7 @@ public class AgentsGenerator {
             }
             sourceBuilder.token()
                     .keyword(SyntaxKind.CLOSE_BRACE_TOKEN);
-            sourceBuilder.textEdit().acceptImport();
+            sourceBuilder.textEdit(SourceBuilder.SourceKind.DECLARATION).acceptImport();
             return gson.toJsonTree(sourceBuilder.build());
         }
         throw new IllegalStateException("Unsupported node kind to generate tool");
