@@ -37,7 +37,6 @@
           "httpListener",
           "(+) Create and use the default HTTP listener (port: 9090)"
         ],
-        "imports": {},
         "enabled": true,
         "editable": false,
         "optional": false,
@@ -55,7 +54,6 @@
         "valueType": "IDENTIFIER",
         "valueTypeConstraint": "string",
         "value": "PizzaShop",
-        "imports": {},
         "enabled": true,
         "editable": true,
         "optional": false,

@@ -32,7 +32,6 @@
           "items": [
             "defaultListener"
           ],
-          "imports": {},
           "enabled": true,
           "editable": false,
           "optional": false,
@@ -68,7 +67,6 @@
                   "valueType": "SERVICE_PATH",
                   "valueTypeConstraint": "string",
                   "value": "/",
-                  "imports": {},
                   "enabled": true,
                   "editable": true,
                   "optional": false,
@@ -95,14 +93,12 @@
                       "selected": true
                     }
                   ],
-                  "imports": {},
                   "enabled": true,
                   "editable": true,
                   "optional": true,
                   "advanced": true
                 }
               },
-              "imports": {},
               "enabled": true,
               "editable": true,
               "optional": false,
@@ -129,7 +125,6 @@
                   "valueType": "FILE_SELECT",
                   "valueTypeConstraint": "string",
                   "value": "",
-                  "imports": {},
                   "enabled": true,
                   "editable": true,
                   "optional": true,
@@ -147,21 +142,18 @@
                   "valueType": "IDENTIFIER",
                   "valueTypeConstraint": "string",
                   "value": "",
-                  "imports": {},
                   "enabled": true,
                   "editable": true,
                   "optional": false,
                   "advanced": false
                 }
               },
-              "imports": {},
               "enabled": false,
               "editable": true,
               "optional": false,
               "advanced": false
             }
           ],
-          "imports": {},
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -193,7 +185,6 @@
               "OPTIONS",
               "HEAD"
             ],
-            "imports": {},
             "enabled": true,
             "editable": true,
             "optional": false,
@@ -208,7 +199,6 @@
             "valueType": "IDENTIFIER",
             "valueTypeConstraint": "string",
             "value": "greeting",
-            "imports": {},
             "enabled": true,
             "editable": false,
             "optional": false,
@@ -222,30 +212,20 @@
               },
               "kind": "REQUIRED",
               "type": {
-                "metadata": {
-                  "label": "",
-                  "description": ""
-                },
                 "placeholder": "string",
                 "valueType": "TYPE",
                 "valueTypeConstraint": "http:Request",
                 "value": "",
-                "imports": {},
                 "enabled": true,
                 "editable": false,
                 "optional": false,
                 "advanced": false
               },
               "name": {
-                "metadata": {
-                  "label": "",
-                  "description": ""
-                },
                 "placeholder": "request",
                 "valueType": "IDENTIFIER",
                 "valueTypeConstraint": "string",
                 "value": "",
-                "imports": {},
                 "enabled": true,
                 "editable": true,
                 "optional": false,
@@ -263,30 +243,20 @@
               },
               "kind": "REQUIRED",
               "type": {
-                "metadata": {
-                  "label": "",
-                  "description": ""
-                },
                 "placeholder": "string",
                 "valueType": "TYPE",
                 "valueTypeConstraint": "http:Caller",
                 "value": "",
-                "imports": {},
                 "enabled": true,
                 "editable": false,
                 "optional": false,
                 "advanced": false
               },
               "name": {
-                "metadata": {
-                  "label": "",
-                  "description": ""
-                },
                 "placeholder": "request",
                 "valueType": "IDENTIFIER",
                 "valueTypeConstraint": "string",
                 "value": "",
-                "imports": {},
                 "enabled": true,
                 "editable": true,
                 "optional": false,
@@ -304,30 +274,20 @@
               },
               "kind": "REQUIRED",
               "type": {
-                "metadata": {
-                  "label": "",
-                  "description": ""
-                },
                 "placeholder": "string",
                 "valueType": "TYPE",
                 "valueTypeConstraint": "http:Headers",
                 "value": "",
-                "imports": {},
                 "enabled": true,
                 "editable": false,
                 "optional": false,
                 "advanced": false
               },
               "name": {
-                "metadata": {
-                  "label": "",
-                  "description": ""
-                },
                 "placeholder": "request",
                 "valueType": "IDENTIFIER",
                 "valueTypeConstraint": "string",
                 "value": "",
-                "imports": {},
                 "enabled": true,
                 "editable": true,
                 "optional": false,
@@ -347,30 +307,20 @@
               },
               "kind": "REQUIRED",
               "type": {
-                "metadata": {
-                  "label": "",
-                  "description": ""
-                },
                 "placeholder": "",
                 "valueType": "TYPE",
                 "valueTypeConstraint": "anydata",
                 "value": "",
-                "imports": {},
                 "enabled": true,
                 "editable": true,
                 "optional": false,
                 "advanced": false
               },
               "name": {
-                "metadata": {
-                  "label": "",
-                  "description": ""
-                },
                 "placeholder": "",
                 "valueType": "IDENTIFIER",
                 "valueTypeConstraint": "string",
                 "value": "",
-                "imports": {},
                 "enabled": true,
                 "editable": true,
                 "optional": false,
@@ -389,30 +339,20 @@
               },
               "kind": "REQUIRED",
               "type": {
-                "metadata": {
-                  "label": "",
-                  "description": ""
-                },
                 "placeholder": "",
                 "valueType": "TYPE",
                 "valueTypeConstraint": "anydata",
                 "value": "",
-                "imports": {},
                 "enabled": true,
                 "editable": true,
                 "optional": false,
                 "advanced": false
               },
               "name": {
-                "metadata": {
-                  "label": "",
-                  "description": ""
-                },
                 "placeholder": "",
                 "valueType": "IDENTIFIER",
                 "valueTypeConstraint": "string",
                 "value": "",
-                "imports": {},
                 "enabled": true,
                 "editable": true,
                 "optional": false,
@@ -431,30 +371,20 @@
               },
               "kind": "REQUIRED",
               "type": {
-                "metadata": {
-                  "label": "",
-                  "description": ""
-                },
                 "placeholder": "string",
                 "valueType": "TYPE",
                 "valueTypeConstraint": "anydata",
                 "value": "",
-                "imports": {},
                 "enabled": true,
                 "editable": true,
                 "optional": false,
                 "advanced": false
               },
               "name": {
-                "metadata": {
-                  "label": "",
-                  "description": ""
-                },
                 "placeholder": "name",
                 "valueType": "IDENTIFIER",
                 "valueTypeConstraint": "string",
                 "value": "",
-                "imports": {},
                 "enabled": true,
                 "editable": true,
                 "optional": false,
@@ -491,7 +421,6 @@
                     "405",
                     "500"
                   ],
-                  "imports": {},
                   "enabled": true,
                   "editable": false,
                   "optional": false,
@@ -506,7 +435,6 @@
                   "valueType": "TYPE",
                   "valueTypeConstraint": "anydata",
                   "value": "json",
-                  "imports": {},
                   "enabled": true,
                   "editable": false,
                   "optional": true,
@@ -539,7 +467,6 @@
                     "405",
                     "500"
                   ],
-                  "imports": {},
                   "enabled": true,
                   "editable": false,
                   "optional": false,
@@ -554,7 +481,6 @@
                   "valueType": "TYPE",
                   "valueTypeConstraint": "anydata",
                   "value": "anydata",
-                  "imports": {},
                   "enabled": true,
                   "editable": false,
                   "optional": true,
@@ -589,7 +515,6 @@
                     "405",
                     "500"
                   ],
-                  "imports": {},
                   "enabled": true,
                   "editable": false,
                   "optional": false,
@@ -602,7 +527,6 @@
                   },
                   "valueType": "TYPE",
                   "value": "",
-                  "imports": {},
                   "enabled": true,
                   "editable": true,
                   "optional": true,
@@ -615,7 +539,6 @@
                   },
                   "valueType": "IDENTIFIER",
                   "value": "",
-                  "imports": {},
                   "enabled": true,
                   "editable": true,
                   "optional": true,
@@ -628,7 +551,6 @@
                   },
                   "valueType": "TYPE",
                   "value": "",
-                  "imports": {},
                   "enabled": true,
                   "editable": true,
                   "optional": false,
@@ -641,7 +563,6 @@
                   },
                   "valueType": "EXPRESSION_SET",
                   "value": "",
-                  "imports": {},
                   "enabled": true,
                   "editable": true,
                   "optional": true,

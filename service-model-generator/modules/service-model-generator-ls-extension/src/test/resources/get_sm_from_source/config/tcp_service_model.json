@@ -38,7 +38,6 @@
         "items": [
           "tcpListener"
         ],
-        "imports": {},
         "enabled": true,
         "editable": true,
         "optional": false,
@@ -60,7 +59,6 @@
           "",
           "Service"
         ],
-        "imports": {},
         "enabled": false,
         "editable": true,
         "optional": false,
@@ -99,7 +97,6 @@
           "valueType": "IDENTIFIER",
           "valueTypeConstraint": "string",
           "value": "onConnect",
-          "imports": {},
           "enabled": true,
           "editable": false,
           "optional": false,
@@ -120,7 +117,6 @@
               "placeholder": "tcp:Caller",
               "valueType": "TYPE",
               "value": "tcp:Caller",
-              "imports": {},
               "enabled": true,
               "editable": false,
               "optional": true,
@@ -137,7 +133,6 @@
               "placeholder": "caller",
               "valueType": "IDENTIFIER",
               "value": "caller",
-              "imports": {},
               "enabled": true,
               "editable": true,
               "optional": false,
@@ -151,7 +146,6 @@
               "placeholder": "",
               "valueType": "EXPRESSION",
               "value": "",
-              "imports": {},
               "enabled": true,
               "editable": true,
               "optional": true,

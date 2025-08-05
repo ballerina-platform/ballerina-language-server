@@ -33,7 +33,6 @@
             }
           }
         },
-        "placeholder": "",
         "valueType": "IDENTIFIER",
         "valueTypeConstraint": "Global",
         "value": "Book",
@@ -71,7 +70,6 @@
           },
           "valueType": "IDENTIFIER",
           "value": "get",
-          "imports": {},
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -97,7 +95,6 @@
           },
           "valueType": "IDENTIFIER",
           "value": "author/[int id]",
-          "imports": {},
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -112,7 +109,6 @@
                 "description": "The type of the argument"
               },
               "valueType": "TYPE",
-              "imports": {},
               "enabled": true,
               "editable": true,
               "optional": false,
@@ -124,7 +120,6 @@
                 "description": "The name of the argument"
               },
               "valueType": "IDENTIFIER",
-              "imports": {},
               "enabled": true,
               "editable": true,
               "optional": false,
@@ -136,7 +131,6 @@
                 "description": "The default value of the argument"
               },
               "valueType": "EXPRESSION",
-              "imports": {},
               "enabled": true,
               "editable": true,
               "optional": true,

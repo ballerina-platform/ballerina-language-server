@@ -82,7 +82,7 @@ public class HttpResponse {
 
     public HttpResponse(String statusCode, String type, boolean editable) {
         this.statusCode = createValue(statusCode, VALUE_TYPE_SINGLE_SELECT, editable);
-        this.body = createOptionalValue(body, VALUE_TYPE_TYPE, editable);
+        this.body = createOptionalValue("", VALUE_TYPE_TYPE, editable);
         this.name = createOptionalValue("", VALUE_TYPE_IDENTIFIER, editable);
         this.type = createOptionalValue(type, VALUE_TYPE_TYPE, editable);
         this.headers = createOptionalValue("", VALUE_TYPE_HEADER_SET, editable);
