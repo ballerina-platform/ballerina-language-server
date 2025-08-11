@@ -692,7 +692,8 @@ public class DataMapManager {
     }
 
     private List<MappingPort> getInputPorts(SemanticModel semanticModel,
-                                            Document document, LinePosition position, List<MappingPort> enumPorts, Map<String, MappingPort> references) {
+                                            Document document, LinePosition position,
+                                            List<MappingPort> enumPorts, Map<String, MappingPort> references) {
         List<MappingPort> refMappingPorts =  new ArrayList<>();
 
         List<Symbol> symbols = semanticModel.visibleSymbols(document, position);
@@ -713,9 +714,10 @@ public class DataMapManager {
                 } catch (UnsupportedOperationException e) {
                     continue;
                 }
-                MappingPort refMappingPort = getRefMappingPort(optName.get(), optName.get(), refType, true, new HashMap<>(), references);
+                MappingPort refMappingPort = getRefMappingPort(optName.get(), optName.get(),
+                        refType, true, new HashMap<>(), references);
 
-                if(refMappingPort == null) {
+                if (refMappingPort == null) {
                     continue;
                 }
 
@@ -744,8 +746,9 @@ public class DataMapManager {
                     continue;
                 }
 
-                MappingPort refMappingPort = getRefMappingPort(optName.get(), optName.get(), refType, true, new HashMap<>(), references);
-                if(refMappingPort == null) {
+                MappingPort refMappingPort = getRefMappingPort(optName.get(), optName.get(),
+                        refType, true, new HashMap<>(), references);
+                if (refMappingPort == null) {
                     continue;
                 }
                 setModuleInfo(((ParameterSymbol) symbol).typeDescriptor(), refMappingPort);
@@ -761,9 +764,10 @@ public class DataMapManager {
                 } catch (UnsupportedOperationException e) {
                     continue;
                 }
-                MappingPort refMappingPort = getRefMappingPort(refType.typeName, refType.typeName, refType, true, new HashMap<>(), references);
+                MappingPort refMappingPort = getRefMappingPort(refType.typeName, refType.typeName,
+                        refType, true, new HashMap<>(), references);
 
-                if(refMappingPort == null) {
+                if (refMappingPort == null) {
                     continue;
                 }
                 setModuleInfo(((ConstantSymbol) symbol).typeDescriptor(), refMappingPort);
@@ -780,8 +784,9 @@ public class DataMapManager {
                     continue;
                 }
 
-                MappingPort refMappingPort = getRefMappingPort(refType.typeName, refType.typeName, refType, true, new HashMap<>(), references);
-                if(refMappingPort == null) {
+                MappingPort refMappingPort = getRefMappingPort(refType.typeName, refType.typeName,
+                        refType, true, new HashMap<>(), references);
+                if (refMappingPort == null) {
                     continue;
                 }
                 setModuleInfo(((EnumSymbol) symbol).typeDescriptor(), refMappingPort);
@@ -944,21 +949,21 @@ public class DataMapManager {
                             recordType.name : recordType.typeName, recordType.typeName, recordType.hashCode);
                     for (ReferenceType.Field field : recordType.fields) {
                         MappingPort fieldPort = getRefMappingPort(
-                                field.fieldName(), field.fieldName(), field.type(), isInputPort, visitedTypes, references);
+                                field.fieldName(), field.fieldName(),
+                                field.type(), isInputPort, visitedTypes, references);
                         recordPort.fields.add(fieldPort);
                     }
                     MappingRecordPort inputPort = new MappingRecordPort(recordPort);
                     MappingRecordPort referenceRecordPort = new MappingRecordPort(recordPort, false);
                     references.put(recordType.hashCode, referenceRecordPort);
-                    if( recordType.dependentTypes == null) {
+                    if (recordType.dependentTypes == null) {
                         return inputPort;
                     }
                     Map<String, RefType> dependentTypes = recordType.dependentTypes;
                     for (Map.Entry<String, RefType> entry : dependentTypes.entrySet()) {
                         String key = entry.getKey();
                         RefType value = entry.getValue();
-                        MappingPort dependentPort = getRefMappingPort(
-                                id + "." + key, key, value, isInputPort, visitedTypes, references);
+                        getRefMappingPort(id + "." + key, key, value, isInputPort, visitedTypes, references);
                     }
                     return inputPort;
                 } else {
@@ -967,7 +972,8 @@ public class DataMapManager {
                 }
             } else if (type.typeName.equals("array")) {
                 if (type instanceof RefArrayType arrayType) {
-                    MappingPort memberPort = getRefMappingPort(id, null, arrayType.elementType, isInputPort, visitedTypes, references);
+                    MappingPort memberPort = getRefMappingPort(id, null, arrayType.elementType,
+                            isInputPort, visitedTypes, references);
                     if (memberPort != null && memberPort.variableName == null) {
                         memberPort.variableName = getItemName(name);
                     }
@@ -978,8 +984,7 @@ public class DataMapManager {
                     for (Map.Entry<String, RefType> entry : dependentTypes.entrySet()) {
                         String key = entry.getKey();
                         RefType value = entry.getValue();
-                        MappingPort dependentPort = getRefMappingPort(
-                                id + "." + key, key, value, isInputPort, visitedTypes, references);
+                        getRefMappingPort(id + "." + key, key, value, isInputPort, visitedTypes, references);
                     }
                     return arrayPort;
                 } else {
@@ -1938,7 +1943,8 @@ public class DataMapManager {
                         direction = token.get().text();
                     }
                     intermediateClauses.add(new Clause(ORDER_BY,
-                            new Properties(null, null, orderKey.expression().toSourceCode().trim(), direction)));
+                            new Properties(null, null,
+                                    orderKey.expression().toSourceCode().trim(), direction)));
                 }
                 case LIMIT_CLAUSE -> {
                     LimitClauseNode limitClause = (LimitClauseNode) intermediateClause;
@@ -2167,7 +2173,8 @@ public class DataMapManager {
             this(inputs, output, null, new ArrayList<>(), query, null);
         }
 
-        private Model(List<MappingPort> inputs, MappingPort output, List<Mapping> mappings, Query query, Map<String, MappingPort> references) {
+        private Model(List<MappingPort> inputs, MappingPort output, List<Mapping> mappings,
+                      Query query, Map<String, MappingPort> references) {
             this(inputs, output, null, mappings, query, references);
         }
 
@@ -2188,12 +2195,14 @@ public class DataMapManager {
 
         private Mapping(String output, List<String> inputs, String expression, List<String> diagnostics,
                         List<MappingElements> elements) {
-            this(output, inputs, expression, diagnostics, elements, null, null, null, null);
+            this(output, inputs, expression, diagnostics, elements, null,
+                    null, null, null);
         }
 
         private Mapping(String output, List<String> inputs, String expression, List<String> diagnostics,
                         List<MappingElements> elements, Boolean isQueryExpression) {
-            this(output, inputs, expression, diagnostics, elements, isQueryExpression, null, null, null);
+            this(output, inputs, expression, diagnostics, elements, isQueryExpression,
+                    null, null, null);
         }
 
         private Mapping(String output, List<String> inputs, String expression, List<String> diagnostics,
