@@ -288,7 +288,8 @@ public class DataMapManager {
             if (typeSymbol.isPresent() && typeSymbol.get().typeKind() == TypeDescKind.ARRAY) {
                 TypeSymbol memberTypeSymbol = ((ArrayTypeSymbol) typeSymbol.get()).memberTypeDescriptor();
                 MappingPort mappingPort = getRefMappingPort(fromClauseVar, fromClauseVar,
-                        Objects.requireNonNull(ReferenceType.fromSemanticSymbol(memberTypeSymbol)), true, new HashMap<>(), references);
+                        Objects.requireNonNull(ReferenceType.fromSemanticSymbol(memberTypeSymbol)),
+                        true, new HashMap<>(), references);
                 if (mappingPort != null) {
                     mappingPort.setIsFocused(true);
                     setFocusIdForExpression(inputPorts, expression.toString().trim(), mappingPort.id);
@@ -343,7 +344,8 @@ public class DataMapManager {
                 }
                 Symbol symbol = optSymbol.get();
                 String letVarName = symbol.getName().orElseThrow();
-                subMappingPorts.add(getRefMappingPort(letVarName, letVarName, Objects.requireNonNull(ReferenceType.fromSemanticSymbol(symbol)),
+                subMappingPorts.add(getRefMappingPort(letVarName, letVarName,
+                        Objects.requireNonNull(ReferenceType.fromSemanticSymbol(symbol)),
                         false, new HashMap<>(), references));
             }
         } else {
