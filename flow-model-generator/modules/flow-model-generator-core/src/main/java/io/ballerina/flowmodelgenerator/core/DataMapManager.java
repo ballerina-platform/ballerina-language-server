@@ -247,7 +247,7 @@ public class DataMapManager {
             symbols = symbols.stream()
                     .filter(symbol -> !symbol.getName().orElse("").equals(getVariableName(node)))
                     .collect(Collectors.toList());
-            inputPorts = getQueryInputPorts(symbols, enumPorts);
+            inputPorts = getQueryInputPorts(symbols, enumPorts, references);
             inputPorts.sort(Comparator.comparing(mt -> mt.id));
 
             List<String> inputs = new ArrayList<>();
@@ -819,7 +819,8 @@ public class DataMapManager {
         return refMappingPorts;
     }
 
-    private List<MappingPort> getQueryInputPorts(List<Symbol> visibleSymbols, List<MappingPort> enumPorts) {
+    private List<MappingPort> getQueryInputPorts(List<Symbol> visibleSymbols, List<MappingPort> enumPorts,
+                                                 Map<String, MappingPort> references) {
         List<MappingPort> mappingPorts = new ArrayList<>();
         for (Symbol symbol : visibleSymbols) {
             SymbolKind kind = symbol.kind();
@@ -828,52 +829,92 @@ public class DataMapManager {
                 if (optName.isEmpty()) {
                     continue;
                 }
-                Type type = Type.fromSemanticSymbol(symbol);
-                MappingPort mappingPort = getMappingPort(optName.get(), optName.get(), type, true,
-                        new HashMap<>());
-                if (mappingPort == null) {
+                RefType refType;
+                try {
+                    refType = ReferenceType.fromSemanticSymbol(symbol);
+                    if (refType == null) {
+                        continue;
+                    }
+                } catch (UnsupportedOperationException e) {
+                    continue;
+                }
+                MappingPort refMappingPort = getRefMappingPort(optName.get(), optName.get(),
+                        refType, true, new HashMap<>(), references);
+
+                if (refMappingPort == null) {
                     continue;
                 }
                 VariableSymbol varSymbol = (VariableSymbol) symbol;
+                setModuleInfo(varSymbol.typeDescriptor(), refMappingPort);
                 if (varSymbol.qualifiers().contains(Qualifier.CONFIGURABLE)) {
-                    mappingPort.category = "configurable";
+                    refMappingPort.category = "configurable";
                 } else {
-                    mappingPort.category = "variable";
+                    refMappingPort.category = "variable";
                 }
-                mappingPorts.add(mappingPort);
+                mappingPorts.add(refMappingPort);
             } else if (kind == SymbolKind.PARAMETER) {
                 Optional<String> optName = symbol.getName();
                 if (optName.isEmpty()) {
                     continue;
                 }
-                Type type = Type.fromSemanticSymbol(symbol);
-                MappingPort mappingPort = getMappingPort(optName.get(), optName.get(), type, true,
-                        new HashMap<>());
-                if (mappingPort == null) {
+
+                RefType refType;
+                try {
+                    refType = ReferenceType.fromSemanticSymbol(symbol);
+                    if (refType == null) {
+                        continue;
+                    }
+                } catch (UnsupportedOperationException e) {
                     continue;
                 }
-                mappingPort.category = "parameter";
-                mappingPorts.add(mappingPort);
+
+                MappingPort refMappingPort = getRefMappingPort(optName.get(), optName.get(),
+                        refType, true, new HashMap<>(), references);
+                if (refMappingPort == null) {
+                    continue;
+                }
+                setModuleInfo(((ParameterSymbol) symbol).typeDescriptor(), refMappingPort);
+                refMappingPort.category = "parameter";
+                mappingPorts.add(refMappingPort);
             } else if (kind == SymbolKind.CONSTANT) {
-                Type type = Type.fromSemanticSymbol(symbol);
-                MappingPort mappingPort = getMappingPort(type.getTypeName(), type.getTypeName(), type, true,
-                        new HashMap<>());
-                if (mappingPort == null) {
+                RefType refType;
+                try {
+                    refType = ReferenceType.fromSemanticSymbol(symbol);
+                    if (refType == null) {
+                        continue;
+                    }
+                } catch (UnsupportedOperationException e) {
                     continue;
                 }
-                mappingPort.category = "constant";
-                mappingPorts.add(mappingPort);
+                MappingPort refMappingPort = getRefMappingPort(refType.typeName, refType.typeName,
+                        refType, true, new HashMap<>(), references);
+
+                if (refMappingPort == null) {
+                    continue;
+                }
+                setModuleInfo(((ConstantSymbol) symbol).typeDescriptor(), refMappingPort);
+                refMappingPort.category = "constant";
+                mappingPorts.add(refMappingPort);
             } else if (kind == SymbolKind.ENUM) {
-                Type type = Type.fromSemanticSymbol(symbol);
-                MappingPort mappingPort = getMappingPort(type.getName(), type.getName(), type, true,
-                        new HashMap<>());
-                if (mappingPort == null) {
+                RefType refType;
+                try {
+                    refType = ReferenceType.fromSemanticSymbol(symbol);
+                    if (refType == null) {
+                        continue;
+                    }
+                } catch (UnsupportedOperationException e) {
                     continue;
                 }
-                setModuleInfo(((EnumSymbol) symbol).typeDescriptor(), mappingPort);
-                mappingPort.category = "enum";
-                enumPorts.add(mappingPort);
-                mappingPorts.add(mappingPort);
+
+                MappingPort refMappingPort = getRefMappingPort(refType.typeName, refType.typeName,
+                        refType, true, new HashMap<>(), references);
+                if (refMappingPort == null) {
+                    continue;
+                }
+                setModuleInfo(((EnumSymbol) symbol).typeDescriptor(), refMappingPort);
+                refMappingPort.category = "enum";
+                enumPorts.add(refMappingPort);
+                mappingPorts.add(refMappingPort);
             }
         }
         return mappingPorts;
@@ -2191,7 +2232,7 @@ public class DataMapManager {
     }
 
     private record Model(List<MappingPort> inputs, MappingPort output, List<MappingPort> subMappings,
-                         List<Mapping> mappings, Query query, Map<String, MappingPort> references) {
+                         List<Mapping> mappings, Query query, Map<String, MappingPort> refs) {
 
         private Model(List<MappingPort> inputs, MappingPort output, List<Mapping> mappings) {
             this(inputs, output, null, mappings, null, null);
@@ -2207,13 +2248,13 @@ public class DataMapManager {
         }
 
         private Model(List<MappingPort> inputs, MappingPort output, List<MappingPort> subMappings,
-                     List<Mapping> mappings, Query query, Map<String, MappingPort> references) {
+                     List<Mapping> mappings, Query query, Map<String, MappingPort> refs) {
             this.inputs = inputs;
             this.output = output;
             this.subMappings = subMappings;
             this.mappings = mappings;
             this.query = query;
-            this.references = references;
+            this.refs = refs;
         }
     }
 
@@ -2278,7 +2319,7 @@ public class DataMapManager {
         Boolean isRecursive;
         ModuleInfo moduleInfo;
         Boolean optional;
-        String reference;
+        String ref;
 
         MappingPort(String typeName, String kind) {
             this.typeName = typeName;
@@ -2309,7 +2350,7 @@ public class DataMapManager {
             this.variableName = variableName;
             this.typeName = typeName;
             this.kind = kind;
-            this.reference = reference;
+            this.ref = reference;
         }
 
         String getCategory() {
@@ -2374,7 +2415,7 @@ public class DataMapManager {
 
         MappingRecordPort(MappingRecordPort mappingRecordPort) {
             super(mappingRecordPort.id, mappingRecordPort.variableName, mappingRecordPort.typeName,
-                    mappingRecordPort.kind, mappingRecordPort.reference);
+                    mappingRecordPort.kind, mappingRecordPort.ref);
         }
 
         MappingRecordPort(MappingRecordPort mappingRecordPort, boolean isReferenceType) {
