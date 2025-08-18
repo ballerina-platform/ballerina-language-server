@@ -71,7 +71,6 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.TWO_NE
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_EXPRESSION;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_IDENTIFIER;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceClassUtil.ServiceClassContext.SERVICE_DIAGRAM;
-import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionSignatureContext.FUNCTION_UPDATE;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.generateFunctionDefSource;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionSignatureContext.FUNCTION_ADD;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.generateFunctionSignatureSource;
@@ -199,8 +198,7 @@ public abstract class AbstractFunctionBuilder implements NodeBuilder<Function> {
         Map<String, String> imports = new HashMap<>();
         LineRange signatureRange = context.functionNode().functionSignature().lineRange();
         List<String> newStatusCodeTypesDef = new ArrayList<>();
-        String functionSignature = generateFunctionSignatureSource(context.function(), newStatusCodeTypesDef,
-                FUNCTION_UPDATE, imports);
+        String functionSignature = generateFunctionSignatureSource(context.function(), imports);
         List<String> importStmts = new ArrayList<>();
         ModulePartNode rootNode = context.document().syntaxTree().rootNode();
         imports.values().forEach(moduleId -> {

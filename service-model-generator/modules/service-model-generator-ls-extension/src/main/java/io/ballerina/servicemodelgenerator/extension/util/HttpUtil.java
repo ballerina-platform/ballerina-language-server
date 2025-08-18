@@ -21,6 +21,8 @@ package io.ballerina.servicemodelgenerator.extension.util;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import io.ballerina.compiler.api.SemanticModel;
+import io.ballerina.compiler.api.TypeBuilder;
+import io.ballerina.compiler.api.Types;
 import io.ballerina.compiler.api.symbols.ModuleSymbol;
 import io.ballerina.compiler.api.symbols.RecordFieldSymbol;
 import io.ballerina.compiler.api.symbols.RecordTypeSymbol;
@@ -39,10 +41,12 @@ import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.TypeDefinitionNode;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
+import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.FunctionReturnType;
 import io.ballerina.servicemodelgenerator.extension.model.HttpResponse;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
+import io.ballerina.servicemodelgenerator.extension.model.context.AddModelContext;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -52,9 +56,22 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.CLOSE_BRACE;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.CLOSE_PAREN;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.OPEN_BRACE;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.OPEN_PAREN;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.SPACE;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.TAB;
+import static io.ballerina.servicemodelgenerator.extension.util.Utils.generateFunctionParamListSource;
+import static io.ballerina.servicemodelgenerator.extension.util.Utils.getAnnotationEdits;
+import static io.ballerina.servicemodelgenerator.extension.util.Utils.getFunctionQualifiers;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getPath;
+import static io.ballerina.servicemodelgenerator.extension.util.Utils.getValueString;
+import static io.ballerina.servicemodelgenerator.extension.util.Utils.getVisibleSymbols;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.populateListenerInfo;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.populateRequiredFuncsDesignApproachAndServiceType;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.updateAnnotationAttachmentProperty;
@@ -66,6 +83,11 @@ import static io.ballerina.servicemodelgenerator.extension.util.Utils.updateValu
  * @since 1.0.0
  */
 public final class HttpUtil {
+
+    private static final String APPLICATION_JSON = "application/json";
+    private static final String APPLICATION_OCTET_STREAM = "application/octet-stream";
+    private static final String APPLICATION_XML = "application/xml";
+    private static final String TEXT_PLAIN = "text/plain";
 
     public static final Map<String, String> HTTP_CODES;
     static {
@@ -338,7 +360,6 @@ public final class HttpUtil {
             HttpResponse dynamicStatusRes = new HttpResponse(String.valueOf(defaultStatusCode), "http:Response");
             dynamicStatusRes.setEditable(true);
             dynamicStatusRes.setEnabled(hasHttpResponse.get());
-            dynamicStatusRes.setHttpResponseType(true);
             responses.add(dynamicStatusRes);
         }
 
@@ -347,10 +368,18 @@ public final class HttpUtil {
                         semanticModel, currentModuleName))
                 .forEach(responses::add);
 
-        anydataResponses.stream()
-                .map(type -> getTypeName(type, currentModuleName))
-                .forEach(type -> {
-                    HttpResponse response = new HttpResponse(String.valueOf(defaultStatusCode), type);
+        Types types = semanticModel.types();
+        TypeBuilder typeBuilder = types.builder();
+        TypeSymbol stringType = semanticModel.types().STRING;
+        TypeSymbol byteArrayType = typeBuilder.ARRAY_TYPE.withType(types.BYTE).build();
+        TypeSymbol xmlType = typeBuilder.XML_TYPE.build();
+
+        anydataResponses.forEach(type -> {
+                    HttpResponse.Builder builder = new HttpResponse.Builder()
+                            .statusCode(String.valueOf(defaultStatusCode), true)
+                            .body(getTypeName(type, currentModuleName), true)
+                            .mediaType(deriveMediaType(type, stringType, byteArrayType, xmlType), true);
+                    HttpResponse response = builder.build();
                     response.setEnabled(true);
                     response.setEditable(true);
                     responses.add(response);
@@ -375,6 +404,31 @@ public final class HttpUtil {
         return responses;
     }
 
+    private static String deriveMediaType(TypeSymbol typeSymbol, TypeSymbol stringType,
+                                          TypeSymbol byteArrayType, TypeSymbol xmlType) {
+        if (typeSymbol.subtypeOf(stringType)) {
+            return TEXT_PLAIN;
+        } else if (typeSymbol.subtypeOf(byteArrayType)) {
+            return APPLICATION_OCTET_STREAM;
+        } else if (typeSymbol.subtypeOf(xmlType)) {
+            return APPLICATION_XML;
+        }
+        return APPLICATION_JSON;
+    }
+
+    private static boolean isDefaultMediaType(String body, String mediaType) {
+        if (body.equals("string") && mediaType.equals(TEXT_PLAIN)) {
+            return true;
+        } else if (body.equals("xml") && mediaType.equals(APPLICATION_XML)) {
+            return true;
+        } else if (body.equals("json") && mediaType.equals(APPLICATION_JSON)) {
+            return true;
+        } else if (body.equals("byte[]") && mediaType.equals(APPLICATION_OCTET_STREAM)) {
+            return true;
+        }
+        return mediaType.equals(APPLICATION_JSON) || mediaType.isEmpty();
+    }
+
     private static boolean isHttpResponse(String type) {
         return type.trim().equals("http:Response");
     }
@@ -384,40 +438,57 @@ public final class HttpUtil {
         String typeName = getTypeName(statusCodeResponseType, currentModuleName);
         String statusCode = getResponseCode(statusCodeResponseType, defaultStatusCode, semanticModel);
         if (typeName.contains("}")) {
-            return HttpResponse.getAnonResponse(statusCode, "record {|...|}");
+            HttpResponse.Builder builder = new HttpResponse.Builder()
+                    .statusCode(statusCode, true)
+                    .type("record {|...|}", true);
+            return builder.build();
         }
-        boolean addEditButton = typeName.startsWith(currentModuleName + ":");
         if (typeName.startsWith("http:")) {
             String type = HTTP_CODES_DES.get(statusCode);
             if (Objects.nonNull(type) && "http:%s".formatted(type).equals(typeName)) {
-                return new HttpResponse(statusCode, typeName, true);
+                HttpResponse.Builder builder = new HttpResponse.Builder()
+                        .statusCode(statusCode, true)
+                        .type(typeName, true)
+                        .body("", true)
+                        .name("", true)
+                        .headers("", true)
+                        .mediaType("", true);
+                return builder.build();
             }
         }
-        List<Object> headers = new ArrayList<>();
-        String body = addHeadersAndGetBodyType(statusCodeResponseType, currentModuleName, headers);
-        return new HttpResponse(statusCode, typeName, body, headers, addEditButton);
-    }
 
-    private static String addHeadersAndGetBodyType(TypeSymbol typeSymbol, String currentModuleName,
-                                                   List<Object> headers) {
-        TypeSymbol rawType = CommonUtils.getRawType(typeSymbol);
-        if (rawType.typeKind() != TypeDescKind.RECORD) {
-            return "anydata";
-        }
-        RecordTypeSymbol recordTypeSymbol = (RecordTypeSymbol) rawType;
-        Map<String, RecordFieldSymbol> fieldSymbolMap = recordTypeSymbol.fieldDescriptors();
-        TypeSymbol headersFieldType = CommonUtils.getRawType(fieldSymbolMap.get("headers").typeDescriptor());
-        if (headersFieldType instanceof RecordTypeSymbol headersRecordType) {
-            headersRecordType.fieldDescriptors().forEach((name, field) -> {
+        List<Object> headers = new ArrayList<>();
+        String body = "anydata";
+        String mediaType = "";
+        TypeSymbol rawType = CommonUtils.getRawType(statusCodeResponseType);
+        if (rawType.typeKind() == TypeDescKind.RECORD) {
+            Map<String, RecordFieldSymbol> fieldSymbolMap = ((RecordTypeSymbol) rawType).fieldDescriptors();
+            TypeSymbol headersFieldType = CommonUtils.getRawType(fieldSymbolMap.get("headers").typeDescriptor());
+            if (headersFieldType instanceof RecordTypeSymbol headersRecordType) {
+                headersRecordType.fieldDescriptors().forEach((name, field) -> {
                     headers.add(Map.of("name", name, "type",
                             getTypeName(field.typeDescriptor(), currentModuleName),
                             "optional", field.isOptional()));
-            });
+                });
+            }
+            if (fieldSymbolMap.containsKey("body")) {
+                body = getTypeName(fieldSymbolMap.get("body").typeDescriptor(), currentModuleName);
+            }
+            if (fieldSymbolMap.containsKey("mediaType")) {
+                TypeSymbol mediaTypeSymbol = fieldSymbolMap.get("mediaType").typeDescriptor();
+                if (!mediaTypeSymbol.getName().orElse("").equals("string")) {
+                    mediaType = mediaTypeSymbol.getName().orElse("");
+                }
+            }
         }
-        if (fieldSymbolMap.containsKey("body")) {
-            return getTypeName(fieldSymbolMap.get("body").typeDescriptor(), currentModuleName);
-        }
-        return "anydata";
+        HttpResponse.Builder builder = new HttpResponse.Builder()
+                .statusCode(statusCode, false)
+                .type(typeName, false)
+                .body(body, false)
+                .headers(headers, false)
+                .name("", false)
+                .mediaType(mediaType, false);
+        return builder.build();
     }
 
     public static boolean isSubTypeOfHttpStatusCodeResponse(TypeSymbol typeSymbol, SemanticModel semanticModel) {
@@ -468,8 +539,93 @@ public final class HttpUtil {
         };
     }
 
-    public static String getStatusCodeResponse(HttpResponse response, List<String> statusCodeResponses,
-                                               Map<String, String> imports) {
+    private static String getString(Object value) {
+        if (Objects.isNull(value)) {
+            return null;
+        }
+        if (value instanceof String) {
+            return (String) value;
+        }
+        if (value instanceof JsonPrimitive jsonPrimitive) {
+            return jsonPrimitive.getAsString();
+        }
+        return value.toString();
+    }
+
+    public static String generateHttpResourceDefinition(AddModelContext context, List<String> newTypeDefinitions,
+                                                        Map<String, String> imports) {
+        StringBuilder builder = new StringBuilder();
+        Function function = context.function();
+
+        List<String> functionAnnotations = getAnnotationEdits(function);
+        if (!functionAnnotations.isEmpty()) {
+            builder.append(String.join(NEW_LINE, functionAnnotations)).append(NEW_LINE);
+        }
+
+        String functionQualifiers = getFunctionQualifiers(function);
+        if (!functionQualifiers.isEmpty()) {
+            builder.append(functionQualifiers).append(SPACE);
+        }
+        builder.append("function ");
+
+        Value accessor = function.getAccessor();
+        if (Objects.nonNull(accessor) && accessor.isEnabledWithValue()) {
+            builder.append(getValueString(accessor).toLowerCase(Locale.ROOT)).append(SPACE);
+        }
+
+        // function identifier
+        builder.append(getValueString(function.getName()));
+        Set<String> visibleSymbols = getVisibleSymbols(context.semanticModel(), context.document());
+        String functionSignature = generateHttpResourceSignature(function, newTypeDefinitions, imports, visibleSymbols);
+        builder.append(functionSignature);
+
+        // function body
+        builder.append(OPEN_BRACE).append(NEW_LINE)
+                .append(TAB).append("do {").append(NEW_LINE)
+                .append(TAB).append("} on fail error err {").append(NEW_LINE)
+                .append(TAB).append(TAB).append("// handle error").append(NEW_LINE)
+                .append(TAB).append(TAB)
+                .append("return error(\"unhandled error\", err);")
+                .append(NEW_LINE)
+                .append(TAB).append(CLOSE_BRACE)
+                .append(NEW_LINE)
+                .append(CLOSE_BRACE);
+
+        return builder.toString();
+    }
+
+    public static String generateHttpResourceSignature(Function function, List<String> newTypeDefinitions,
+                                                        Map<String, String> imports, Set<String> visibleSymbols) {
+        StringBuilder builder = new StringBuilder();
+        builder.append(OPEN_PAREN)
+                .append(generateFunctionParamListSource(function.getParameters(), imports))
+                .append(CLOSE_PAREN);
+
+        FunctionReturnType returnType = function.getReturnType();
+        if (Objects.nonNull(returnType)) {
+            if (returnType.isEnabled() && Objects.nonNull(returnType.getResponses()) &&
+                    !returnType.getResponses().isEmpty()) {
+                List<String> responses = new ArrayList<>(returnType.getResponses().stream()
+                        .filter(HttpResponse::isEnabled)
+                        .map(response -> HttpUtil.getStatusCodeResponse(
+                                response, newTypeDefinitions, imports, visibleSymbols))
+                        .filter(Objects::nonNull)
+                        .toList());
+                if (!responses.isEmpty()) {
+                    if (!newTypeDefinitions.contains("error") && !responses.contains("error")) {
+                        responses.addFirst("error");
+                    }
+                    builder.append(" returns ");
+                    builder.append(String.join("|", responses));
+                }
+            }
+        }
+        builder.append(SPACE);
+        return builder.toString();
+    }
+
+    private static String getStatusCodeResponse(HttpResponse response, List<String> newTypeDefinitions,
+                                                Map<String, String> imports, Set<String> visibleSymbols) {
         Value name = response.getName();
         if (Objects.nonNull(name) && name.isEnabledWithValue() && name.isEditable()) {
             String statusCode = response.getStatusCode().getValue();
@@ -477,15 +633,31 @@ public final class HttpUtil {
             if (Objects.isNull(statusCodeRes)) {
                 return response.getName().getValue();
             }
-            statusCodeResponses.add(getNewResponseTypeStr(statusCodeRes, name.getValue(), response.getBody(),
-                    response.getHeaders(), imports));
+            newTypeDefinitions.add(getNewResponseTypeStr(statusCodeRes, response, imports));
             return response.getName().getValue();
         }
+
         if (Objects.nonNull(response.getBody()) && response.getBody().isEnabledWithValue()) {
             if (Objects.nonNull(response.getBody().getImports())) {
                 imports.putAll(response.getBody().getImports());
             }
-            return response.getBody().getValue();
+            String body = response.getBody().getValue();
+            if (Objects.nonNull(response.getMediaType()) && response.getMediaType().isEnabledWithValue()) {
+                String mediaType = response.getMediaType().getValue();
+                if (isDefaultMediaType(body, mediaType)) {
+                    return body;
+                }
+
+                String statusCode = response.getStatusCode().getValue();
+                String statusCodeRes = HTTP_CODES_DES.get(statusCode);
+
+                String prefix = "Custom" + statusCodeRes;
+                String identifier = Utils.generateTypeIdentifier(visibleSymbols, prefix);
+                visibleSymbols.add(identifier);
+                response.getName().setValue(identifier);
+                newTypeDefinitions.add(getNewResponseTypeStr(statusCodeRes, response, imports));
+            }
+            return body;
         }
         if (response.getType().isEnabledWithValue()) {
             if (Objects.nonNull(response.getType().getImports())) {
@@ -503,15 +675,28 @@ public final class HttpUtil {
         return null;
     }
 
-    private static String getNewResponseTypeStr(String statusCodeTypeName, String name, Value body, Value headers,
+    private static String getNewResponseTypeStr(String statusCodeTypeName, HttpResponse response,
                                                 Map<String, String> imports) {
+        String name = response.getName().getValue();
         String template = "public type %s record {|%n\t*http:%s;".formatted(name, statusCodeTypeName);
+
+        Value body = response.getBody();
         if (Objects.nonNull(body) && body.isEnabledWithValue()) {
             template += "\t%s body;%n".formatted(body.getValue());
             if (Objects.nonNull(body.getImports())) {
                 imports.putAll(body.getImports());
             }
         }
+
+        Value mediaType = response.getMediaType();
+        if (Objects.nonNull(mediaType) && mediaType.isEnabledWithValue()) {
+            String mediaTypeValue = mediaType.getValue();
+            if (!mediaTypeValue.isBlank()) {
+                template += "\t%s mediaType = \"%s\";%n".formatted(mediaTypeValue, mediaTypeValue);
+            }
+        }
+
+        Value headers = response.getHeaders();
         if (Objects.nonNull(headers) && headers.isEnabledWithValue()) {
             List<Object> values = headers.getValuesAsObjects();
             StringBuilder headersRecordDef = new StringBuilder("record {|%n".formatted());
@@ -537,20 +722,8 @@ public final class HttpUtil {
             headersRecordDef.append("\t|}");
             template += "\t%s headers;%n".formatted(headersRecordDef);
         }
+
         template += "|};";
         return template;
-    }
-
-    private static String getString(Object value) {
-        if (Objects.isNull(value)) {
-            return null;
-        }
-        if (value instanceof String) {
-            return (String) value;
-        }
-        if (value instanceof JsonPrimitive jsonPrimitive) {
-            return jsonPrimitive.getAsString();
-        }
-        return value.toString();
     }
 }
