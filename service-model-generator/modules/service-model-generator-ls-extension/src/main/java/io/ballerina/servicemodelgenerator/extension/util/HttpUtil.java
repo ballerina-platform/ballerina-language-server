@@ -40,13 +40,13 @@ import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.TypeDefinitionNode;
 import io.ballerina.modelgenerator.commons.CommonUtils;
+import io.ballerina.projects.Document;
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.FunctionReturnType;
 import io.ballerina.servicemodelgenerator.extension.model.HttpResponse;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
-import io.ballerina.servicemodelgenerator.extension.model.context.AddModelContext;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -552,11 +552,10 @@ public final class HttpUtil {
         return value.toString();
     }
 
-    public static String generateHttpResourceDefinition(AddModelContext context, List<String> newTypeDefinitions,
+    public static String generateHttpResourceDefinition(Function function, SemanticModel semanticModel,
+                                                        Document document, List<String> newTypeDefinitions,
                                                         Map<String, String> imports) {
         StringBuilder builder = new StringBuilder();
-        Function function = context.function();
-
         List<String> functionAnnotations = getAnnotationEdits(function);
         if (!functionAnnotations.isEmpty()) {
             builder.append(String.join(NEW_LINE, functionAnnotations)).append(NEW_LINE);
@@ -575,7 +574,7 @@ public final class HttpUtil {
 
         // function identifier
         builder.append(getValueString(function.getName()));
-        Set<String> visibleSymbols = getVisibleSymbols(context.semanticModel(), context.document());
+        Set<String> visibleSymbols = getVisibleSymbols(semanticModel, document);
         String functionSignature = generateHttpResourceSignature(function, newTypeDefinitions, imports, visibleSymbols,
                 true);
         builder.append(functionSignature);

@@ -115,7 +115,8 @@ public class HttpFunctionBuilder extends AbstractFunctionBuilder {
     public Map<String, List<TextEdit>> addModel(AddModelContext context) {
         Map<String, String> imports = new HashMap<>();
         List<String> newTypeDefinitions = new ArrayList<>();
-        String functionNode = NEW_LINE_WITH_TAB + generateHttpResourceDefinition(context, newTypeDefinitions, imports)
+        String functionNode = NEW_LINE_WITH_TAB + generateHttpResourceDefinition(context.function(),
+                context.semanticModel(), context.document(), newTypeDefinitions, imports)
                 .replace(NEW_LINE, NEW_LINE_WITH_TAB) + NEW_LINE;
 
         List<String> importStmts = new ArrayList<>();

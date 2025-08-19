@@ -51,17 +51,18 @@ import java.util.Optional;
 import java.util.Set;
 
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.OBJECT_TYPE_DESC;
-import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.BALLERINA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.HTTP;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE_WITH_TAB;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.TAB;
+import static io.ballerina.servicemodelgenerator.extension.util.HttpUtil.generateHttpResourceDefinition;
 import static io.ballerina.servicemodelgenerator.extension.util.HttpUtil.updateHttpServiceContractModel;
 import static io.ballerina.servicemodelgenerator.extension.util.HttpUtil.updateHttpServiceModel;
 import static io.ballerina.servicemodelgenerator.extension.util.ListenerUtil.getDefaultListenerDeclarationStmt;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.populateRequiredFunctionsForServiceType;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.updateListenerItems;
-import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionAddContext.HTTP_SERVICE_ADD;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getHttpServiceContractSym;
-import static io.ballerina.servicemodelgenerator.extension.util.Utils.getImportStmt;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.importExists;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.populateRequiredFuncsDesignApproachAndServiceType;
 
@@ -111,10 +112,9 @@ public final class HttpServiceBuilder extends AbstractServiceBuilder {
         populateRequiredFuncsDesignApproachAndServiceType(service);
         populateRequiredFunctionsForServiceType(service);
 
-        Map<String, String> imports = new HashMap<>();
         StringBuilder serviceBuilder = new StringBuilder(NEW_LINE);
         buildServiceNodeStr(service, serviceBuilder);
-        List<String> functionsStr = buildMethodDefinitions(service, HTTP_SERVICE_ADD, imports);
+        List<String> functionsStr = buildMethodDefinitions(service, context.semanticModel(), context.document());
         buildServiceNodeBody(functionsStr, serviceBuilder);
 
         ModulePartNode rootNode = context.document().syntaxTree().rootNode();
@@ -124,14 +124,6 @@ public final class HttpServiceBuilder extends AbstractServiceBuilder {
         if (!importExists(rootNode, service.getOrgName(), service.getModuleName())) {
             importStmts.add(Utils.getImportStmt(service.getOrgName(), service.getModuleName()));
         }
-        imports.values().forEach(moduleId -> {
-            String[] importParts = moduleId.split("/");
-            String orgName = importParts[0];
-            String moduleName = importParts[1].split(":")[0];
-            if (!importExists(rootNode, orgName, moduleName)) {
-                importStmts.add(getImportStmt(orgName, moduleName));
-            }
-        });
 
         if (!importStmts.isEmpty()) {
             String importsStmts = String.join(NEW_LINE, importStmts);
@@ -139,6 +131,19 @@ public final class HttpServiceBuilder extends AbstractServiceBuilder {
         }
 
         return Map.of(context.filePath(), edits);
+    }
+
+    private List<String> buildMethodDefinitions(Service service, SemanticModel semanticModel, Document document) {
+        List<String> functions = new ArrayList<>();
+        service.getFunctions().forEach(function -> {
+            if (function.isEnabled()) {
+                String functionNode = TAB;
+                functionNode += generateHttpResourceDefinition(function, semanticModel, document,
+                        new ArrayList<>(), new HashMap<>()).replace(NEW_LINE, NEW_LINE_WITH_TAB) + NEW_LINE;
+                functions.add(functionNode);
+            }
+        });
+        return functions;
     }
 
     @Override
