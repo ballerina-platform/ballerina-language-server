@@ -12,10 +12,7 @@
         "line": 28,
         "offset": 0
       }
-    },
-    "inListenerInit": false,
-    "isBasePath": false,
-    "inDisplayAnnotation": false
+    }
   },
   "function": {
     "qualifiers": [],
@@ -25,28 +22,24 @@
         "label": "",
         "description": ""
       },
+      "valueType": "IDENTIFIER",
+      "value": "subscribe",
       "enabled": true,
       "editable": true,
-      "value": "subscribe",
-      "valueType": "IDENTIFIER",
-      "isType": false,
       "optional": false,
-      "advanced": false,
-      "addNewButton": false
+      "advanced": false
     },
     "name": {
       "metadata": {
         "label": "",
         "description": ""
       },
+      "valueType": "IDENTIFIER",
+      "value": "names",
       "enabled": true,
       "editable": true,
-      "value": "names",
-      "valueType": "IDENTIFIER",
-      "isType": false,
       "optional": false,
-      "advanced": false,
-      "addNewButton": false
+      "advanced": false
     },
     "parameters": [],
     "returnType": {
@@ -55,18 +48,17 @@
         "label": "Return Type",
         "description": "The return type of the function"
       },
+      "valueType": "TYPE",
+      "value": "stream<string, error?>",
       "enabled": true,
       "editable": false,
-      "value": "stream<string, error?>",
-      "valueType": "TYPE",
-      "isType": false,
       "optional": false,
-      "advanced": false,
-      "addNewButton": false
+      "advanced": false
     },
     "enabled": true,
     "optional": false,
     "editable": false,
+    "canAddParameters": false,
     "codedata": {
       "lineRange": {
         "fileName": "main.bal",
@@ -78,10 +70,7 @@
           "line": 55,
           "offset": 5
         }
-      },
-      "inListenerInit": false,
-      "isBasePath": false,
-      "inDisplayAnnotation": false
+      }
     },
     "annotations": {}
   },

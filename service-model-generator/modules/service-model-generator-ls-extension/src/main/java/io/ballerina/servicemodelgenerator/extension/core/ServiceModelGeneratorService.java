@@ -579,7 +579,9 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
                 if (!(node instanceof ServiceDeclarationNode || node instanceof ClassDefinitionNode)) {
                     return new CommonSourceResponse();
                 }
-                Map<String, List<TextEdit>> textEdits = FunctionBuilderRouter.addFunction(HTTP,
+                String moduleName = (request.function().getCodedata().getModuleName() != null) ?
+                        request.function().getCodedata().getModuleName() : DEFAULT;
+                Map<String, List<TextEdit>> textEdits = FunctionBuilderRouter.addFunction(moduleName,
                         request.function(), request.filePath(), semanticModelOp.get(), document.get(), node);
                 return new CommonSourceResponse(textEdits);
             } catch (Throwable e) {

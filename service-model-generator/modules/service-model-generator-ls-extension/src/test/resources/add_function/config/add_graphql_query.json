@@ -12,10 +12,7 @@
         "line": 28,
         "offset": 0
       }
-    },
-    "inListenerInit": false,
-    "isBasePath": false,
-    "inDisplayAnnotation": false
+    }
   },
   "function": {
     "qualifiers": [],
@@ -25,28 +22,24 @@
         "label": "",
         "description": ""
       },
+      "valueType": "IDENTIFIER",
+      "value": "get",
       "enabled": true,
       "editable": true,
-      "value": "get",
-      "valueType": "IDENTIFIER",
-      "isType": false,
       "optional": false,
-      "advanced": false,
-      "addNewButton": false
+      "advanced": false
     },
     "name": {
       "metadata": {
         "label": "",
         "description": ""
       },
+      "valueType": "IDENTIFIER",
+      "value": "greeting",
       "enabled": true,
       "editable": true,
-      "value": "greeting",
-      "valueType": "IDENTIFIER",
-      "isType": false,
       "optional": false,
-      "advanced": false,
-      "addNewButton": false
+      "advanced": false
     },
     "parameters": [
       {
@@ -60,28 +53,24 @@
             "label": "",
             "description": ""
           },
+          "valueType": "TYPE",
+          "value": "string",
           "enabled": true,
           "editable": true,
-          "value": "string",
-          "valueType": "TYPE",
-          "isType": true,
           "optional": false,
-          "advanced": false,
-          "addNewButton": false
+          "advanced": false
         },
         "name": {
           "metadata": {
             "label": "",
             "description": ""
           },
+          "valueType": "IDENTIFIER",
+          "value": "name",
           "enabled": true,
           "editable": true,
-          "value": "name",
-          "valueType": "IDENTIFIER",
-          "isType": false,
           "optional": false,
-          "advanced": false,
-          "addNewButton": false
+          "advanced": false
         },
         "defaultValue": {
           "metadata": {
@@ -90,10 +79,8 @@
           },
           "enabled": false,
           "editable": true,
-          "isType": false,
           "optional": false,
-          "advanced": false,
-          "addNewButton": false
+          "advanced": false
         },
         "enabled": true,
         "editable": false,
@@ -107,18 +94,17 @@
         "label": "Return Type",
         "description": "The return type of the function"
       },
+      "valueType": "TYPE",
+      "value": "string",
       "enabled": true,
       "editable": false,
-      "value": "string",
-      "valueType": "TYPE",
-      "isType": false,
       "optional": false,
-      "advanced": false,
-      "addNewButton": false
+      "advanced": false
     },
     "enabled": true,
     "optional": false,
     "editable": false,
+    "canAddParameters": false,
     "codedata": {
       "lineRange": {
         "fileName": "main.bal",
@@ -130,10 +116,7 @@
           "line": 31,
           "offset": 5
         }
-      },
-      "inListenerInit": false,
-      "isBasePath": false,
-      "inDisplayAnnotation": false
+      }
     },
     "annotations": {}
   },
