@@ -105,7 +105,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -113,18 +112,15 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.DEFAULT;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.HTTP;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE_WITH_TAB;
-import static io.ballerina.servicemodelgenerator.extension.util.Constants.TWO_NEW_LINES;
-import static io.ballerina.servicemodelgenerator.extension.util.Constants.DEFAULT;
 import static io.ballerina.servicemodelgenerator.extension.util.ListenerUtil.getDefaultListenerDeclarationStmt;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.deriveServiceType;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getProtocol;
-import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionAddContext.RESOURCE_ADD;
-import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionSignatureContext.HTTP_RESOURCE_ADD;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.expectsTriggerByName;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.filterTriggers;
-import static io.ballerina.servicemodelgenerator.extension.util.Utils.generateFunctionDefSource;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getImportStmt;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.importExists;
 
@@ -406,47 +402,19 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
         return CompletableFuture.supplyAsync(() -> {
             try {
                 Path filePath = Path.of(request.filePath());
-                this.workspaceManager.loadProject(filePath);
+                Project project = this.workspaceManager.loadProject(filePath);
+                Optional<SemanticModel> semanticModelOp = this.workspaceManager.semanticModel(filePath);
                 Optional<Document> document = this.workspaceManager.document(filePath);
-                if (document.isEmpty()) {
+                if (Objects.isNull(project) || document.isEmpty() || semanticModelOp.isEmpty()) {
                     return new CommonSourceResponse();
                 }
                 NonTerminalNode node = findNonTerminalNode(request.codedata(), document.get());
-                if (node.kind() != SyntaxKind.SERVICE_DECLARATION) {
+                if (!(node instanceof ServiceDeclarationNode || node instanceof ClassDefinitionNode)) {
                     return new CommonSourceResponse();
                 }
-                ServiceDeclarationNode serviceNode = (ServiceDeclarationNode) node;
-                List<String> newStatusCodeTypesDef = new ArrayList<>();
-                Map<String, String> imports = new HashMap<>();
-                String functionDefinition = NEW_LINE_WITH_TAB + generateFunctionDefSource(request.function(),
-                        newStatusCodeTypesDef, RESOURCE_ADD, HTTP_RESOURCE_ADD, imports)
-                        .replace(NEW_LINE, NEW_LINE_WITH_TAB) + NEW_LINE;
-
-                List<TextEdit> textEdits = new ArrayList<>();
-                List<String> importStmts = new ArrayList<>();
-                ModulePartNode rootNode = document.get().syntaxTree().rootNode();
-                imports.values().forEach(moduleId -> {
-                    String[] importParts = moduleId.split("/");
-                    String orgName = importParts[0];
-                    String moduleName = importParts[1].split(":")[0];
-                    if (!importExists(rootNode, orgName, moduleName)) {
-                        importStmts.add(getImportStmt(orgName, moduleName));
-                    }
-                });
-
-                if (!importStmts.isEmpty()) {
-                    String importsStmts = String.join(NEW_LINE, importStmts);
-                    textEdits.add(new TextEdit(Utils.toRange(rootNode.lineRange().startLine()), importsStmts));
-                }
-
-                LineRange serviceEnd = serviceNode.closeBraceToken().lineRange();
-                textEdits.add(new TextEdit(Utils.toRange(serviceEnd.startLine()), functionDefinition));
-                if (!newStatusCodeTypesDef.isEmpty()) {
-                    String statusCodeResEdits = String.join(TWO_NEW_LINES, newStatusCodeTypesDef);
-                    textEdits.add(new TextEdit(Utils.toRange(serviceEnd.endLine()),
-                            NEW_LINE + statusCodeResEdits));
-                }
-                return new CommonSourceResponse(Map.of(request.filePath(), textEdits));
+                Map<String, List<TextEdit>> textEdits = FunctionBuilderRouter.addFunction(HTTP,
+                        request.function(), request.filePath(), semanticModelOp.get(), document.get(), node);
+                return new CommonSourceResponse(textEdits);
             } catch (Exception e) {
                 return new CommonSourceResponse(e);
             }
@@ -601,19 +569,18 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
         return CompletableFuture.supplyAsync(() -> {
             try {
                 Path filePath = Path.of(request.filePath());
-                this.workspaceManager.loadProject(filePath);
+                Project project = this.workspaceManager.loadProject(filePath);
+                Optional<SemanticModel> semanticModelOp = this.workspaceManager.semanticModel(filePath);
                 Optional<Document> document = this.workspaceManager.document(filePath);
-                if (document.isEmpty()) {
+                if (Objects.isNull(project) || document.isEmpty() || semanticModelOp.isEmpty()) {
                     return new CommonSourceResponse();
                 }
                 NonTerminalNode node = findNonTerminalNode(request.codedata(), document.get());
                 if (!(node instanceof ServiceDeclarationNode || node instanceof ClassDefinitionNode)) {
                     return new CommonSourceResponse();
                 }
-                String moduleName = (request.codedata().getModuleName() != null) ?
-                        request.codedata().getModuleName() : DEFAULT;
-                Map<String, List<TextEdit>> textEdits = FunctionBuilderRouter.addFunction(moduleName,
-                        request.function(), request.filePath(), document.get(), node);
+                Map<String, List<TextEdit>> textEdits = FunctionBuilderRouter.addFunction(HTTP,
+                        request.function(), request.filePath(), semanticModelOp.get(), document.get(), node);
                 return new CommonSourceResponse(textEdits);
             } catch (Throwable e) {
                 return new CommonSourceResponse(e);

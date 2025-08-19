@@ -116,7 +116,7 @@ public class HttpFunctionBuilder extends AbstractFunctionBuilder {
         Map<String, String> imports = new HashMap<>();
         List<String> newTypeDefinitions = new ArrayList<>();
         String functionNode = NEW_LINE_WITH_TAB + generateHttpResourceDefinition(context, newTypeDefinitions, imports)
-                .replace(NEW_LINE, NEW_LINE_WITH_TAB);
+                .replace(NEW_LINE, NEW_LINE_WITH_TAB) + NEW_LINE;
 
         List<String> importStmts = new ArrayList<>();
         ModulePartNode rootNode = context.document().syntaxTree().rootNode();
