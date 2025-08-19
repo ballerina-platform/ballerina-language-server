@@ -440,10 +440,9 @@
                   "optional": true,
                   "advanced": false
                 },
-                "enabled": true,
+                "enabled": false,
                 "editable": false,
-                "advanced": false,
-                "isHttpResponseType": false
+                "advanced": false
               },
               {
                 "statusCode": {
@@ -486,10 +485,9 @@
                   "optional": true,
                   "advanced": false
                 },
-                "enabled": true,
+                "enabled": false,
                 "editable": false,
-                "advanced": false,
-                "isHttpResponseType": false
+                "advanced": false
               }
             ],
             "schema": {
@@ -568,10 +566,9 @@
                   "optional": true,
                   "advanced": false
                 },
-                "enabled": true,
+                "enabled": false,
                 "editable": false,
-                "advanced": false,
-                "isHttpResponseType": false
+                "advanced": false
               }
             },
             "hasError": false,
