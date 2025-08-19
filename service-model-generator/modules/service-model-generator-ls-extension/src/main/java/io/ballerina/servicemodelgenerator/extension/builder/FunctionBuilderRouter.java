@@ -73,11 +73,12 @@ public class FunctionBuilderRouter {
     }
 
     public static Map<String, List<TextEdit>> updateFunction(String moduleName, Function function, String filePath,
-                                                             Document document, FunctionDefinitionNode functionNode)
+                                                             SemanticModel semanticModel, Document document,
+                                                             FunctionDefinitionNode functionNode)
             throws Exception {
         NodeBuilder<Function> functionBuilder = getFunctionBuilder(moduleName);
-        UpdateModelContext context = new UpdateModelContext(null, function, null, null, null, filePath,
-                document, null, functionNode);
+        UpdateModelContext context = new UpdateModelContext(null, function, semanticModel, null, null,
+                filePath, document, null, functionNode);
         return functionBuilder.updateModel(context);
     }
 

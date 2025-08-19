@@ -576,7 +576,8 @@ public final class HttpUtil {
         // function identifier
         builder.append(getValueString(function.getName()));
         Set<String> visibleSymbols = getVisibleSymbols(context.semanticModel(), context.document());
-        String functionSignature = generateHttpResourceSignature(function, newTypeDefinitions, imports, visibleSymbols);
+        String functionSignature = generateHttpResourceSignature(function, newTypeDefinitions, imports, visibleSymbols,
+                true);
         builder.append(functionSignature);
 
         // function body
@@ -595,11 +596,14 @@ public final class HttpUtil {
     }
 
     public static String generateHttpResourceSignature(Function function, List<String> newTypeDefinitions,
-                                                        Map<String, String> imports, Set<String> visibleSymbols) {
+                                                       Map<String, String> imports, Set<String> visibleSymbols,
+                                                       boolean isNewResource) {
         StringBuilder builder = new StringBuilder();
         builder.append(OPEN_PAREN)
                 .append(generateFunctionParamListSource(function.getParameters(), imports))
                 .append(CLOSE_PAREN);
+
+        int defaultStatusCode = function.getAccessor().getValue().trim().equalsIgnoreCase("post") ? 201 : 200;
 
         FunctionReturnType returnType = function.getReturnType();
         if (Objects.nonNull(returnType)) {
@@ -608,11 +612,11 @@ public final class HttpUtil {
                 List<String> responses = new ArrayList<>(returnType.getResponses().stream()
                         .filter(HttpResponse::isEnabled)
                         .map(response -> HttpUtil.getStatusCodeResponse(
-                                response, newTypeDefinitions, imports, visibleSymbols))
+                                response, newTypeDefinitions, imports, visibleSymbols, defaultStatusCode))
                         .filter(Objects::nonNull)
                         .toList());
                 if (!responses.isEmpty()) {
-                    if (!newTypeDefinitions.contains("error") && !responses.contains("error")) {
+                    if (isNewResource && !newTypeDefinitions.contains("error") && !responses.contains("error")) {
                         responses.addFirst("error");
                     }
                     builder.append(" returns ");
@@ -625,7 +629,8 @@ public final class HttpUtil {
     }
 
     private static String getStatusCodeResponse(HttpResponse response, List<String> newTypeDefinitions,
-                                                Map<String, String> imports, Set<String> visibleSymbols) {
+                                                Map<String, String> imports, Set<String> visibleSymbols,
+                                                int defaultStatusCode) {
         Value name = response.getName();
         if (Objects.nonNull(name) && name.isEnabledWithValue() && name.isEditable()) {
             String statusCode = response.getStatusCode().getValue();
@@ -636,29 +641,45 @@ public final class HttpUtil {
             newTypeDefinitions.add(getNewResponseTypeStr(statusCodeRes, response, imports));
             return response.getName().getValue();
         }
+        boolean createNewType = false;
 
+        String body = "";
         if (Objects.nonNull(response.getBody()) && response.getBody().isEnabledWithValue()) {
             if (Objects.nonNull(response.getBody().getImports())) {
                 imports.putAll(response.getBody().getImports());
             }
-            String body = response.getBody().getValue();
-            if (Objects.nonNull(response.getMediaType()) && response.getMediaType().isEnabledWithValue()) {
-                String mediaType = response.getMediaType().getValue();
-                if (isDefaultMediaType(body, mediaType)) {
-                    return body;
-                }
-
-                String statusCode = response.getStatusCode().getValue();
-                String statusCodeRes = HTTP_CODES_DES.get(statusCode);
-
-                String prefix = "Custom" + statusCodeRes;
-                String identifier = Utils.generateTypeIdentifier(visibleSymbols, prefix);
-                visibleSymbols.add(identifier);
-                response.getName().setValue(identifier);
-                newTypeDefinitions.add(getNewResponseTypeStr(statusCodeRes, response, imports));
+            body = response.getBody().getValue();
+            if (Integer.parseInt(response.getStatusCode().getValue()) != defaultStatusCode) {
+                createNewType = true;
             }
+        }
+        if (Objects.nonNull(response.getMediaType()) && response.getMediaType().isEnabledWithValue()) {
+            String mediaType = response.getMediaType().getValue();
+            if (!isDefaultMediaType(body, mediaType)) {
+                createNewType = true;
+            }
+        }
+        Value headers = response.getHeaders();
+        if (Objects.nonNull(headers) && headers.isEnabledWithValue()) {
+            createNewType = true;
+        }
+
+        if (createNewType) {
+            String statusCode = response.getStatusCode().getValue();
+            String statusCodeRes = HTTP_CODES_DES.get(statusCode);
+
+            String prefix = "Custom" + statusCodeRes;
+            String identifier = Utils.generateTypeIdentifier(visibleSymbols, prefix);
+            visibleSymbols.add(identifier);
+            response.getName().setValue(identifier);
+            newTypeDefinitions.add(getNewResponseTypeStr(statusCodeRes, response, imports));
+            return identifier;
+        }
+
+        if (Objects.nonNull(body) && !body.isEmpty()) {
             return body;
         }
+
         if (response.getType().isEnabledWithValue()) {
             if (Objects.nonNull(response.getType().getImports())) {
                 imports.putAll(response.getType().getImports());

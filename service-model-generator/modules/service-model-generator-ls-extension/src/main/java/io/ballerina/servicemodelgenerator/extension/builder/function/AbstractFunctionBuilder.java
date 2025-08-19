@@ -135,7 +135,7 @@ public abstract class AbstractFunctionBuilder implements NodeBuilder<Function> {
             functionLineRange = members.get(members.size() - 1).lineRange();
         }
         Map<String, String> imports = new HashMap<>();
-        String functionNode = NEW_LINE_WITH_TAB + generateFunctionDefSource(context.function(), List.of(),
+        String functionNode = NEW_LINE_WITH_TAB + generateFunctionDefSource(context.function(),
                 Utils.FunctionAddContext.FUNCTION_ADD, FUNCTION_ADD, imports)
                 .replace(NEW_LINE, NEW_LINE_WITH_TAB);
 

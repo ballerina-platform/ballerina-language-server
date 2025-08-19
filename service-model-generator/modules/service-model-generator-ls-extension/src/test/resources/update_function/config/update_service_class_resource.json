@@ -13,30 +13,26 @@
         "label": "Accessor",
         "description": "The accessor of the function"
       },
+      "valueType": "IDENTIFIER",
+      "value": "get",
       "enabled": true,
       "editable": true,
-      "value": "get",
-      "valueType": "IDENTIFIER",
-      "isType": false,
       "optional": false,
-      "advanced": false,
-      "addNewButton": false
+      "advanced": false
     },
     "name": {
       "metadata": {
         "label": "Function Name",
         "description": "The name of the function"
       },
-      "enabled": true,
-      "editable": true,
-      "value": "author/[int intId]",
+      "placeholder": "",
       "valueType": "IDENTIFIER",
       "valueTypeConstraint": "string",
-      "isType": false,
-      "placeholder": "",
+      "value": "author/[int intId]",
+      "enabled": true,
+      "editable": true,
       "optional": false,
-      "advanced": false,
-      "addNewButton": false
+      "advanced": false
     },
     "parameters": [],
     "schema": {
@@ -48,10 +44,8 @@
           },
           "enabled": false,
           "editable": true,
-          "isType": false,
           "optional": false,
-          "advanced": false,
-          "addNewButton": false
+          "advanced": false
         },
         "name": {
           "metadata": {
@@ -60,10 +54,8 @@
           },
           "enabled": false,
           "editable": true,
-          "isType": false,
           "optional": false,
-          "advanced": false,
-          "addNewButton": false
+          "advanced": false
         },
         "defaultValue": {
           "metadata": {
@@ -72,10 +64,8 @@
           },
           "enabled": false,
           "editable": true,
-          "isType": false,
           "optional": false,
-          "advanced": false,
-          "addNewButton": false
+          "advanced": false
         },
         "enabled": false,
         "editable": false,
@@ -84,22 +74,22 @@
       }
     },
     "returnType": {
+      "hasError": false,
       "metadata": {
         "label": "Return Type",
         "description": "The return type of the function"
       },
+      "valueType": "TYPE",
+      "value": "string|int|error?",
       "enabled": true,
       "editable": false,
-      "value": "string|int|error?",
-      "valueType": "TYPE",
-      "isType": false,
       "optional": false,
-      "advanced": false,
-      "addNewButton": false
+      "advanced": false
     },
     "enabled": true,
     "optional": false,
     "editable": true,
+    "canAddParameters": false,
     "codedata": {
       "lineRange": {
         "fileName": "update_service_class_resource.bal",
@@ -111,11 +101,9 @@
           "line": 28,
           "offset": 5
         }
-      },
-      "inListenerInit": false,
-      "isBasePath": false,
-      "inDisplayAnnotation": false
-    }
+      }
+    },
+    "annotations": {}
   },
   "output": {
     "update_service_class_resource.bal": [

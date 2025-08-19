@@ -345,7 +345,7 @@ public abstract class AbstractServiceBuilder implements NodeBuilder<Service> {
         service.getFunctions().forEach(function -> {
             if (function.isEnabled()) {
                 String functionNode = TAB;
-                functionNode += generateFunctionDefSource(function, new ArrayList<>(), context, FUNCTION_ADD, imports)
+                functionNode += generateFunctionDefSource(function, context, FUNCTION_ADD, imports)
                         .replace(NEW_LINE, NEW_LINE_WITH_TAB);
                 functions.add(functionNode);
             }

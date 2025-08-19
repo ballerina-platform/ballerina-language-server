@@ -5,39 +5,35 @@
     "qualifiers": [],
     "kind": "SUBSCRIPTION",
     "accessor": {
+      "valueType": "IDENTIFIER",
+      "value": "subscribe",
       "enabled": true,
       "editable": true,
-      "value": "subscribe",
-      "valueType": "IDENTIFIER",
-      "isType": false,
       "optional": false,
-      "advanced": false,
-      "addNewButton": false
+      "advanced": false
     },
     "name": {
+      "valueType": "IDENTIFIER",
+      "value": "allNames",
       "enabled": true,
       "editable": true,
-      "value": "allNames",
-      "valueType": "IDENTIFIER",
-      "isType": false,
       "optional": false,
-      "advanced": false,
-      "addNewButton": false
+      "advanced": false
     },
     "parameters": [],
     "returnType": {
+      "hasError": false,
+      "valueType": "TYPE",
+      "value": "stream<string, error?>",
       "enabled": true,
       "editable": false,
-      "value": "stream<string, error?>",
-      "valueType": "TYPE",
-      "isType": false,
       "optional": false,
-      "advanced": false,
-      "addNewButton": false
+      "advanced": false
     },
     "enabled": true,
     "optional": false,
     "editable": false,
+    "canAddParameters": false,
     "codedata": {
       "lineRange": {
         "fileName": "main.bal",
@@ -50,10 +46,11 @@
           "offset": 5
         }
       },
-      "inListenerInit": false,
-      "isBasePath": false,
-      "inDisplayAnnotation": false
-    }
+      "orgName": "ballerina",
+      "packageName": "graphql",
+      "moduleName": "graphql"
+    },
+    "annotations": {}
   },
   "output": {
     "update_graphql.bal": [

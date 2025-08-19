@@ -599,13 +599,13 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
         return CompletableFuture.supplyAsync(() -> {
             try {
                 Path filePath = Path.of(request.filePath());
-                this.workspaceManager.loadProject(filePath);
+                Project project = this.workspaceManager.loadProject(filePath);
+                Optional<SemanticModel> semanticModelOp = this.workspaceManager.semanticModel(filePath);
                 Optional<Document> document = this.workspaceManager.document(filePath);
-                if (document.isEmpty()) {
+                if (Objects.isNull(project) || document.isEmpty() || semanticModelOp.isEmpty()) {
                     return new CommonSourceResponse();
                 }
                 Function function = request.function();
-                LineRange lineRange = function.getCodedata().getLineRange();
                 NonTerminalNode node = findNonTerminalNode(function.getCodedata(), document.get());
                 if (!(node instanceof FunctionDefinitionNode functionDefinitionNode)) {
                     return new CommonSourceResponse();
@@ -618,7 +618,7 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
                 String moduleName = (request.function().getCodedata().getModuleName() != null) ?
                         request.function().getCodedata().getModuleName() : DEFAULT;
                 Map<String, List<TextEdit>> textEdits = FunctionBuilderRouter.updateFunction(moduleName, function,
-                        request.filePath(), document.get(), functionDefinitionNode);
+                        request.filePath(), semanticModelOp.get(), document.get(), functionDefinitionNode);
                 Utils.addFunctionAnnotationTextEdits(function, functionDefinitionNode, edits);
                 return new CommonSourceResponse(textEdits);
             } catch (Throwable e) {

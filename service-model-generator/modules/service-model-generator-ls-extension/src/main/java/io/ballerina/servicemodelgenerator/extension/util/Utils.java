@@ -653,7 +653,7 @@ public final class Utils {
         FUNCTION_UPDATE
     }
 
-    public static String generateFunctionDefSource(Function function, List<String> statusCodeResponses,
+    public static String generateFunctionDefSource(Function function,
                                                    FunctionAddContext addContext,
                                                    FunctionSignatureContext signatureContext,
                                                    Map<String, String> imports) {
@@ -685,8 +685,6 @@ public final class Utils {
         // function identifier
         builder.append(getValueString(function.getName()));
 
-        FunctionSignatureContext sigContext = addContext.equals(FunctionAddContext.HTTP_SERVICE_ADD) ?
-                FunctionSignatureContext.HTTP_RESOURCE_ADD : signatureContext;
         String functionSignature = generateFunctionSignatureSource(function, imports);
         builder.append(functionSignature);
 

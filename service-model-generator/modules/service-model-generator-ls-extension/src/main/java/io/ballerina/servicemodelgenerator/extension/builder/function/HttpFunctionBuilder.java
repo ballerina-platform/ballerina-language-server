@@ -182,7 +182,7 @@ public class HttpFunctionBuilder extends AbstractFunctionBuilder {
         List<String> newStatusCodeTypesDef = new ArrayList<>();
         Set<String> visibleSymbols = getVisibleSymbols(context.semanticModel(), context.document());
         String functionSignature = HttpUtil.generateHttpResourceSignature(context.function(), newStatusCodeTypesDef,
-                imports, visibleSymbols);
+                imports, visibleSymbols, false);
 
         List<String> importStmts = new ArrayList<>();
         ModulePartNode rootNode = context.document().syntaxTree().rootNode();

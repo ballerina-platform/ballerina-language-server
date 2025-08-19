@@ -7,20 +7,16 @@
     "accessor": {
       "enabled": false,
       "editable": true,
-      "isType": false,
       "optional": false,
-      "advanced": false,
-      "addNewButton": false
+      "advanced": false
     },
     "name": {
+      "valueType": "IDENTIFIER",
+      "value": "updateUserId",
       "enabled": true,
       "editable": true,
-      "value": "updateUserId",
-      "valueType": "IDENTIFIER",
-      "isType": false,
       "optional": false,
-      "advanced": false,
-      "addNewButton": false
+      "advanced": false
     },
     "parameters": [
       {
@@ -30,32 +26,26 @@
         },
         "kind": "REQUIRED",
         "type": {
+          "valueType": "TYPE",
+          "value": "string",
           "enabled": true,
           "editable": true,
-          "value": "string",
-          "valueType": "TYPE",
-          "isType": true,
           "optional": false,
-          "advanced": false,
-          "addNewButton": false
+          "advanced": false
         },
         "name": {
+          "valueType": "IDENTIFIER",
+          "value": "id",
           "enabled": true,
           "editable": true,
-          "value": "id",
-          "valueType": "IDENTIFIER",
-          "isType": false,
           "optional": false,
-          "advanced": false,
-          "addNewButton": false
+          "advanced": false
         },
         "defaultValue": {
           "enabled": false,
           "editable": true,
-          "isType": false,
           "optional": false,
-          "advanced": false,
-          "addNewButton": false
+          "advanced": false
         },
         "enabled": true,
         "editable": false,
@@ -69,32 +59,26 @@
         },
         "kind": "REQUIRED",
         "type": {
+          "valueType": "TYPE",
+          "value": "string",
           "enabled": true,
           "editable": true,
-          "value": "string",
-          "valueType": "TYPE",
-          "isType": true,
           "optional": false,
-          "advanced": false,
-          "addNewButton": false
+          "advanced": false
         },
         "name": {
+          "valueType": "IDENTIFIER",
+          "value": "name",
           "enabled": true,
           "editable": true,
-          "value": "name",
-          "valueType": "IDENTIFIER",
-          "isType": false,
           "optional": false,
-          "advanced": false,
-          "addNewButton": false
+          "advanced": false
         },
         "defaultValue": {
           "enabled": false,
           "editable": true,
-          "isType": false,
           "optional": false,
-          "advanced": false,
-          "addNewButton": false
+          "advanced": false
         },
         "enabled": true,
         "editable": false,
@@ -103,18 +87,18 @@
       }
     ],
     "returnType": {
+      "hasError": false,
+      "valueType": "TYPE",
+      "value": "Profile|error",
       "enabled": true,
       "editable": false,
-      "value": "Profile|error",
-      "valueType": "TYPE",
-      "isType": false,
       "optional": false,
-      "advanced": false,
-      "addNewButton": false
+      "advanced": false
     },
     "enabled": true,
     "optional": false,
     "editable": false,
+    "canAddParameters": false,
     "codedata": {
       "lineRange": {
         "fileName": "main.bal",
@@ -127,10 +111,11 @@
           "offset": 5
         }
       },
-      "inListenerInit": false,
-      "isBasePath": false,
-      "inDisplayAnnotation": false
-    }
+      "orgName": "ballerina",
+      "packageName": "graphql",
+      "moduleName": "graphql"
+    },
+    "annotations": {}
   },
   "output": {
     "update_graphql.bal": [
