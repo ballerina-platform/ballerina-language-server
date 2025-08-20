@@ -2508,7 +2508,10 @@ public class DataMapManager {
         MappingUnionPort(String id, String variableName, String typeName, String kind, Boolean optional) {
             super(id, variableName, typeName, kind, optional);
         }
-<<<<<<< HEAD
+
+        MappingUnionPort(String id, String variableName, String typeName, String kind, String reference) {
+            super(id, variableName, typeName, kind, reference);
+        }
     }
 
     private static class GenInputsVisitor extends NodeVisitor {
@@ -2612,14 +2615,6 @@ public class DataMapManager {
         @Override
         public void visit(OptionalFieldAccessExpressionNode node) {
             inputs.add(node.toSourceCode().trim().replace("?", ""));
-        }
-    }
-}
-=======
->>>>>>> f891a35675 (Add mappingport generation logic for unions and enums)
-
-        MappingUnionPort(String id, String variableName, String typeName, String kind, String reference) {
-            super(id, variableName, typeName, kind, reference);
         }
     }
 }
