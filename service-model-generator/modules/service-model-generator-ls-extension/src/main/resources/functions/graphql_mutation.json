@@ -161,14 +161,45 @@
       "label": "Field Type",
       "description": "The type of the field"
     },
+    "items": ["nullableAction"],
     "enabled": true,
     "editable": true,
     "value": "",
-    "valueType": "TYPE",
+    "valueType": "ACTION_TYPE",
     "isType": false,
     "optional": false,
     "advanced": false,
-    "addNewButton": false
+    "addNewButton": false,
+    "properties": {
+      "actionNullableTrue": {
+        "metadata": {
+          "label": "Action Nullable True",
+          "description": "The field returns a nullable value"
+        },
+        "enabled": true,
+        "editable": true,
+        "value": "",
+        "valueType": "STRING",
+        "isType": false,
+        "optional": false,
+        "advanced": false,
+        "addNewButton": false
+      },
+      "actionNullableFalse": {
+        "metadata": {
+          "label": "Action Nullable False",
+          "description": "The field returns a non-nullable value"
+        },
+        "enabled": true,
+        "editable": true,
+        "value": "Mark type as nullable",
+        "valueType": "STRING",
+        "isType": false,
+        "optional": false,
+        "advanced": false,
+        "addNewButton": false
+      }
+    }
   },
   "enabled": true,
   "optional": false,
