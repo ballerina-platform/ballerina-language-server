@@ -18,6 +18,7 @@
 
 package io.ballerina.servicemodelgenerator.extension.util;
 
+import io.ballerina.compiler.syntax.tree.ClassDefinitionNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeList;
@@ -34,6 +35,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.GRAPHQL_FIELD_TYPE;
+
 /**
  * Generate type completions for different service model related forms.
  *
@@ -42,8 +45,13 @@ import java.util.List;
 public class TypeCompletionGenerator {
 
     private static final List<TypeCompletion> DEFAULT_HTTP_STATUS_RESPONSES;
+    private static final List<TypeCompletion> DEFAULT_GRAPHQL_RETURN_TYPES;
+
     static {
         List<TypeCompletion> defaultResponses = new ArrayList<>();
+        List<TypeCompletion> graphqlScalars = new ArrayList<>();
+
+        // HTTP status code types
         defaultResponses.add(new TypeCompletion(
                 "1XX", "Continue", "http:Continue", "100"));
         defaultResponses.add(new TypeCompletion(
@@ -166,7 +174,30 @@ public class TypeCompletionGenerator {
                 "5XX", "Not Extended", "http:NotExtended", "510"));
         defaultResponses.add(new TypeCompletion(
                 "5XX", "Network Authentication Required", "http:NetworkAuthenticationRequired", "511"));
+
+        // GraphQL Scalar types
+        graphqlScalars.add(new TypeCompletion("Scalar Types", "int", "int", ""));
+        graphqlScalars.add(new TypeCompletion("Scalar Types", "string", "string", ""));
+        graphqlScalars.add(new TypeCompletion("Scalar Types", "boolean", "boolean", ""));
+        graphqlScalars.add(new TypeCompletion("Scalar Types", "decimal", "decimal", ""));
+        graphqlScalars.add(new TypeCompletion("Scalar Types", "float", "float", ""));
+        graphqlScalars.add(new TypeCompletion("Scalar Types", "ID", "@graphql:ID int|string", ""));
+        graphqlScalars.add(new TypeCompletion("Subscription Types", "stream", "stream", ""));
+        graphqlScalars.add(new TypeCompletion("Error Types", "error", "error", ""));
+
         DEFAULT_HTTP_STATUS_RESPONSES = Collections.unmodifiableList(defaultResponses);
+        DEFAULT_GRAPHQL_RETURN_TYPES = Collections.unmodifiableList(graphqlScalars);
+    }
+
+    public static List<TypeCompletion> getTypes(Project project, String context) {
+        switch (context) {
+            case GRAPHQL_FIELD_TYPE -> {
+                return getGraphqlReturnTypes(project);
+            }
+            default -> {
+                return getTypes(project);
+            }
+        }
     }
 
     public static List<TypeCompletion> getTypes(Project project) {
@@ -206,6 +237,29 @@ public class TypeCompletionGenerator {
         // Add the http:Response type
         typeCompletions.add(new TypeCompletion("Error Type", "error", "error", "500"));
 
+        return typeCompletions;
+    }
+
+    private static List<TypeCompletion> getGraphqlReturnTypes(Project project) {
+        List<TypeCompletion> typeCompletions = new ArrayList<>(DEFAULT_GRAPHQL_RETURN_TYPES);
+
+        Module defaultModule = project.currentPackage().getDefaultModule();
+        defaultModule.documentIds().forEach(
+            documentId -> {
+                Document document = defaultModule.document(documentId);
+                ModulePartNode modulePartNode = document.syntaxTree().rootNode();
+                for (Node member : modulePartNode.members()) {
+                    if (member.kind() == SyntaxKind.TYPE_DEFINITION) {
+                        TypeDefinitionNode typeDef = (TypeDefinitionNode) member;
+                        String typeName = typeDef.typeName().text();
+                        typeCompletions.add(new TypeCompletion("User Defined", typeName, typeName, null));
+                    } else if (member.kind() == SyntaxKind.CLASS_DEFINITION) {
+                        ClassDefinitionNode classDef = (ClassDefinitionNode) member;
+                        String typeName = classDef.className().text();
+                        typeCompletions.add(new TypeCompletion("User Defined", typeName, typeName, null));
+                    }
+                }
+            });
         return typeCompletions;
     }
 }

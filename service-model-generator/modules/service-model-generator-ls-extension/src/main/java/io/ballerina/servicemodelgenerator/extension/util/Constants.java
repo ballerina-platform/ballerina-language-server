@@ -174,6 +174,9 @@ public class Constants {
     public static final String GRAPHQL_FIELD_KEY = "paramField";
     public static final String VALUE_FIELD = "value";
 
+    // Type API contexts
+    public static final String GRAPHQL_FIELD_TYPE = "GRAPHQL_FIELD_TYPE";
+
     private Constants() {
     }
 }
