@@ -1,0 +1,27 @@
+{
+  "filePath": "test_pack3/types.bal",
+  "description": "Check union subtype",
+  "sourceType": {
+    "name": "Profile",
+    "editable": false,
+    "codedata": {
+      "org": "testorg",
+      "packageName": "test_pack3",
+      "version": "0.1.0"
+    },
+    "allowAdditionalFields": false
+  },
+  "targetType": {
+    "name": "Teacher",
+    "editable": false,
+    "codedata": {
+      "org": "testorg",
+      "packageName": "test_pack3",
+      "version": "0.1.0"
+    },
+    "allowAdditionalFields": false
+  },
+  "output": {
+    "isSubtype": true
+  }
+}

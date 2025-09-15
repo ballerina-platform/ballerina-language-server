@@ -22,8 +22,10 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.ballerina.compiler.api.SemanticModel;
+import io.ballerina.compiler.api.Types;
 import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.api.symbols.SymbolKind;
+import io.ballerina.compiler.api.symbols.TypeDefinitionSymbol;
 import io.ballerina.compiler.api.symbols.TypeDescKind;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
@@ -37,6 +39,7 @@ import io.ballerina.flowmodelgenerator.core.model.TypeData;
 import io.ballerina.flowmodelgenerator.core.type.RecordValueGenerator;
 import io.ballerina.flowmodelgenerator.core.type.TypeSymbolAnalyzerFromTypeModel;
 import io.ballerina.flowmodelgenerator.core.utils.FileSystemUtils;
+import io.ballerina.flowmodelgenerator.extension.request.CheckSubtypeRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DeleteTypeRequest;
 import io.ballerina.flowmodelgenerator.extension.request.FilePathRequest;
 import io.ballerina.flowmodelgenerator.extension.request.FindTypeRequest;
@@ -48,6 +51,7 @@ import io.ballerina.flowmodelgenerator.extension.request.RecordValueGenerateRequ
 import io.ballerina.flowmodelgenerator.extension.request.TypeUpdateRequest;
 import io.ballerina.flowmodelgenerator.extension.request.UpdatedRecordConfigRequest;
 import io.ballerina.flowmodelgenerator.extension.request.VerifyTypeDeleteRequest;
+import io.ballerina.flowmodelgenerator.extension.response.CheckSubtypeResponse;
 import io.ballerina.flowmodelgenerator.extension.response.DeleteTypeResponse;
 import io.ballerina.flowmodelgenerator.extension.response.MultipleTypeUpdateResponse;
 import io.ballerina.flowmodelgenerator.extension.response.RecordConfigResponse;
@@ -539,6 +543,39 @@ public class TypesManagerService implements ExtendedLanguageServerService {
         });
     }
 
+    /**
+     * Check if a source type is a subtype of a target type.
+     *
+     * @param request {@link CheckSubtypeRequest}
+     * @return {@link CheckSubtypeResponse} the response indicating whether the target type is a subtype of the source
+     * type
+     */
+    @JsonRequest
+    public CompletableFuture<CheckSubtypeResponse> isSubtype(CheckSubtypeRequest request) {
+        return CompletableFuture.supplyAsync(() -> {
+            CheckSubtypeResponse response = new CheckSubtypeResponse();
+            try {
+                FindTypeRequest.TypePackageInfo packageInfo =
+                        FindTypeRequest.TypePackageInfo.from(request.sourceType().codedata());
+                SemanticModel semanticModel = findSemanticModel(packageInfo, request.filePath());
+                Symbol srcSymbol = findSymbolFromSemanticModel(semanticModel, request.sourceType().name())
+                        .orElseThrow(() -> new IllegalArgumentException("Source type not found"));
+
+                packageInfo = FindTypeRequest.TypePackageInfo.from(request.targetType().codedata());
+                semanticModel = findSemanticModel(packageInfo, request.filePath());
+                Symbol targetSymbol = findSymbolFromSemanticModel(semanticModel, request.targetType().name())
+                        .orElseThrow(() -> new IllegalArgumentException("Target type not found"));
+
+                boolean isSubtype = getTypeSymbol(targetSymbol).subtypeOf(getTypeSymbol(srcSymbol));
+                response.setIsSubtype(isSubtype);
+            } catch (Throwable e) {
+                response.setError(e);
+            }
+            semanticModelCache.clear();
+            return response;
+        });
+    }
+
     // Utility methods
 
     private Optional<SemanticModel> getCachedSemanticModel(String org, String packageName, String moduleName,
@@ -609,5 +646,52 @@ public class TypesManagerService implements ExtendedLanguageServerService {
             }
             return new PackageNameModulePartName(null, null);
         }
+    }
+
+    private Optional<Symbol> findSymbolFromSemanticModel(SemanticModel semanticModel, String typeConstraint) {
+        String[] parts = typeConstraint.split(":");
+        String type = parts.length > 1 ? parts[1] : parts[0];
+
+        Optional<Symbol> builtInTypeSymbol = findBuiltInTypeSymbol(semanticModel, type);
+        if (builtInTypeSymbol.isPresent()) {
+            return builtInTypeSymbol;
+        }
+
+        return semanticModel.moduleSymbols().parallelStream()
+                .filter(symbol -> symbol.nameEquals(type))
+                .findFirst();
+    }
+
+    private Optional<Symbol> findBuiltInTypeSymbol(SemanticModel semanticModel, String type) {
+        Types types = semanticModel.types();
+        TypeSymbol typeSymbol = switch (type) {
+            case "int" -> types.INT;
+            case "float" -> types.FLOAT;
+            case "string" -> types.STRING;
+            case "boolean" -> types.BOOLEAN;
+            case "decimal" -> types.DECIMAL;
+            case "byte" -> types.BYTE;
+            case "nil" -> types.NIL;
+            case "any" -> types.ANY;
+            case "anydata" -> types.ANYDATA;
+            case "json" -> types.JSON;
+            case "error" -> types.ERROR;
+            case "never" -> types.NEVER;
+            case "typedesc" -> types.TYPEDESC;
+            default -> null;
+        };
+        if (typeSymbol != null) {
+            return Optional.of(typeSymbol);
+        }
+        return Optional.empty();
+    }
+
+    private TypeSymbol getTypeSymbol(Symbol symbol) {
+        if (symbol instanceof TypeDefinitionSymbol typeDefSymbol) {
+            return typeDefSymbol.typeDescriptor();
+        } else if (symbol instanceof TypeSymbol typeSymbol) {
+            return typeSymbol;
+        }
+        throw new IllegalArgumentException("Symbol is not a type symbol");
     }
 }

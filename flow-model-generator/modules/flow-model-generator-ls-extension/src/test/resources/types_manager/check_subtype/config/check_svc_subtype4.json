@@ -1,0 +1,25 @@
+{
+  "filePath": "test_pack4/types.bal",
+  "description": "Check service class subtype",
+  "sourceType": {
+    "name": "Profile",
+    "codedata": {
+      "org": "testorg",
+      "packageName": "test_pack4",
+      "version": "0.1.0"
+    },
+    "allowAdditionalFields": false
+  },
+  "targetType": {
+    "name": "nil",
+    "codedata": {
+      "org": "testorg",
+      "packageName": "test_pack4",
+      "version": "0.1.0"
+    },
+    "allowAdditionalFields": false
+  },
+  "output": {
+    "isSubtype": true
+  }
+}

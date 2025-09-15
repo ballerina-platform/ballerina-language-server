@@ -1,0 +1,25 @@
+{
+  "filePath": "test_pack4/types.bal",
+  "description": "Check service class type inclusion subtype",
+  "sourceType": {
+    "name": "Teacher",
+    "codedata": {
+      "org": "testorg",
+      "packageName": "test_pack4",
+      "version": "0.1.0"
+    },
+    "allowAdditionalFields": false
+  },
+  "targetType": {
+    "name": "Student",
+    "codedata": {
+      "org": "testorg",
+      "packageName": "test_pack4",
+      "version": "0.1.0"
+    },
+    "allowAdditionalFields": false
+  },
+  "output": {
+    "isSubtype": true
+  }
+}
