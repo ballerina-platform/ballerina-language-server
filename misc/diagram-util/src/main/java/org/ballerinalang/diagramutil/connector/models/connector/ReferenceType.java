@@ -53,7 +53,7 @@ public class ReferenceType {
     public record Field(String fieldName, RefType type, boolean optional, String defaultValue) {
     }
 
-    public static RefType fromSemanticSymbol(Symbol symbol, SemanticModel semanticModel) {
+    public static RefType fromSemanticSymbol(Symbol symbol, List<Symbol> typeDefSymbols) {
         SymbolKind kind = symbol.kind();
         TypeSymbol typeSymbol = null;
         String name = "";
@@ -77,7 +77,7 @@ public class ReferenceType {
         } else if (kind == SymbolKind.CONSTANT) {
             return new RefConstType(symbol.getName().orElse(""), "const");
         } else if (kind == SymbolKind.ENUM) {
-            return getEnumType((EnumSymbol) symbol, semanticModel);
+            return getEnumType((EnumSymbol) symbol, typeDefSymbols);
         }
 
         if (typeSymbol == null) {
@@ -87,7 +87,7 @@ public class ReferenceType {
         String moduleId = symbol.getModule().isPresent()
                 ? symbol.getModule().get().id().toString()
                 : null;
-        RefType type = fromSemanticSymbol(typeSymbol, name, moduleId, semanticModel);
+        RefType type = fromSemanticSymbol(typeSymbol, name, moduleId, typeDefSymbols);
 
         if (type.dependentTypes == null) {
             for (String dependentTypeHash : type.dependentTypeHashes) {
@@ -108,7 +108,8 @@ public class ReferenceType {
         return type;
     }
 
-    public static RefType fromSemanticSymbol(TypeSymbol symbol, String name, String moduleID, SemanticModel semanticModel) {
+    public static RefType fromSemanticSymbol(TypeSymbol symbol, String name, String moduleID,
+                                             List<Symbol> typeDefSymbols) {
         String hashCode = String.valueOf(Objects.hash(moduleID, name, symbol.signature()));
         RefType type = visitedTypeMap.get(hashCode);
         if (type != null) {
@@ -117,8 +118,7 @@ public class ReferenceType {
                 for (Map.Entry<String, RefType> entry : type.dependentTypes.entrySet()) {
                     String depTypeHash = entry.getKey();
                     RefType depType = entry.getValue();
-                    Symbol depSymbol = semanticModel.moduleSymbols().stream()
-                            .filter(sym -> sym.kind() == SymbolKind.TYPE_DEFINITION)
+                    Symbol depSymbol = typeDefSymbols.stream()
                             .filter(sym -> depType.name.equals(sym.getName().orElse("")))
                             .findFirst()
                             .orElse(null);
@@ -131,7 +131,7 @@ public class ReferenceType {
                                 typeDefSymbol.getName().orElse(""),
                                 typeDesc.signature()));
                         if (!depTypeHash.equals(updatedHashCode)) {
-                            RefType updatedDepType = fromSemanticSymbol(depSymbol, semanticModel);
+                            RefType updatedDepType = fromSemanticSymbol(depSymbol, typeDefSymbols);
                             assert updatedDepType != null;
                             updatedDepType.hashCode = depTypeHash;
                             entry.setValue(updatedDepType);
@@ -158,7 +158,7 @@ public class ReferenceType {
                 String fieldModuleId = fieldSymbol.getModule().isPresent()
                         ? fieldSymbol.getModule().get().id().toString()
                         : null;
-                RefType fieldType = fromSemanticSymbol(fieldTypeSymbol, fieldTypeName, fieldModuleId, semanticModel);
+                RefType fieldType = fromSemanticSymbol(fieldTypeSymbol, fieldTypeName, fieldModuleId, typeDefSymbols);
                 if (fieldType.dependentTypeHashes == null || fieldType.dependentTypeHashes.isEmpty()) {
                     if (fieldType.hashCode != null && fieldType.typeName.equals("record")) {
                         RefType t = new RefType(fieldType.name);
@@ -194,7 +194,7 @@ public class ReferenceType {
             String moduleId = elementTypeSymbol.getModule().isPresent()
                     ? elementTypeSymbol.getModule().get().id().toString()
                     : null;
-            RefType elementType = fromSemanticSymbol(elementTypeSymbol, elementTypeName, moduleId, semanticModel);
+            RefType elementType = fromSemanticSymbol(elementTypeSymbol, elementTypeName, moduleId, typeDefSymbols);
             if (elementType.dependentTypeHashes == null || elementType.dependentTypeHashes.isEmpty()) {
                 if (elementType.hashCode != null && elementType.typeName.equals("record")) {
                     RefType t = new RefType(elementType.name);
@@ -231,7 +231,7 @@ public class ReferenceType {
                 String moduleId = memberTypeSymbol.getModule().isPresent()
                         ? memberTypeSymbol.getModule().get().id().toString()
                         : null;
-                RefType memberType = fromSemanticSymbol(memberTypeSymbol, memberTypeName, moduleId, semanticModel);
+                RefType memberType = fromSemanticSymbol(memberTypeSymbol, memberTypeName, moduleId, typeDefSymbols);
                 if (memberType.dependentTypeHashes == null || memberType.dependentTypeHashes.isEmpty()) {
                     if (memberType.hashCode != null && memberType.typeName.equals("record")) {
                         RefType t = new RefType(memberType.name);
@@ -264,7 +264,7 @@ public class ReferenceType {
             String moduleId = typeRefSymbol.getModule().isPresent()
                     ? typeRefSymbol.getModule().get().id().toString()
                     : null;
-            return fromSemanticSymbol(typeSymbol, name, moduleId, semanticModel);
+            return fromSemanticSymbol(typeSymbol, name, moduleId, typeDefSymbols);
         } else if (kind == TypeDescKind.INT) {
             RefType refType = new RefType("int");
             refType.typeName = "int";
@@ -306,7 +306,7 @@ public class ReferenceType {
 
 
 
-    private static RefType getEnumType(EnumSymbol enumSymbol, SemanticModel semanticModel) {
+    private static RefType getEnumType(EnumSymbol enumSymbol, List<Symbol> typeDefSymbols) {
         RefType type;
         List<RefType> fields = new ArrayList<>();
         enumSymbol.members().forEach(member -> {
@@ -314,7 +314,7 @@ public class ReferenceType {
             String moduleId = member.getModule().isPresent()
                     ? member.getModule().get().id().toString()
                     : null;
-            RefType semanticSymbol = fromSemanticSymbol(member.typeDescriptor(), name, moduleId, semanticModel);
+            RefType semanticSymbol = fromSemanticSymbol(member.typeDescriptor(), name, moduleId, typeDefSymbols);
             fields.add(semanticSymbol);
 
         });
