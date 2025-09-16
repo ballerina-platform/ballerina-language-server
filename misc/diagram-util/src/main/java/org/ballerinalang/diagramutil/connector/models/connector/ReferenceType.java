@@ -105,7 +105,7 @@ public class ReferenceType {
                                              List<Symbol> typeDefSymbols) {
         String hashCode = String.valueOf(Objects.hash(moduleID, name, symbol.signature()));
         RefType type = visitedTypeMap.get(hashCode);
-        if (type != null) {
+        if (type != null && !type.hashMismatch) {
             if (type.dependentTypes != null) {
                 for (Map.Entry<String, RefType> entry : type.dependentTypes.entrySet()) {
                     String depTypeHash = entry.getKey();
@@ -123,14 +123,16 @@ public class ReferenceType {
                                         typeDefSymbol.getModule().get().id().toString() : null,
                                 typeDefSymbol.getName().orElse(""),
                                 typeDesc.signature()));
-                        if (!depTypeHash.equals(updatedHashCode)) {
-                            RefType updatedDepType = fromSemanticSymbol(depSymbol, typeDefSymbols);
-                            Objects.requireNonNull(updatedDepType,
-                                    "fromSemanticSymbol returned null for depSymbol: " + depSymbol);
-                            updatedDepType.hashCode = depTypeHash;
-                            entry.setValue(updatedDepType);
-                            visitedTypeMap.put(depTypeHash, updatedDepType);
+                        if (depTypeHash.equals(updatedHashCode) && !depType.hashMismatch) {
+                            continue;
                         }
+                        RefType updatedDepType = fromSemanticSymbol(depSymbol, typeDefSymbols);
+                        Objects.requireNonNull(updatedDepType,
+                                "fromSemanticSymbol returned null for depSymbol: " + depSymbol);
+                        updatedDepType.hashCode = depTypeHash;
+                        updatedDepType.hashMismatch = !depType.hashMismatch;
+                        entry.setValue(updatedDepType);
+                        visitedTypeMap.put(depTypeHash, updatedDepType);
                     }
                 }
             }
@@ -297,8 +299,6 @@ public class ReferenceType {
         throw new UnsupportedOperationException(
                 "Unsupported type kind: " + kind + " for symbol: " + symbol.getName().orElse("unknown"));
     }
-
-
 
     private static RefType getEnumType(EnumSymbol enumSymbol, List<Symbol> typeDefSymbols) {
         RefType type;
