@@ -3,23 +3,19 @@
   "description": "Check service class subtype",
   "sourceType": {
     "name": "Profile",
-    "editable": false,
     "codedata": {
       "org": "testorg",
       "packageName": "test_pack1",
       "version": "0.1.0"
-    },
-    "allowAdditionalFields": false
+    }
   },
   "targetType": {
     "name": "Teacher",
-    "editable": false,
     "codedata": {
       "org": "testorg",
       "packageName": "test_pack1",
       "version": "0.1.0"
-    },
-    "allowAdditionalFields": false
+    }
   },
   "output": {
     "isSubtype": true
