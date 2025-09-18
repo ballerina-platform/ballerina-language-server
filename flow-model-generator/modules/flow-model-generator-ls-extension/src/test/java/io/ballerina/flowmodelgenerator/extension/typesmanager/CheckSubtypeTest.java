@@ -24,6 +24,8 @@ import io.ballerina.flowmodelgenerator.core.model.TypeData;
 import io.ballerina.flowmodelgenerator.extension.request.CheckSubtypeRequest;
 import io.ballerina.modelgenerator.commons.AbstractLSTest;
 import org.testng.Assert;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
@@ -76,5 +78,15 @@ public class CheckSubtypeTest extends AbstractLSTest {
 
     private record TestConfig(String filePath, String description, TypeData sourceType, TypeData targetType,
                               JsonElement output) {
+    }
+
+    @AfterMethod
+    public void shutDownLanguageServer() {
+        super.shutDownLanguageServer();
+    }
+
+    @BeforeMethod
+    public void startLanguageServer() {
+        super.startLanguageServer();
     }
 }

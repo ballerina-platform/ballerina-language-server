@@ -1,0 +1,25 @@
+{
+  "filePath": "test_pack5/main.bal",
+  "description": "Check imported type subtype",
+  "sourceType": {
+    "name": "graphql:Service",
+    "codedata": {
+      "org": "ballerina",
+      "packageName": "graphql",
+      "module": "graphql",
+      "version": "1.16.1"
+    }
+  },
+  "targetType": {
+    "name": "Teacher",
+    "codedata": {
+      "org": "testorg",
+      "packageName": "test_pack5",
+      "module": "test_pack5",
+      "version": "0.1.0"
+    }
+  },
+  "output": {
+    "isSubtype": true
+  }
+}

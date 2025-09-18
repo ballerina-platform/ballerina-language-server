@@ -570,8 +570,9 @@ public class TypesManagerService implements ExtendedLanguageServerService {
                 response.setIsSubtype(isSubtype);
             } catch (Throwable e) {
                 response.setError(e);
+            } finally {
+                semanticModelCache.clear();
             }
-            semanticModelCache.clear();
             return response;
         });
     }
