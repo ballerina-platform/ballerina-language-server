@@ -23,3 +23,9 @@ type StudentRecord record {
 };
 
 type ProfileType TeacherRecord|StudentRecord|();
+
+enum Color {
+    RED,
+    GREEN,
+    BLUE
+}

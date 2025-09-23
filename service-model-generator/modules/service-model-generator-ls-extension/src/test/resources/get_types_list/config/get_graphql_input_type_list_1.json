@@ -1,7 +1,7 @@
 {
   "filePath": "sample2",
-  "description": "Get the list of GraphQL return types",
-  "context": "GRAPHQL_FIELD_TYPE",
+  "description": "Get the list of GraphQL input types",
+  "context": "GRAPHQL_INPUT_TYPE",
   "result": {
     "completions": [
       {
@@ -35,27 +35,6 @@
         "statusCode": ""
       },
       {
-        "category": "Error Types",
-        "label": "error",
-        "type": "error",
-        "statusCode": ""
-      },
-      {
-        "category": "User Defined",
-        "label": "Teacher",
-        "type": "Teacher"
-      },
-      {
-        "category": "User Defined",
-        "label": "Student",
-        "type": "Student"
-      },
-      {
-        "category": "User Defined",
-        "label": "Profile",
-        "type": "Profile"
-      },
-      {
         "category": "User Defined",
         "label": "TeacherRecord",
         "type": "TeacherRecord"
@@ -64,11 +43,6 @@
         "category": "User Defined",
         "label": "StudentRecord",
         "type": "StudentRecord"
-      },
-      {
-        "category": "User Defined",
-        "label": "ProfileType",
-        "type": "ProfileType"
       },
       {
         "category": "Enum Types",

@@ -19,6 +19,7 @@
 package io.ballerina.servicemodelgenerator.extension.util;
 
 import io.ballerina.compiler.syntax.tree.ClassDefinitionNode;
+import io.ballerina.compiler.syntax.tree.EnumDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeList;
@@ -35,7 +36,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.GRAPHQL_ENUM_TYPE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.GRAPHQL_FIELD_TYPE;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.GRAPHQL_INPUT_TYPE;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.GRAPHQL_SCALAR_TYPE;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.GRAPHQL_USER_DEFINED_TYPE;
 
 /**
  * Generate type completions for different service model related forms.
@@ -46,10 +51,12 @@ public class TypeCompletionGenerator {
 
     private static final List<TypeCompletion> DEFAULT_HTTP_STATUS_RESPONSES;
     private static final List<TypeCompletion> DEFAULT_GRAPHQL_RETURN_TYPES;
+    private static final List<TypeCompletion> DEFAULT_GRAPHQL_INPUT_TYPES;
 
     static {
         List<TypeCompletion> defaultResponses = new ArrayList<>();
-        List<TypeCompletion> graphqlScalars = new ArrayList<>();
+        List<TypeCompletion> returnTypes = new ArrayList<>();
+        List<TypeCompletion> inputTypes = new ArrayList<>();
 
         // HTTP status code types
         defaultResponses.add(new TypeCompletion(
@@ -176,23 +183,26 @@ public class TypeCompletionGenerator {
                 "5XX", "Network Authentication Required", "http:NetworkAuthenticationRequired", "511"));
 
         // GraphQL Scalar types
-        graphqlScalars.add(new TypeCompletion("Scalar Types", "int", "int", ""));
-        graphqlScalars.add(new TypeCompletion("Scalar Types", "string", "string", ""));
-        graphqlScalars.add(new TypeCompletion("Scalar Types", "boolean", "boolean", ""));
-        graphqlScalars.add(new TypeCompletion("Scalar Types", "decimal", "decimal", ""));
-        graphqlScalars.add(new TypeCompletion("Scalar Types", "float", "float", ""));
-        graphqlScalars.add(new TypeCompletion("Scalar Types", "ID", "@graphql:ID int|string", ""));
-        graphqlScalars.add(new TypeCompletion("Subscription Types", "stream", "stream", ""));
-        graphqlScalars.add(new TypeCompletion("Error Types", "error", "error", ""));
+        inputTypes.add(new TypeCompletion(GRAPHQL_SCALAR_TYPE, "int", "int", ""));
+        inputTypes.add(new TypeCompletion(GRAPHQL_SCALAR_TYPE, "string", "string", ""));
+        inputTypes.add(new TypeCompletion(GRAPHQL_SCALAR_TYPE, "boolean", "boolean", ""));
+        inputTypes.add(new TypeCompletion(GRAPHQL_SCALAR_TYPE, "decimal", "decimal", ""));
+        inputTypes.add(new TypeCompletion(GRAPHQL_SCALAR_TYPE, "float", "float", ""));
 
+        returnTypes.addAll(inputTypes);
+        returnTypes.add(new TypeCompletion("Error Types", "error", "error", ""));
         DEFAULT_HTTP_STATUS_RESPONSES = Collections.unmodifiableList(defaultResponses);
-        DEFAULT_GRAPHQL_RETURN_TYPES = Collections.unmodifiableList(graphqlScalars);
+        DEFAULT_GRAPHQL_RETURN_TYPES = Collections.unmodifiableList(returnTypes);
+        DEFAULT_GRAPHQL_INPUT_TYPES = Collections.unmodifiableList(inputTypes);
     }
 
     public static List<TypeCompletion> getTypes(Project project, String context) {
         switch (context) {
             case GRAPHQL_FIELD_TYPE -> {
-                return getGraphqlReturnTypes(project);
+                return getGraphqlTypes(project, false);
+            }
+            case GRAPHQL_INPUT_TYPE -> {
+                return getGraphqlTypes(project, true);
             }
             default -> {
                 return getTypes(project);
@@ -225,7 +235,7 @@ public class TypeCompletionGenerator {
                                             String statusCode = HttpUtil.HTTP_CODES.get(typeReferenceName);
                                             String typeName = typeDef.typeName().text();
                                             typeCompletions.add(new TypeCompletion(
-                                                    "User Defined", typeName, typeName, statusCode));
+                                                    GRAPHQL_USER_DEFINED_TYPE, typeName, typeName, statusCode));
                                         }
                                     }
                                 }
@@ -240,23 +250,31 @@ public class TypeCompletionGenerator {
         return typeCompletions;
     }
 
-    private static List<TypeCompletion> getGraphqlReturnTypes(Project project) {
-        List<TypeCompletion> typeCompletions = new ArrayList<>(DEFAULT_GRAPHQL_RETURN_TYPES);
-
+    private static List<TypeCompletion> getGraphqlTypes(Project project, Boolean isInput) {
+        List<TypeCompletion> typeCompletions =
+                new ArrayList<>(isInput ? DEFAULT_GRAPHQL_INPUT_TYPES : DEFAULT_GRAPHQL_RETURN_TYPES);
         Module defaultModule = project.currentPackage().getDefaultModule();
         defaultModule.documentIds().forEach(
             documentId -> {
                 Document document = defaultModule.document(documentId);
                 ModulePartNode modulePartNode = document.syntaxTree().rootNode();
                 for (Node member : modulePartNode.members()) {
-                    if (member.kind() == SyntaxKind.TYPE_DEFINITION) {
-                        TypeDefinitionNode typeDef = (TypeDefinitionNode) member;
-                        String typeName = typeDef.typeName().text();
-                        typeCompletions.add(new TypeCompletion("User Defined", typeName, typeName, null));
-                    } else if (member.kind() == SyntaxKind.CLASS_DEFINITION) {
-                        ClassDefinitionNode classDef = (ClassDefinitionNode) member;
-                        String typeName = classDef.className().text();
-                        typeCompletions.add(new TypeCompletion("User Defined", typeName, typeName, null));
+                    if (member instanceof TypeDefinitionNode typeDefNode &&
+                            typeDefNode.typeDescriptor().kind() == SyntaxKind.RECORD_TYPE_DESC && isInput) {
+                        String typeName = typeDefNode.typeName().text();
+                        typeCompletions.add(new TypeCompletion(GRAPHQL_USER_DEFINED_TYPE, typeName, typeName,
+                                null));
+                    } else if (member instanceof TypeDefinitionNode typeDefNode && !isInput) {
+                        String typeName = typeDefNode.typeName().text();
+                        typeCompletions.add(new TypeCompletion(GRAPHQL_USER_DEFINED_TYPE, typeName, typeName,
+                                null));
+                    } else if (member instanceof ClassDefinitionNode classDefNode && !isInput) {
+                        String typeName = classDefNode.className().text();
+                        typeCompletions.add(new TypeCompletion(GRAPHQL_USER_DEFINED_TYPE, typeName, typeName,
+                                null));
+                    } else if (member instanceof EnumDeclarationNode enumNode) {
+                        String typeName = enumNode.identifier().toString().trim();
+                        typeCompletions.add(new TypeCompletion(GRAPHQL_ENUM_TYPE, typeName, typeName, null));
                     }
                 }
             });
