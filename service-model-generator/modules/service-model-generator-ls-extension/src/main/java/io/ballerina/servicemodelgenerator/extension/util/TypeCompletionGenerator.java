@@ -259,13 +259,14 @@ public class TypeCompletionGenerator {
                 Document document = defaultModule.document(documentId);
                 ModulePartNode modulePartNode = document.syntaxTree().rootNode();
                 for (Node member : modulePartNode.members()) {
-                    if (member instanceof TypeDefinitionNode typeDefNode &&
-                            typeDefNode.typeDescriptor().kind() == SyntaxKind.RECORD_TYPE_DESC && isInput) {
-                        String typeName = typeDefNode.typeName().text();
-                        typeCompletions.add(new TypeCompletion(GRAPHQL_USER_DEFINED_TYPE, typeName, typeName));
-                    } else if (member instanceof TypeDefinitionNode typeDefNode && !isInput) {
-                        String typeName = typeDefNode.typeName().text();
-                        typeCompletions.add(new TypeCompletion(GRAPHQL_USER_DEFINED_TYPE, typeName, typeName));
+                    if (member instanceof TypeDefinitionNode typeDefNode) {
+                        if (typeDefNode.typeDescriptor().kind() == SyntaxKind.RECORD_TYPE_DESC && isInput) {
+                            String typeName = typeDefNode.typeName().text();
+                            typeCompletions.add(new TypeCompletion(GRAPHQL_USER_DEFINED_TYPE, typeName, typeName));
+                        } else if (!isInput) {
+                            String typeName = typeDefNode.typeName().text();
+                            typeCompletions.add(new TypeCompletion(GRAPHQL_USER_DEFINED_TYPE, typeName, typeName));
+                        }
                     } else if (member instanceof ClassDefinitionNode classDefNode && !isInput) {
                         String typeName = classDefNode.className().text();
                         typeCompletions.add(new TypeCompletion(GRAPHQL_USER_DEFINED_TYPE, typeName, typeName));
