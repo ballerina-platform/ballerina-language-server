@@ -250,7 +250,7 @@ public class TypeCompletionGenerator {
         return typeCompletions;
     }
 
-    private static List<TypeCompletion> getGraphqlTypes(Project project, Boolean isInput) {
+    private static List<TypeCompletion> getGraphqlTypes(Project project, boolean isInput) {
         List<TypeCompletion> typeCompletions =
                 new ArrayList<>(isInput ? DEFAULT_GRAPHQL_INPUT_TYPES : DEFAULT_GRAPHQL_RETURN_TYPES);
         Module defaultModule = project.currentPackage().getDefaultModule();
@@ -262,19 +262,16 @@ public class TypeCompletionGenerator {
                     if (member instanceof TypeDefinitionNode typeDefNode &&
                             typeDefNode.typeDescriptor().kind() == SyntaxKind.RECORD_TYPE_DESC && isInput) {
                         String typeName = typeDefNode.typeName().text();
-                        typeCompletions.add(new TypeCompletion(GRAPHQL_USER_DEFINED_TYPE, typeName, typeName,
-                                null));
+                        typeCompletions.add(new TypeCompletion(GRAPHQL_USER_DEFINED_TYPE, typeName, typeName));
                     } else if (member instanceof TypeDefinitionNode typeDefNode && !isInput) {
                         String typeName = typeDefNode.typeName().text();
-                        typeCompletions.add(new TypeCompletion(GRAPHQL_USER_DEFINED_TYPE, typeName, typeName,
-                                null));
+                        typeCompletions.add(new TypeCompletion(GRAPHQL_USER_DEFINED_TYPE, typeName, typeName));
                     } else if (member instanceof ClassDefinitionNode classDefNode && !isInput) {
                         String typeName = classDefNode.className().text();
-                        typeCompletions.add(new TypeCompletion(GRAPHQL_USER_DEFINED_TYPE, typeName, typeName,
-                                null));
+                        typeCompletions.add(new TypeCompletion(GRAPHQL_USER_DEFINED_TYPE, typeName, typeName));
                     } else if (member instanceof EnumDeclarationNode enumNode) {
                         String typeName = enumNode.identifier().toString().trim();
-                        typeCompletions.add(new TypeCompletion(GRAPHQL_ENUM_TYPE, typeName, typeName, null));
+                        typeCompletions.add(new TypeCompletion(GRAPHQL_ENUM_TYPE, typeName, typeName));
                     }
                 }
             });
