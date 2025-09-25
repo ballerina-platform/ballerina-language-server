@@ -183,14 +183,14 @@ public class TypeCompletionGenerator {
                 "5XX", "Network Authentication Required", "http:NetworkAuthenticationRequired", "511"));
 
         // GraphQL Scalar types
-        inputTypes.add(new TypeCompletion(GRAPHQL_SCALAR_TYPE, "int", "int", ""));
-        inputTypes.add(new TypeCompletion(GRAPHQL_SCALAR_TYPE, "string", "string", ""));
-        inputTypes.add(new TypeCompletion(GRAPHQL_SCALAR_TYPE, "boolean", "boolean", ""));
-        inputTypes.add(new TypeCompletion(GRAPHQL_SCALAR_TYPE, "decimal", "decimal", ""));
-        inputTypes.add(new TypeCompletion(GRAPHQL_SCALAR_TYPE, "float", "float", ""));
+        inputTypes.add(new TypeCompletion(GRAPHQL_SCALAR_TYPE, "int", "int"));
+        inputTypes.add(new TypeCompletion(GRAPHQL_SCALAR_TYPE, "string", "string"));
+        inputTypes.add(new TypeCompletion(GRAPHQL_SCALAR_TYPE, "boolean", "boolean"));
+        inputTypes.add(new TypeCompletion(GRAPHQL_SCALAR_TYPE, "decimal", "decimal"));
+        inputTypes.add(new TypeCompletion(GRAPHQL_SCALAR_TYPE, "float", "float"));
 
         returnTypes.addAll(inputTypes);
-        returnTypes.add(new TypeCompletion("Error Types", "error", "error", ""));
+        returnTypes.add(new TypeCompletion("Error Types", "error", "error"));
         DEFAULT_HTTP_STATUS_RESPONSES = Collections.unmodifiableList(defaultResponses);
         DEFAULT_GRAPHQL_RETURN_TYPES = Collections.unmodifiableList(returnTypes);
         DEFAULT_GRAPHQL_INPUT_TYPES = Collections.unmodifiableList(inputTypes);

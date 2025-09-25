@@ -7,32 +7,27 @@
       {
         "category": "Scalar Types",
         "label": "int",
-        "type": "int",
-        "statusCode": ""
+        "type": "int"
       },
       {
         "category": "Scalar Types",
         "label": "string",
-        "type": "string",
-        "statusCode": ""
+        "type": "string"
       },
       {
         "category": "Scalar Types",
         "label": "boolean",
-        "type": "boolean",
-        "statusCode": ""
+        "type": "boolean"
       },
       {
         "category": "Scalar Types",
         "label": "decimal",
-        "type": "decimal",
-        "statusCode": ""
+        "type": "decimal"
       },
       {
         "category": "Scalar Types",
         "label": "float",
-        "type": "float",
-        "statusCode": ""
+        "type": "float"
       },
       {
         "category": "User Defined",
