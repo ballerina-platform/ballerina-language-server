@@ -249,31 +249,36 @@
       },
       "valueType": "ACTION_TYPE",
       "value": "string",
-      "items": [
-        "nullableAction"
-      ],
       "properties": {
-        "actionNullableTrue": {
-          "metadata": {
-            "label": "Action Nullable True",
-            "description": "The field is a nullable value"
+        "nullableAction": {
+          "properties": {
+            "true": {
+              "metadata": {
+                "label": "Action Nullable True",
+                "description": "The field is a nullable value"
+              },
+              "valueType": "STRING",
+              "value": "",
+              "enabled": true,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            },
+            "false": {
+              "metadata": {
+                "label": "Action Nullable False",
+                "description": "The field returns a non-nullable value"
+              },
+              "valueType": "STRING",
+              "value": "Mark type as nullable",
+              "enabled": true,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            }
           },
-          "valueType": "STRING",
-          "value": "",
-          "enabled": true,
-          "editable": true,
-          "optional": false,
-          "advanced": false
-        },
-        "actionNullableFalse": {
-          "metadata": {
-            "label": "Action Nullable False",
-            "description": "The field returns a non-nullable value"
-          },
-          "valueType": "STRING",
-          "value": "Mark type as nullable",
-          "enabled": true,
-          "editable": true,
+          "enabled": false,
+          "editable": false,
           "optional": false,
           "advanced": false
         }
