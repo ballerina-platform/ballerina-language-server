@@ -179,6 +179,7 @@ public abstract class AbstractFunctionBuilder implements NodeBuilder<Function> {
             functionModel.setAccessor(null);
             functionModel.getName().setEditable(false);
             functionModel.getReturnType().setEditable(false);
+            functionModel.getReturnType().setEnabled(false);
             if (context == SERVICE_DIAGRAM) {
                 functionModel.setSchema(null);
                 return functionModel;
