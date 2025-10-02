@@ -527,7 +527,7 @@
                 "true": {
                   "metadata": {
                     "label": "Action Nullable True",
-                    "description": "The field is a nullable value"
+                    "description": "The field returns a nullable value"
                   },
                   "valueType": "STRING",
                   "value": "",
@@ -962,7 +962,7 @@
                 "true": {
                   "metadata": {
                     "label": "Action Nullable True",
-                    "description": "The field is a nullable value"
+                    "description": "The field returns a nullable value"
                   },
                   "valueType": "STRING",
                   "value": "",
@@ -1282,7 +1282,7 @@
                 "true": {
                   "metadata": {
                     "label": "Action Nullable True",
-                    "description": "The field is a nullable value"
+                    "description": "The field returns a nullable value"
                   },
                   "valueType": "STRING",
                   "value": "",
