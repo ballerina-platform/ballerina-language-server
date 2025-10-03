@@ -26,6 +26,7 @@ import io.ballerina.projects.Document;
 import io.ballerina.servicemodelgenerator.extension.builder.function.DefaultFunctionBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.function.GraphqlFunctionBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.function.HttpFunctionBuilder;
+import io.ballerina.servicemodelgenerator.extension.builder.function.McpFunctionBuilder;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.context.AddModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.context.GetModelContext;
@@ -41,6 +42,7 @@ import java.util.function.Supplier;
 
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.GRAPHQL;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.HTTP;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.MCP;
 
 /**
  * Represents the function builder router of the service model generator.
@@ -51,6 +53,7 @@ public class FunctionBuilderRouter {
     private static final Map<String, Supplier<? extends NodeBuilder<Function>>> CONSTRUCTOR_MAP = new HashMap<>() {{
         put(HTTP, HttpFunctionBuilder::new);
         put(GRAPHQL, GraphqlFunctionBuilder::new);
+        put(MCP, McpFunctionBuilder::new);
     }};
 
     private static NodeBuilder<Function> getFunctionBuilder(String protocol) {
