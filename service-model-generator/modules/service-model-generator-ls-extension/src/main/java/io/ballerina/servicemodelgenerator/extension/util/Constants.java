@@ -170,7 +170,7 @@ public class Constants {
     public static final String BALLERINA = "ballerina";
 
     // types
-    public static final String USER_DEFINED_TYPE = "User Defined";
+    public static final String USER_DEFINED_TYPE = "User-Defined";
     public static final String ERROR_TYPE = "Error Types";
 
     // annotation attachment points

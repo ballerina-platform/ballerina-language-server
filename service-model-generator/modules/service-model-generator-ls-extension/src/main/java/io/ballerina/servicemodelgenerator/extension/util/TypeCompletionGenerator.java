@@ -208,12 +208,12 @@ public class TypeCompletionGenerator {
                 return getGraphqlTypes(project, true);
             }
             default -> {
-                return getTypes(project);
+                return getHttpTypes(project);
             }
         }
     }
 
-    public static List<CompletionItem> getTypes(Project project) {
+    public static List<CompletionItem> getHttpTypes(Project project) {
         // Add the default http status code types
         List<CompletionItem> completionItems = new ArrayList<>(DEFAULT_HTTP_STATUS_RESPONSES);
 
@@ -255,29 +255,30 @@ public class TypeCompletionGenerator {
 
     private static List<CompletionItem> getGraphqlTypes(Project project, boolean isInput) {
         Module defaultModule = project.currentPackage().getDefaultModule();
-        List<CompletionItem> completionItems = new ArrayList<>(isInput ? DEFAULT_GRAPHQL_INPUT_TYPES : DEFAULT_GRAPHQL_RETURN_TYPES);
+        List<CompletionItem> completionItems = new ArrayList<>(isInput ? DEFAULT_GRAPHQL_INPUT_TYPES :
+                DEFAULT_GRAPHQL_RETURN_TYPES);
         defaultModule.documentIds().forEach(
-            documentId -> {
-                Document document = defaultModule.document(documentId);
-                ModulePartNode modulePartNode = document.syntaxTree().rootNode();
-                for (Node member : modulePartNode.members()) {
-                    if (member instanceof TypeDefinitionNode typeDefNode) {
-                        if (typeDefNode.typeDescriptor().kind() == SyntaxKind.RECORD_TYPE_DESC && isInput) {
-                            String typeName = typeDefNode.typeName().text();
+                documentId -> {
+                    Document document = defaultModule.document(documentId);
+                    ModulePartNode modulePartNode = document.syntaxTree().rootNode();
+                    for (Node member : modulePartNode.members()) {
+                        if (member instanceof TypeDefinitionNode typeDefNode) {
+                            if (typeDefNode.typeDescriptor().kind() == SyntaxKind.RECORD_TYPE_DESC && isInput) {
+                                String typeName = typeDefNode.typeName().text();
+                                completionItems.add(build(USER_DEFINED_TYPE, typeName, typeName));
+                            } else if (!isInput) {
+                                String typeName = typeDefNode.typeName().text();
+                                completionItems.add(build(USER_DEFINED_TYPE, typeName, typeName));
+                            }
+                        } else if (member instanceof ClassDefinitionNode classDefNode && !isInput) {
+                            String typeName = classDefNode.className().text();
                             completionItems.add(build(USER_DEFINED_TYPE, typeName, typeName));
-                        } else if (!isInput) {
-                            String typeName = typeDefNode.typeName().text();
-                            completionItems.add(build(USER_DEFINED_TYPE, typeName, typeName));
+                        } else if (member instanceof EnumDeclarationNode enumNode) {
+                            String typeName = enumNode.identifier().toString().trim();
+                            completionItems.add(build(GRAPHQL_ENUM_TYPE, typeName, typeName));
                         }
-                    } else if (member instanceof ClassDefinitionNode classDefNode && !isInput) {
-                        String typeName = classDefNode.className().text();
-                        completionItems.add(build(USER_DEFINED_TYPE, typeName, typeName));
-                    } else if (member instanceof EnumDeclarationNode enumNode) {
-                        String typeName = enumNode.identifier().toString().trim();
-                        completionItems.add(build(GRAPHQL_ENUM_TYPE, typeName, typeName));
                     }
-                }
-            });
+                });
         return completionItems;
     }
 
@@ -289,7 +290,7 @@ public class TypeCompletionGenerator {
         labelDetails.setDescription(category);
         item.setLabelDetails(labelDetails);
 
-        if (category.equals(GRAPHQL_SCALAR_TYPE) ) {
+        if (category.equals(GRAPHQL_SCALAR_TYPE)) {
             item.setKind(CompletionItemKind.TypeParameter);
         } else if (category.equals(USER_DEFINED_TYPE)) {
             item.setKind(CompletionItemKind.Interface);
@@ -306,7 +307,7 @@ public class TypeCompletionGenerator {
         return item;
     }
 
-    private static CompletionItem build(String category, String label, String type, String statusCode ) {
+    private static CompletionItem build(String category, String label, String type, String statusCode) {
         CompletionItem item = build(category, label, type);
         item.getLabelDetails().setDetail(statusCode);
         return item;
