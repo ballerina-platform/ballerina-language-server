@@ -556,7 +556,7 @@
       "label" : "Json202Accepted",
       "labelDetails" : {
         "detail" : "202",
-        "description" : "User Defined"
+        "description" : "User-Defined"
       },
       "kind" : "Interface",
       "detail" : "Json202Accepted",
