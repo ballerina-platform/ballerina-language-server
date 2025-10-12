@@ -2187,7 +2187,8 @@
           "name": "id",
           "optional": false,
           "readonly": false,
-          "docs": ""
+          "docs": "",
+          "includedIn": "Person"
         },
         {
           "kind": "FIELD",
@@ -2196,7 +2197,8 @@
           "name": "name",
           "optional": false,
           "readonly": false,
-          "docs": ""
+          "docs": "",
+          "includedIn": "Person"
         },
         {
           "kind": "FIELD",
@@ -2249,7 +2251,8 @@
           "name": "addresses",
           "optional": false,
           "readonly": false,
-          "docs": ""
+          "docs": "",
+          "includedIn": "Person"
         },
         {
           "kind": "FIELD",
@@ -2260,7 +2263,8 @@
           "name": "dob",
           "optional": false,
           "readonly": false,
-          "docs": ""
+          "docs": "",
+          "includedIn": "Person"
         }
       ],
       "includes": [
@@ -3113,7 +3117,8 @@
           "name": "studentId",
           "optional": false,
           "readonly": false,
-          "docs": ""
+          "docs": "",
+          "includedIn": "Student"
         },
         {
           "kind": "FIELD",
@@ -3122,7 +3127,8 @@
           "name": "id",
           "optional": false,
           "readonly": false,
-          "docs": ""
+          "docs": "",
+          "includedIn": "Student"
         },
         {
           "kind": "FIELD",
@@ -3131,7 +3137,8 @@
           "name": "name",
           "optional": false,
           "readonly": false,
-          "docs": ""
+          "docs": "",
+          "includedIn": "Student"
         },
         {
           "kind": "FIELD",
@@ -3184,7 +3191,8 @@
           "name": "addresses",
           "optional": false,
           "readonly": false,
-          "docs": ""
+          "docs": "",
+          "includedIn": "Student"
         },
         {
           "kind": "FIELD",
@@ -3195,7 +3203,8 @@
           "name": "dob",
           "optional": false,
           "readonly": false,
-          "docs": ""
+          "docs": "",
+          "includedIn": "Student"
         }
       ],
       "includes": [

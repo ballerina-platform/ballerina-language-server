@@ -448,7 +448,8 @@
           "name": "city",
           "optional": false,
           "readonly": false,
-          "docs": ""
+          "docs": "",
+          "includedIn": "City"
         },
         {
           "kind": "FIELD",
@@ -457,7 +458,8 @@
           "name": "country",
           "optional": false,
           "readonly": false,
-          "docs": ""
+          "docs": "",
+          "includedIn": "City"
         }
       ],
       "restMember": {

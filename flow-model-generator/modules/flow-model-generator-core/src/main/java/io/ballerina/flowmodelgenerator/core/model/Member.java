@@ -35,6 +35,7 @@ import java.util.Map;
  * @param docs          Documentation of the member
  * @param annotations   Annotations of the member.
  * @param imports       Imports of the member.
+ * @param includedIn    The type inclusion this field comes from (null if from the record itself).
  * @since 1.0.0
  */
 public record Member(
@@ -47,7 +48,8 @@ public record Member(
         boolean readonly,
         String docs,
         List<TypeData.Annotation> annotations,
-        Map<String, String> imports
+        Map<String, String> imports,
+        String includedIn
 ) {
     public static class MemberBuilder {
         private Member.MemberKind kind;
@@ -60,6 +62,7 @@ public record Member(
         private String docs;
         private List<TypeData.Annotation> annotations;
         private Map<String, String> imports;
+        private String includedIn;
 
         public MemberBuilder() {
         }
@@ -114,12 +117,18 @@ public record Member(
             return this;
         }
 
+        public MemberBuilder includedIn(String includedIn) {
+            this.includedIn = includedIn;
+            return this;
+        }
+
         public Member build() {
             Member member = new Member(
                     kind, refs != null ? List.copyOf(refs) : null,
                     type, name, defaultValue, optional, readonly, docs,
                     annotations != null ? List.copyOf(annotations) : null,
-                    imports != null ? Map.copyOf(imports) : null
+                    imports != null ? Map.copyOf(imports) : null,
+                    includedIn
             );
             this.kind = null;
             this.refs = null;
@@ -131,6 +140,7 @@ public record Member(
             this.docs = null;
             this.annotations = null;
             this.imports = null;
+            this.includedIn = null;
             return member;
         }
     }

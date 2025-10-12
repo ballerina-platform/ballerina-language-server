@@ -47,6 +47,7 @@ import io.ballerina.compiler.api.symbols.TupleTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeDefinitionSymbol;
 import io.ballerina.compiler.api.symbols.TypeDescKind;
 import io.ballerina.compiler.api.symbols.TypeDescTypeSymbol;
+import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
 import io.ballerina.compiler.api.values.ConstantValue;
@@ -64,6 +65,7 @@ import io.ballerina.projects.Document;
 import io.ballerina.projects.Module;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -300,8 +302,20 @@ public class TypeTransformer {
 
         // includes
         List<String> includes = new ArrayList<>();
+        Map<String, String> fieldToInclusionMap = new HashMap<>();
         recordTypeSymbol.typeInclusions().forEach(typeInclusion -> {
-            includes.add(CommonUtils.getTypeSignature(typeInclusion, this.moduleInfo));
+            String inclusionSignature = CommonUtils.getTypeSignature(typeInclusion, this.moduleInfo);
+            includes.add(inclusionSignature);
+
+            // Assume that type inclusion is always a type reference
+            TypeDefinitionSymbol typeDef =
+                    (TypeDefinitionSymbol) ((TypeReferenceTypeSymbol) typeInclusion).definition();
+            if (typeDef.typeDescriptor().typeKind() == TypeDescKind.RECORD) {
+                RecordTypeSymbol referencedRecord = (RecordTypeSymbol) typeDef.typeDescriptor();
+                referencedRecord.fieldDescriptors().forEach((fieldName, fieldSymbol) -> {
+                    fieldToInclusionMap.put(fieldName, inclusionSignature);
+                });
+            }
         });
         typeDataBuilder.includes(includes);
 
@@ -329,6 +343,10 @@ public class TypeTransformer {
         recordTypeSymbol.fieldDescriptors().forEach((fieldName, fieldSymbol) -> {
             TypeData.TypeDataBuilder memberTypeDataBuilder = new TypeData.TypeDataBuilder();
             Object transformedFieldType = transform(fieldSymbol.typeDescriptor(), memberTypeDataBuilder);
+
+            // Check if this field comes from a type inclusion
+            String includedIn = fieldToInclusionMap.get(fieldName);
+
             Member member = memberBuilder
                     .name(fieldSymbol.getName().orElse(fieldName))
                     .kind(Member.MemberKind.FIELD)
@@ -338,6 +356,7 @@ public class TypeTransformer {
                     .refs(getTypeRefs(transformedFieldType, fieldSymbol.typeDescriptor()))
                     .docs(getDocumentString(fieldSymbol))
                     .defaultValue(getDefaultValueOfField(typeDataBuilder.name(), fieldName).orElse(null))
+                    .includedIn(includedIn) // Add inclusion source information
                     .build();
             fieldMembers.add(member);
         });

@@ -145,3 +145,26 @@ type User5 readonly & (User1 | Person);
 type OrderWrapper record {|
     string 'order;
 |};
+
+type UndergraduateStudent record {|
+	string major;
+	float|decimal universityCode;
+	string university;
+|};
+
+type EngineeringStudent record {|
+    *Student;
+	*UndergraduateStudent;
+	int studentId;
+	decimal universityCode;
+	int year;
+|};
+
+type Rec1 record {|
+  int|decimal id;
+|};
+
+type Rec2 record {|
+  *Rec1;
+  int|decimal id;
+|};

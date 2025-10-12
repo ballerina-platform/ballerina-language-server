@@ -1,15 +1,15 @@
 {
   "filePath": "test_pack1/types.bal",
   "position": {
-    "line": 37,
+    "line": 154,
     "offset": 5
   },
-  "description": "Get a record type data",
+  "description": "Get a record type with inclusions",
   "type": {
-    "name": "Student",
+    "name": "EngineeringStudent",
     "editable": true,
     "metadata": {
-      "label": "Student",
+      "label": "EngineeringStudent",
       "description": ""
     },
     "codedata": {
@@ -17,12 +17,12 @@
       "lineRange": {
         "fileName": "types.bal",
         "startLine": {
-          "line": 37,
+          "line": 154,
           "offset": 5
         },
         "endLine": {
-          "line": 37,
-          "offset": 12
+          "line": 154,
+          "offset": 23
         }
       }
     },
@@ -33,7 +33,7 @@
           "description": "Unique name to identify the type"
         },
         "valueType": "IDENTIFIER",
-        "value": "Student",
+        "value": "EngineeringStudent",
         "optional": false,
         "editable": false,
         "advanced": false,
@@ -94,7 +94,26 @@
         "refs": [],
         "type": "int",
         "name": "studentId",
-        "defaultValue": "22",
+        "optional": false,
+        "readonly": false,
+        "docs": "",
+        "includedIn": "Student"
+      },
+      {
+        "kind": "FIELD",
+        "refs": [],
+        "type": "decimal",
+        "name": "universityCode",
+        "optional": false,
+        "readonly": false,
+        "docs": "",
+        "includedIn": "UndergraduateStudent"
+      },
+      {
+        "kind": "FIELD",
+        "refs": [],
+        "type": "int",
+        "name": "year",
         "optional": false,
         "readonly": false,
         "docs": ""
@@ -107,7 +126,7 @@
         "optional": false,
         "readonly": false,
         "docs": "",
-        "includedIn": "Person"
+        "includedIn": "Student"
       },
       {
         "kind": "FIELD",
@@ -117,7 +136,7 @@
         "optional": false,
         "readonly": false,
         "docs": "",
-        "includedIn": "Person"
+        "includedIn": "Student"
       },
       {
         "kind": "FIELD",
@@ -171,7 +190,7 @@
         "optional": false,
         "readonly": false,
         "docs": "",
-        "includedIn": "Person"
+        "includedIn": "Student"
       },
       {
         "kind": "FIELD",
@@ -183,11 +202,32 @@
         "optional": false,
         "readonly": false,
         "docs": "",
-        "includedIn": "Person"
+        "includedIn": "Student"
+      },
+      {
+        "kind": "FIELD",
+        "refs": [],
+        "type": "string",
+        "name": "major",
+        "optional": false,
+        "readonly": false,
+        "docs": "",
+        "includedIn": "UndergraduateStudent"
+      },
+      {
+        "kind": "FIELD",
+        "refs": [],
+        "type": "string",
+        "name": "university",
+        "optional": false,
+        "readonly": false,
+        "docs": "",
+        "includedIn": "UndergraduateStudent"
       }
     ],
     "includes": [
-      "Person"
+      "Student",
+      "UndergraduateStudent"
     ],
     "allowAdditionalFields": false
   },
@@ -441,6 +481,192 @@
       "allowAdditionalFields": false
     },
     {
+      "name": "Student",
+      "editable": true,
+      "metadata": {
+        "label": "Student",
+        "description": ""
+      },
+      "codedata": {
+        "node": "RECORD",
+        "lineRange": {
+          "fileName": "types.bal",
+          "startLine": {
+            "line": 37,
+            "offset": 5
+          },
+          "endLine": {
+            "line": 37,
+            "offset": 12
+          }
+        }
+      },
+      "properties": {
+        "name": {
+          "metadata": {
+            "label": "Type name",
+            "description": "Unique name to identify the type"
+          },
+          "valueType": "IDENTIFIER",
+          "value": "Student",
+          "optional": false,
+          "editable": false,
+          "advanced": false,
+          "hidden": false
+        },
+        "isPublic": {
+          "metadata": {
+            "label": "public",
+            "description": "Is this public"
+          },
+          "valueType": "FLAG",
+          "value": "false",
+          "optional": true,
+          "editable": true,
+          "advanced": false,
+          "hidden": false
+        },
+        "description": {
+          "metadata": {
+            "label": "Type description",
+            "description": "Detailed description about the type"
+          },
+          "valueType": "STRING",
+          "value": "",
+          "optional": false,
+          "editable": true,
+          "advanced": false,
+          "hidden": false
+        },
+        "isArray": {
+          "metadata": {
+            "label": "Is array type",
+            "description": "Is this type an array or list value"
+          },
+          "valueType": "FLAG",
+          "value": "false",
+          "optional": true,
+          "editable": true,
+          "advanced": true,
+          "hidden": false
+        },
+        "arraySize": {
+          "metadata": {
+            "label": "Size of the array",
+            "description": "Array dimensions"
+          },
+          "valueType": "STRING",
+          "value": "",
+          "optional": true,
+          "editable": true,
+          "advanced": true,
+          "hidden": false
+        }
+      },
+      "members": [
+        {
+          "kind": "FIELD",
+          "refs": [],
+          "type": "int",
+          "name": "studentId",
+          "defaultValue": "22",
+          "optional": false,
+          "readonly": false,
+          "docs": ""
+        },
+        {
+          "kind": "FIELD",
+          "refs": [],
+          "type": "int",
+          "name": "id",
+          "optional": false,
+          "readonly": false,
+          "docs": "",
+          "includedIn": "Person"
+        },
+        {
+          "kind": "FIELD",
+          "refs": [],
+          "type": "string",
+          "name": "name",
+          "optional": false,
+          "readonly": false,
+          "docs": "",
+          "includedIn": "Person"
+        },
+        {
+          "kind": "FIELD",
+          "refs": [],
+          "type": {
+            "editable": false,
+            "codedata": {
+              "node": "ARRAY"
+            },
+            "properties": {
+              "isArray": {
+                "metadata": {
+                  "label": "Is array type",
+                  "description": "Is this type an array or list value"
+                },
+                "valueType": "FLAG",
+                "value": "true",
+                "optional": true,
+                "editable": true,
+                "advanced": true,
+                "hidden": false
+              },
+              "arraySize": {
+                "metadata": {
+                  "label": "Size of the array",
+                  "description": "Array dimensions"
+                },
+                "valueType": "STRING",
+                "value": "",
+                "optional": true,
+                "editable": true,
+                "advanced": true,
+                "hidden": false
+              }
+            },
+            "members": [
+              {
+                "kind": "TYPE",
+                "refs": [
+                  "Address"
+                ],
+                "type": "Address",
+                "name": "Address",
+                "optional": false,
+                "readonly": false
+              }
+            ],
+            "allowAdditionalFields": false
+          },
+          "name": "addresses",
+          "optional": false,
+          "readonly": false,
+          "docs": "",
+          "includedIn": "Person"
+        },
+        {
+          "kind": "FIELD",
+          "refs": [
+            "ballerina/time:Utc"
+          ],
+          "type": "time:Utc",
+          "name": "dob",
+          "optional": false,
+          "readonly": false,
+          "docs": "",
+          "includedIn": "Person"
+        }
+      ],
+      "includes": [
+        "Person"
+      ],
+      "allowAdditionalFields": false
+    },
+    {
       "name": "Person",
       "editable": true,
       "metadata": {
@@ -609,6 +835,171 @@
           "optional": false,
           "readonly": false,
           "docs": "date of birth"
+        }
+      ],
+      "includes": [],
+      "allowAdditionalFields": false
+    },
+    {
+      "name": "UndergraduateStudent",
+      "editable": true,
+      "metadata": {
+        "label": "UndergraduateStudent",
+        "description": ""
+      },
+      "codedata": {
+        "node": "RECORD",
+        "lineRange": {
+          "fileName": "types.bal",
+          "startLine": {
+            "line": 148,
+            "offset": 5
+          },
+          "endLine": {
+            "line": 148,
+            "offset": 25
+          }
+        }
+      },
+      "properties": {
+        "name": {
+          "metadata": {
+            "label": "Type name",
+            "description": "Unique name to identify the type"
+          },
+          "valueType": "IDENTIFIER",
+          "value": "UndergraduateStudent",
+          "optional": false,
+          "editable": false,
+          "advanced": false,
+          "hidden": false
+        },
+        "isPublic": {
+          "metadata": {
+            "label": "public",
+            "description": "Is this public"
+          },
+          "valueType": "FLAG",
+          "value": "false",
+          "optional": true,
+          "editable": true,
+          "advanced": false,
+          "hidden": false
+        },
+        "description": {
+          "metadata": {
+            "label": "Type description",
+            "description": "Detailed description about the type"
+          },
+          "valueType": "STRING",
+          "value": "",
+          "optional": false,
+          "editable": true,
+          "advanced": false,
+          "hidden": false
+        },
+        "isArray": {
+          "metadata": {
+            "label": "Is array type",
+            "description": "Is this type an array or list value"
+          },
+          "valueType": "FLAG",
+          "value": "false",
+          "optional": true,
+          "editable": true,
+          "advanced": true,
+          "hidden": false
+        },
+        "arraySize": {
+          "metadata": {
+            "label": "Size of the array",
+            "description": "Array dimensions"
+          },
+          "valueType": "STRING",
+          "value": "",
+          "optional": true,
+          "editable": true,
+          "advanced": true,
+          "hidden": false
+        }
+      },
+      "members": [
+        {
+          "kind": "FIELD",
+          "refs": [],
+          "type": "string",
+          "name": "major",
+          "optional": false,
+          "readonly": false,
+          "docs": ""
+        },
+        {
+          "kind": "FIELD",
+          "refs": [],
+          "type": {
+            "editable": false,
+            "codedata": {
+              "node": "UNION"
+            },
+            "properties": {
+              "isArray": {
+                "metadata": {
+                  "label": "Is array type",
+                  "description": "Is this type an array or list value"
+                },
+                "valueType": "FLAG",
+                "value": "false",
+                "optional": true,
+                "editable": true,
+                "advanced": true,
+                "hidden": false
+              },
+              "arraySize": {
+                "metadata": {
+                  "label": "Size of the array",
+                  "description": "Array dimensions"
+                },
+                "valueType": "STRING",
+                "value": "",
+                "optional": false,
+                "editable": false,
+                "advanced": false,
+                "hidden": false
+              }
+            },
+            "members": [
+              {
+                "kind": "TYPE",
+                "refs": [],
+                "type": "float",
+                "name": "float",
+                "optional": false,
+                "readonly": false
+              },
+              {
+                "kind": "TYPE",
+                "refs": [],
+                "type": "decimal",
+                "name": "decimal",
+                "optional": false,
+                "readonly": false
+              }
+            ],
+            "allowAdditionalFields": false
+          },
+          "name": "universityCode",
+          "optional": false,
+          "readonly": false,
+          "docs": ""
+        },
+        {
+          "kind": "FIELD",
+          "refs": [],
+          "type": "string",
+          "name": "university",
+          "optional": false,
+          "readonly": false,
+          "docs": ""
         }
       ],
       "includes": [],
