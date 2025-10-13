@@ -855,7 +855,8 @@ public class CommonUtils {
     }
 
     /**
-     * Checks if the given function is a data mapping function (expression-bodied function excluding natural expressions).
+     * Checks if the given function is a data mapping function (expression-bodied function excluding natural
+     * expressions).
      *
      * @param syntaxTree the syntax tree
      * @param functionSymbol the function symbol
