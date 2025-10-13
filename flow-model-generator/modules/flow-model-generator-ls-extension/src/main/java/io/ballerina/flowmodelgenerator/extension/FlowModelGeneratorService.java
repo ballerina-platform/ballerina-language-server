@@ -646,9 +646,10 @@ public class FlowModelGeneratorService implements ExtendedLanguageServerService 
 
                 Path projectPath = workspaceManager.projectRoot(filePath);
                 Optional<Document> functionsDoc = getDocumentFromFile(projectPath, "functions.bal");
+                Optional<Document> dataMappingsDoc = getDocumentFromFile(projectPath, "data_mappings.bal");
 
                 SearchCommand command = SearchCommand.from(searchKind, project, position, request.queryMap(),
-                        functionsDoc.orElse(null));
+                        functionsDoc.orElse(null), dataMappingsDoc.orElse(null));
                 response.setCategories(command.execute());
             } catch (Throwable e) {
                 response.setError(e);

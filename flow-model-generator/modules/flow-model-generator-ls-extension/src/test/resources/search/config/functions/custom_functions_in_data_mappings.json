@@ -1,0 +1,124 @@
+{
+  "description": "Functions in data_mappings.bal - only expression-bodied functions should be marked as data mapping functions",
+  "kind": "FUNCTION",
+  "source": "custom_func_proj/main.bal",
+  "position": {
+    "startLine": {
+      "line": 2,
+      "offset": 0
+    },
+    "endLine": {
+      "line": 4,
+      "offset": 1
+    }
+  },
+  "queryMap": {},
+  "categories": [
+    {
+      "metadata": {
+        "label": "Current Integration",
+        "description": "Functions defined within the current integration",
+        "keywords": [
+          "Project",
+          "Local",
+          "Function"
+        ]
+      },
+      "items": [
+        {
+          "metadata": {
+            "label": "customHelper",
+            "description": null,
+            "data": {
+              "isDataMappedFunction": false,
+              "isAgentTool": false,
+              "isIsolatedFunction": false
+            }
+          },
+          "codedata": {
+            "node": "FUNCTION_CALL",
+            "org": "test",
+            "module": "custom_func_proj",
+            "symbol": "customHelper",
+            "version": "0.1.0"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "mapPersonToEmployee",
+            "description": null,
+            "data": {
+              "isDataMappedFunction": true,
+              "isAgentTool": false,
+              "isIsolatedFunction": false
+            }
+          },
+          "codedata": {
+            "node": "FUNCTION_CALL",
+            "org": "test",
+            "module": "custom_func_proj",
+            "symbol": "mapPersonToEmployee",
+            "version": "0.1.0"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "validateAge",
+            "description": null,
+            "data": {
+              "isDataMappedFunction": false,
+              "isAgentTool": false,
+              "isIsolatedFunction": true
+            }
+          },
+          "codedata": {
+            "node": "FUNCTION_CALL",
+            "org": "test",
+            "module": "custom_func_proj",
+            "symbol": "validateAge",
+            "version": "0.1.0"
+          },
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "metadata": {
+        "label": "Agent Tools",
+        "description": "Functions used as agent tools",
+        "keywords": [
+          "Project",
+          "Local",
+          "Function"
+        ]
+      },
+      "items": []
+    },
+    {
+      "metadata": {
+        "label": "Imported Functions",
+        "description": "Functions imported from other integrations",
+        "keywords": [
+          "Imported",
+          "Function",
+          "Library"
+        ]
+      },
+      "items": []
+    },
+    {
+      "metadata": {
+        "label": "Available Functions",
+        "description": "Functions available in the library",
+        "keywords": [
+          "Available",
+          "Function",
+          "Library"
+        ]
+      },
+      "items": []
+    }
+  ]
+}

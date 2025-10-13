@@ -62,8 +62,13 @@ public abstract class SearchCommand {
 
     public static SearchCommand from(Kind kind, Project module, LineRange position, Map<String, String> queryMap,
                                      Document functionsDoc) {
+        return from(kind, module, position, queryMap, functionsDoc, null);
+    }
+
+    public static SearchCommand from(Kind kind, Project module, LineRange position, Map<String, String> queryMap,
+                                     Document functionsDoc, Document dataMappingsDoc) {
         return switch (kind) {
-            case FUNCTION -> new FunctionSearchCommand(module, position, queryMap, functionsDoc);
+            case FUNCTION -> new FunctionSearchCommand(module, position, queryMap, functionsDoc, dataMappingsDoc);
             case CONNECTOR -> new ConnectorSearchCommand(module, position, queryMap);
             case NP_FUNCTION -> new NPFunctionSearchCommand(module, position, queryMap, functionsDoc);
             case TYPE -> new TypeSearchCommand(module, position, queryMap);

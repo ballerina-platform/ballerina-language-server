@@ -86,9 +86,10 @@ class FunctionSearchCommand extends SearchCommand {
     private static final String FETCH_KEY = "functions";
     private final List<String> moduleNames;
     private final Document functionsDoc;
+    private final Document dataMappingsDoc;
 
     public FunctionSearchCommand(Project project, LineRange position, Map<String, String> queryMap,
-                                 Document functionsDoc) {
+                                 Document functionsDoc, Document dataMappingsDoc) {
         super(project, position, queryMap);
 
         // Obtain the imported module names
@@ -98,6 +99,7 @@ class FunctionSearchCommand extends SearchCommand {
                 .map(moduleDependency -> moduleDependency.descriptor().name().packageName().value())
                 .toList();
         this.functionsDoc = functionsDoc;
+        this.dataMappingsDoc = dataMappingsDoc;
         // TODO: Use this method when https://github.com/ballerina-platform/ballerina-lang/issues/43695 is fixed
         // List<String> moduleNames = semanticModel.moduleSymbols().stream()
         // .filter(symbol -> symbol.kind().equals(SymbolKind.MODULE))
@@ -204,8 +206,17 @@ class FunctionSearchCommand extends SearchCommand {
             boolean isDataMappedFunction = false;
             Optional<Location> location = symbol.getLocation();
             if (location.isPresent()) {
-                isDataMappedFunction = location.get().lineRange().fileName().equals(DATA_MAPPER_FILE_NAME);
                 LineRange fnLineRange = location.get().lineRange();
+                // Check if function is in data_mappings.bal and is an expression-bodied function (not a natural expression function)
+                if (fnLineRange.fileName().equals(DATA_MAPPER_FILE_NAME) && dataMappingsDoc != null) {
+                    // A function is a data mapping function if it's in data_mappings.bal AND
+                    // it's an expression-bodied function AND it's not a natural expression bodied function
+                    boolean isNaturalExprFunction = CommonUtils.isNaturalExpressionBodiedFunction(
+                            dataMappingsDoc.syntaxTree(), functionSymbol);
+                    if (!isNaturalExprFunction) {
+                        isDataMappedFunction = true;
+                    }
+                }
                 if (fnLineRange.fileName().equals(position.fileName()) &&
                         PositionUtil.isWithinLineRange(fnLineRange, position)) {
                     continue;
