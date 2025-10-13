@@ -242,6 +242,11 @@ public class XMLToRecordConverterTests {
     private final Path sample42Bal = RES_DIR.resolve(BAL_DIR)
             .resolve("sample_42.bal");
 
+    private final Path sample40XML = RES_DIR.resolve(XML_DIR)
+            .resolve("sample_40.xml");
+    private final Path sample43Bal = RES_DIR.resolve(BAL_DIR)
+            .resolve("sample_43.bal");
+
     private static final String XMLToRecordServiceEP = "xmlToRecord/convert";
 
 
@@ -475,7 +480,7 @@ public class XMLToRecordConverterTests {
         Endpoint serviceEndpoint = TestUtil.initializeLanguageSever();
         String xmlValue = Files.readString(sample0XML);
 
-        XMLToRecordRequest request = new XMLToRecordRequest(xmlValue, false, false, false, null, true, false, false);
+        XMLToRecordRequest request = new XMLToRecordRequest(xmlValue, false, false, false, null, true, false, false, null);
         CompletableFuture<?> result = serviceEndpoint.request(XMLToRecordServiceEP, request);
         XMLToRecordResponse response = (XMLToRecordResponse) result.get();
         String generatedCodeBlock = response.getCodeBlock().replaceAll("\\s+", "");
@@ -490,7 +495,7 @@ public class XMLToRecordConverterTests {
         String xmlValue = Files.readString(sample25XML);
 
         XMLToRecordRequest request = new XMLToRecordRequest(xmlValue, false, false, false, "__text",
-                false, false, false);
+                false, false, false, null);
         CompletableFuture<?> result = serviceEndpoint.request(XMLToRecordServiceEP, request);
         XMLToRecordResponse response = (XMLToRecordResponse) result.get();
         String generatedCodeBlock = response.getCodeBlock().replaceAll("\\s+", "");
@@ -639,6 +644,15 @@ public class XMLToRecordConverterTests {
         String generatedCodeBlock = XMLToRecordConverter.convert(xmlFileContent, false, false, false,
                 "__text", true, false, true).getCodeBlock().replaceAll("\\s+", "");
         String expectedCodeBlock = Files.readString(sample42Bal).replaceAll("\\s+", "");
+        Assert.assertEquals(generatedCodeBlock, expectedCodeBlock);
+    }
+
+    @Test(description = "testLibraryXMLWithRepeatingElements")
+    public void testLibraryXMLWithRepeatingElements() throws IOException {
+        String xmlFileContent = Files.readString(sample40XML);
+        String generatedCodeBlock = XMLToRecordConverter.convert(xmlFileContent, false, false, false)
+                .getCodeBlock().replaceAll("\\s+", "");
+        String expectedCodeBlock = Files.readString(sample43Bal).replaceAll("\\s+", "");
         Assert.assertEquals(generatedCodeBlock, expectedCodeBlock);
     }
 }
