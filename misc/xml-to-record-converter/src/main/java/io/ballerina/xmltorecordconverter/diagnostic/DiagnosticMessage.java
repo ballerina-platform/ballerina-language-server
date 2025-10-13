@@ -76,4 +76,9 @@ public class DiagnosticMessage {
         return new DiagnosticMessage("XML_TO_RECORD_CONVERTER_103",
                 "Error occurred while formatting the Ballerina syntax tree.", DiagnosticSeverity.ERROR, args);
     }
+
+    public static DiagnosticMessage xmlToRecordConverter104(Object[] args) {
+        return new DiagnosticMessage("XML_TO_RECORD_CONVERTER_104",
+                "Record type name '%s' already exists. Renaming to '%s'.", DiagnosticSeverity.WARNING, args);
+    }
 }

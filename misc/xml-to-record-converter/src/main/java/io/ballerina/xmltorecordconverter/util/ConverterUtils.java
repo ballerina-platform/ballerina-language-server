@@ -221,4 +221,85 @@ public final class ConverterUtils {
             return false;
         }
     }
+
+    /**
+     * This method returns existing Types on a module/file(for single file projects).
+     *
+     * @param workspaceManager Workspace manager instance
+     * @param filePathUri FilePath URI of the/a file in a singleFileProject or module
+     * @return {@link List} List of already existing Types
+     */
+    public static List<String> getExistingTypeNames(org.ballerinalang.langserver.commons.workspace.WorkspaceManager workspaceManager, String filePathUri) {
+        List<String> existingTypeNames = new ArrayList<>();
+        if (filePathUri == null) {
+            return existingTypeNames;
+        }
+
+        java.nio.file.Path filePathResolved = java.nio.file.Paths.get(java.net.URI.create(filePathUri));
+        
+        if (workspaceManager != null && workspaceManager.semanticModel(filePathResolved).isPresent()) {
+            List<io.ballerina.compiler.api.symbols.Symbol> moduleSymbols = workspaceManager.semanticModel(filePathResolved).get().moduleSymbols();
+            moduleSymbols.forEach(symbol -> {
+                if (symbol.getName().isPresent()) {
+                    existingTypeNames.add(symbol.getName().get());
+                }
+            });
+            return existingTypeNames;
+        }
+
+        try {
+            io.ballerina.projects.Project project;
+            List<io.ballerina.compiler.api.symbols.Symbol> moduleSymbols;
+            java.nio.file.Path projectRoot = io.ballerina.projects.util.ProjectUtils.findProjectRoot(filePathResolved);
+            if (projectRoot == null) {
+                // Since the project-root cannot be found, the provided file is considered as SingleFileProject.
+                project = io.ballerina.projects.directory.SingleFileProject.load(filePathResolved);
+                moduleSymbols =
+                        project.currentPackage().getDefaultModule().getCompilation().getSemanticModel().moduleSymbols();
+                moduleSymbols.forEach(symbol -> {
+                    if (symbol.getName().isPresent()) {
+                        existingTypeNames.add(symbol.getName().get());
+                    }
+                });
+            } else {
+                project = io.ballerina.projects.directory.BuildProject.load(projectRoot);
+                moduleSymbols = project.currentPackage()
+                        .module(project.documentId(filePathResolved).moduleId())
+                        .getCompilation().getSemanticModel().moduleSymbols();
+                moduleSymbols.forEach(symbol -> {
+                    if (symbol.getName().isPresent()) {
+                        existingTypeNames.add(symbol.getName().get());
+                    }
+                });
+            }
+        } catch (io.ballerina.projects.ProjectException pe) {
+            return existingTypeNames;
+        }
+        return existingTypeNames;
+    }
+
+    /**
+     * This method returns an alternative fieldName if the given fieldName already exists.
+     *
+     * @param fieldName Field name of the XML element
+     * @param existingFieldNames The list of already existing field names
+     * @param updatedFieldNames The map of updated field names
+     * @return {@link String} Updated field name
+     */
+    public static String getAndUpdateFieldNames(String fieldName, List<String> existingFieldNames,
+                                                 java.util.Map<String, String> updatedFieldNames) {
+        if (existingFieldNames.contains(fieldName)) {
+            int i = 1;
+            String tempFieldName = fieldName + i;
+            while (existingFieldNames.contains(tempFieldName)) {
+                i++;
+                tempFieldName = fieldName + i;
+            }
+            updatedFieldNames.put(fieldName, tempFieldName);
+            existingFieldNames.add(tempFieldName);
+            return tempFieldName;
+        }
+        existingFieldNames.add(fieldName);
+        return fieldName;
+    }
 }

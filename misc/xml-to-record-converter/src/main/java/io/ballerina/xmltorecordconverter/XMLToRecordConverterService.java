@@ -20,8 +20,10 @@ package io.ballerina.xmltorecordconverter;
 
 import org.ballerinalang.annotation.JavaSPIService;
 import org.ballerinalang.langserver.commons.service.spi.ExtendedLanguageServerService;
+import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 import org.eclipse.lsp4j.jsonrpc.services.JsonRequest;
 import org.eclipse.lsp4j.jsonrpc.services.JsonSegment;
+import org.eclipse.lsp4j.services.LanguageServer;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -33,10 +35,18 @@ import java.util.concurrent.CompletableFuture;
 @JavaSPIService("org.ballerinalang.langserver.commons.service.spi.ExtendedLanguageServerService")
 @JsonSegment("xmlToRecord")
 public class XMLToRecordConverterService implements ExtendedLanguageServerService {
+    
+    private WorkspaceManager workspaceManager;
 
     @Override
     public Class<?> getRemoteInterface() {
         return getClass();
+    }
+
+    @Override
+    public void init(LanguageServer languageServer, WorkspaceManager workspaceManager) {
+        ExtendedLanguageServerService.super.init(languageServer, workspaceManager);
+        this.workspaceManager = workspaceManager;
     }
 
     @JsonRequest
@@ -50,9 +60,10 @@ public class XMLToRecordConverterService implements ExtendedLanguageServerServic
             boolean withNameSpace = request.getIsWithNameSpace();
             boolean withoutAttributes = request.getWithoutAttributes();
             boolean withoutAttributeAnnot = request.getWithoutAttributeAnnot();
+            String filePathUri = request.getFilePathUri();
 
             return XMLToRecordConverter.convert(xmlValue, isRecordTypeDesc, isClosed, forceFormatRecordFields,
-                    textFieldName, withNameSpace, withoutAttributes, withoutAttributeAnnot);
+                    textFieldName, withNameSpace, withoutAttributes, withoutAttributeAnnot, filePathUri, workspaceManager);
         });
     }
 

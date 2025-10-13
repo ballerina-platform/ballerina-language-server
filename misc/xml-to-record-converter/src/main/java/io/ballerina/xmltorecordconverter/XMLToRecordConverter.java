@@ -98,7 +98,10 @@ public final class XMLToRecordConverter {
     public static XMLToRecordResponse convert(String xmlValue, boolean isRecordTypeDesc, boolean isClosed,
                                               boolean forceFormatRecordFields,
                                               String textFieldName, boolean withNameSpaces, boolean withoutAttributes,
-                                              boolean withoutAttributeAnnot) {
+                                              boolean withoutAttributeAnnot, String filePathUri,
+                                              org.ballerinalang.langserver.commons.workspace.WorkspaceManager workspaceManager) {
+        List<String> existingFieldNames = io.ballerina.xmltorecordconverter.util.ConverterUtils.getExistingTypeNames(workspaceManager, filePathUri);
+        Map<String, String> updatedFieldNames = new HashMap<>();
         Map<String, NonTerminalNode> recordToTypeDescNodes = new LinkedHashMap<>();
         Map<String, AnnotationNode> recordToAnnotationNodes = new LinkedHashMap<>();
         Map<String, Element> recordToElementNodes = new LinkedHashMap<>();
@@ -118,7 +121,7 @@ public final class XMLToRecordConverter {
             Element rootElement = doc.getDocumentElement();
             generateRecords(rootElement, isClosed, recordToTypeDescNodes, recordToAnnotationNodes,
                     recordToElementNodes, diagnosticMessages, textFieldName, withNameSpaces, withoutAttributes,
-                    withoutAttributeAnnot);
+                    withoutAttributeAnnot, existingFieldNames, updatedFieldNames);
         } catch (ParserConfigurationException parserConfigurationException) {
             DiagnosticMessage message = DiagnosticMessage.xmlToRecordConverter100(null);
             diagnosticMessages.add(message);
@@ -141,6 +144,10 @@ public final class XMLToRecordConverter {
                     List<AnnotationNode> annotations = new ArrayList<>();
                     String recordName = entry.getKey();
                     String recordTypeName = getRecordName(recordName);
+                    
+                    // Check if the record type name already exists and update if needed
+                    recordTypeName = io.ballerina.xmltorecordconverter.util.ConverterUtils.getAndUpdateFieldNames(
+                            recordTypeName, existingFieldNames, updatedFieldNames);
 
                     if ((recordToTypeDescNodeEntries.indexOf(entry) == recordToTypeDescNodeEntries.size() - 1) &&
                             !recordName.equals(recordTypeName)) {
@@ -175,6 +182,13 @@ public final class XMLToRecordConverter {
             DiagnosticMessage message = DiagnosticMessage.xmlToRecordConverter103(null);
             diagnosticMessages.add(message);
         }
+        if (!updatedFieldNames.isEmpty()) {
+            updatedFieldNames.forEach((oldFieldName, updateFieldName) -> {
+                DiagnosticMessage message =
+                        DiagnosticMessage.xmlToRecordConverter104(new String[]{oldFieldName, updateFieldName});
+                diagnosticMessages.add(message);
+            });
+        }
         return DiagnosticUtils.getDiagnosticResponse(diagnosticMessages, response);
     }
 
@@ -189,7 +203,28 @@ public final class XMLToRecordConverter {
      */
     public static XMLToRecordResponse convert(String xmlValue, boolean isRecordTypeDesc, boolean isClosed,
                                               boolean forceFormatRecordFields) {
-        return convert(xmlValue, isRecordTypeDesc, isClosed, forceFormatRecordFields, null, true, false, false);
+        return convert(xmlValue, isRecordTypeDesc, isClosed, forceFormatRecordFields, null, true, false, false, null, null);
+    }
+
+    /**
+     * This method converts the provided XML value to a record.
+     *
+     * @param xmlValue The XML value to be converted to a record.
+     * @param isRecordTypeDesc Whether the record is a type descriptor.
+     * @param isClosed Whether the record is closed or not.
+     * @param forceFormatRecordFields Whether to force format the result.
+     * @param textFieldName Text field name.
+     * @param withNameSpaces Whether to include namespaces.
+     * @param withoutAttributes Whether to exclude attributes.
+     * @param withoutAttributeAnnot Whether to exclude attribute annotations.
+     * @return {@link XMLToRecordResponse} The response object containing the converted record.
+     */
+    public static XMLToRecordResponse convert(String xmlValue, boolean isRecordTypeDesc, boolean isClosed,
+                                              boolean forceFormatRecordFields, String textFieldName,
+                                              boolean withNameSpaces, boolean withoutAttributes,
+                                              boolean withoutAttributeAnnot) {
+        return convert(xmlValue, isRecordTypeDesc, isClosed, forceFormatRecordFields, textFieldName,
+                withNameSpaces, withoutAttributes, withoutAttributeAnnot, null, null);
     }
 
     private static void generateRecords(Element xmlElement, boolean isClosed,
@@ -198,7 +233,8 @@ public final class XMLToRecordConverter {
                                         Map<String, Element> recordToElementNodes,
                                         List<DiagnosticMessage> diagnosticMessages,
                                         String textFieldName, boolean withNameSpace, boolean withoutAttributes,
-                                        boolean withoutAttributeAnnot) {
+                                        boolean withoutAttributeAnnot, List<String> existingFieldNames,
+                                        Map<String, String> updatedFieldNames) {
         Token recordKeyWord = AbstractNodeFactory.createToken(SyntaxKind.RECORD_KEYWORD);
         Token bodyStartDelimiter = AbstractNodeFactory.createToken(isClosed ? SyntaxKind.OPEN_BRACE_PIPE_TOKEN :
                 SyntaxKind.OPEN_BRACE_TOKEN);
@@ -207,7 +243,7 @@ public final class XMLToRecordConverter {
 
         List<Node> recordFields = getRecordFieldsForXMLElement(xmlElement, isClosed, recordToTypeDescNodes,
                 recordToAnnotationsNodes, recordToElementNodes, diagnosticMessages, textFieldName,
-                withNameSpace, withoutAttributes, withoutAttributeAnnot);
+                withNameSpace, withoutAttributes, withoutAttributeAnnot, existingFieldNames, updatedFieldNames);
         if (recordToTypeDescNodes.containsKey(xmlNodeName)) {
             RecordTypeDescriptorNode previousRecordTypeDescriptorNode =
                     (RecordTypeDescriptorNode) recordToTypeDescNodes.get(xmlNodeName);
@@ -241,7 +277,9 @@ public final class XMLToRecordConverter {
                                                            Map<String, Element> recordToElementNodes,
                                                            List<DiagnosticMessage> diagnosticMessages,
                                                            String textFieldName, boolean withNameSpace,
-                                                           boolean withoutAttributes, boolean withoutAttributeAnnot) {
+                                                           boolean withoutAttributes, boolean withoutAttributeAnnot,
+                                                           List<String> existingFieldNames,
+                                                           Map<String, String> updatedFieldNames) {
         List<Node> recordFields = new ArrayList<>();
 
         String xmlNodeName = xmlElement.getNodeName();
@@ -258,7 +296,7 @@ public final class XMLToRecordConverter {
                                 && !XMLNS_PREFIX.equals(xmlAttributesMap.item(0).getPrefix()))))) {
                     generateRecords(xmlElementNode, isClosed, recordToTypeDescNodes, recordToAnnotationNodes,
                             recordToElementNodes, diagnosticMessages, textFieldName, withNameSpace, withoutAttributes,
-                            withoutAttributeAnnot);
+                            withoutAttributeAnnot, existingFieldNames, updatedFieldNames);
                 }
                 Map<String, Boolean> prefixMap = hasMultipleFieldsWithSameName(xmlNodeList,
                         xmlElementNode.getLocalName());
