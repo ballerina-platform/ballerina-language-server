@@ -197,9 +197,14 @@ class FunctionSearchCommand extends SearchCommand {
         List<Item> availableTools = new ArrayList<>();
         for (Symbol symbol : functionSymbols) {
             FunctionSymbol functionSymbol = (FunctionSymbol) symbol;
+            // Skip NP functions from functions.bal
             if (functionsDoc != null
                     && CommonUtils.isNaturalExpressionBodiedFunction(functionsDoc.syntaxTree(), functionSymbol)) {
-                // Skip NP functions
+                continue;
+            }
+            // Skip NP functions from data_mappings.bal
+            if (dataMappingsDoc != null
+                    && CommonUtils.isNaturalExpressionBodiedFunction(dataMappingsDoc.syntaxTree(), functionSymbol)) {
                 continue;
             }
 

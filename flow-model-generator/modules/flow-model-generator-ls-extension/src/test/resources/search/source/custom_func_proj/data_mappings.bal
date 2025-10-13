@@ -1,3 +1,5 @@
+import ballerina/ai;
+
 type Person record {
     string name;
     int age;
@@ -23,3 +25,12 @@ function customHelper(string input) returns string {
 isolated function validateAge(int age) returns boolean {
     return age >= 18;
 }
+
+// This is a natural expression function - should be skipped entirely
+function generateGreeting(string name) returns string|error => natural (check ai:getDefaultModelProvider()) {
+    **What to do**
+    Generate a personalized greeting for ${name}
+    
+    **Output**
+    string - A friendly greeting message
+};
