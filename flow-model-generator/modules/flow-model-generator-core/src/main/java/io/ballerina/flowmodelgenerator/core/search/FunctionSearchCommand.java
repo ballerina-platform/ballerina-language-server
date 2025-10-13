@@ -207,15 +207,10 @@ class FunctionSearchCommand extends SearchCommand {
             Optional<Location> location = symbol.getLocation();
             if (location.isPresent()) {
                 LineRange fnLineRange = location.get().lineRange();
-                // Check if function is in data_mappings.bal and is an expression-bodied function (not a natural expression function)
+                // Check if function is in data_mappings.bal and is a data mapping function
                 if (fnLineRange.fileName().equals(DATA_MAPPER_FILE_NAME) && dataMappingsDoc != null) {
-                    // A function is a data mapping function if it's in data_mappings.bal AND
-                    // it's an expression-bodied function AND it's not a natural expression bodied function
-                    boolean isNaturalExprFunction = CommonUtils.isNaturalExpressionBodiedFunction(
+                    isDataMappedFunction = CommonUtils.isDataMappingFunction(
                             dataMappingsDoc.syntaxTree(), functionSymbol);
-                    if (!isNaturalExprFunction) {
-                        isDataMappedFunction = true;
-                    }
                 }
                 if (fnLineRange.fileName().equals(position.fileName()) &&
                         PositionUtil.isWithinLineRange(fnLineRange, position)) {

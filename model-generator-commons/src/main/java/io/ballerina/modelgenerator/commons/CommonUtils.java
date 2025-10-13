@@ -854,6 +854,29 @@ public class CommonUtils {
         return BallerinaCompilerApi.getInstance().isNaturalExpressionBodiedFunction(functionDefNode);
     }
 
+    /**
+     * Checks if the given function is a data mapping function (expression-bodied function excluding natural expressions).
+     *
+     * @param syntaxTree the syntax tree
+     * @param functionSymbol the function symbol
+     * @return true if the function is a data mapping function, false otherwise
+     */
+    public static boolean isDataMappingFunction(SyntaxTree syntaxTree, FunctionSymbol functionSymbol) {
+        if (functionSymbol.getLocation().isEmpty()) {
+            return false;
+        }
+        NonTerminalNode node = getNode(syntaxTree, functionSymbol.getLocation().get().textRange());
+        if (node.kind() != SyntaxKind.FUNCTION_DEFINITION) {
+            return false;
+        }
+        FunctionDefinitionNode functionDefNode = (FunctionDefinitionNode) node;
+        // A function is a data mapping function if:
+        // 1. It has an expression function body
+        // 2. It's not a natural expression bodied function
+        return functionDefNode.functionBody().kind() == SyntaxKind.EXPRESSION_FUNCTION_BODY
+                && !BallerinaCompilerApi.getInstance().isNaturalExpressionBodiedFunction(functionDefNode);
+    }
+
     public static String getClassType(String packageName, String clientName) {
         String importPrefix = packageName.substring(packageName.lastIndexOf('.') + 1);
         return String.format("%s:%s", importPrefix, clientName);
