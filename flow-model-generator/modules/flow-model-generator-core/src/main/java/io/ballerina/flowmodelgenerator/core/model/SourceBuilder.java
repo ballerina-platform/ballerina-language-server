@@ -204,6 +204,10 @@ public class SourceBuilder {
     }
 
     public SourceBuilder acceptImportWithVariableType() {
+        return acceptImportWithVariableType(true);
+    }
+
+    public SourceBuilder acceptImportWithVariableType(boolean includeCodedataImport) {
         Optional<Property> optionalType = getProperty(Property.TYPE_KEY);
         if (optionalType.isPresent()) {
             Property type = optionalType.get();
@@ -220,8 +224,24 @@ public class SourceBuilder {
                     acceptImport(importParts[0], importParts[1].split(":")[0]);
                 });
             }
+
+            String typeValue = type.value() != null ? type.value().toString() : "";
+            if (typeValue.contains(":")) {
+                String modulePrefix = typeValue.substring(0, typeValue.indexOf(":"));
+                Codedata codedata = flowNode.codedata();
+                if (codedata != null && codedata.module() != null) {
+                    String codedataModulePrefix = codedata.module().contains(".") ?
+                            codedata.module().substring(codedata.module().lastIndexOf(".") + 1) :
+                            codedata.module();
+                    if (modulePrefix.equals(codedataModulePrefix)) {
+                        acceptImport(codedata.org(), codedata.module());
+                    }
+                }
+            }
         }
-        acceptImport();
+        if (includeCodedataImport) {
+            acceptImport();
+        }
         return this;
     }
 
