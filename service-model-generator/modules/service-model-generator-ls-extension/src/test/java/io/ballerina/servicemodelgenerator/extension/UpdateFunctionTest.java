@@ -25,7 +25,6 @@ import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.request.FunctionModifierRequest;
 import org.eclipse.lsp4j.TextEdit;
 import org.testng.Assert;
-import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import java.io.BufferedReader;
@@ -48,13 +47,6 @@ public class UpdateFunctionTest extends AbstractLSTest {
     private static final Type TEXT_EDIT_LIST_TYPE = new TypeToken<Map<String, List<TextEdit>>>() {
     }.getType();
 
-//    @DataProvider(name = "data-provider")
-//    @Override
-//    protected Object[] getConfigsList() {
-//        return new Object[][]{
-//                {Path.of("update_graphql_method.json")}
-//        };
-//    }
     @Override
     @Test(dataProvider = "data-provider")
     public void test(Path config) throws IOException {
