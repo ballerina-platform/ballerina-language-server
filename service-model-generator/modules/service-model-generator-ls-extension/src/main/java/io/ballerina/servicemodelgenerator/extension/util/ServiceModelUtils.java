@@ -135,6 +135,7 @@ public class ServiceModelUtils {
         target.setKind(source.getKind());
         updateValue(target.getType(), source.getType());
         updateValue(target.getName(), source.getName());
+        target.setIsGraphqlId(source.isGraphqlId());
     }
 
     public static void populateRequiredFunctionsForServiceType(Service service) {
