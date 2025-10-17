@@ -7,7 +7,8 @@ This repository implements a Language Server Protocol (LSP) server for the Balle
 **Key Facts:**
 - **Language:** Java (JDK 21 required for compilation, sourceCompatibility set to Java 21)
 - **Build System:** Gradle 8.11.1 (uses Gradle wrapper)
-- **Runtime Dependency:** Ballerina 2201.12.3 (Swan Lake) must be installed and in PATH
+- **Runtime Dependency:** Ballerina 2201.12.3 (Swan Lake) must be installed and in PATH for building
+- **Ballerina Lang Dependency:** Project depends on ballerinaLangVersion=2201.13.0-m3 (defined in gradle.properties)
 - **Project Type:** Multi-module Gradle project with ~20 submodules
 - **Main JAR Entry Point:** `org.ballerinalang.langserver.launchers.stdio.Main`
 - **Target Platforms:** Windows and Ubuntu (CI runs on both)
@@ -17,7 +18,8 @@ This repository implements a Language Server Protocol (LSP) server for the Balle
 ### Prerequisites (ALWAYS verify these are set up)
 
 1. **JDK 21.0.3** (Temurin distribution) - Required for building
-2. **Ballerina 2201.12.3** - Must be installed and `bal` command available in PATH
+2. **Ballerina 2201.12.3** - Must be installed and `bal` command available in PATH (used for CI builds)
+   - Note: The project dependencies use ballerinaLangVersion=2201.13.0-m3 (from gradle.properties), but Ballerina 2201.12.3 is sufficient for running the build
 3. **Environment Variables** (CRITICAL - build will fail without these):
    - `packageUser` - GitHub username or `${{ github.actor }}`
    - `packagePAT` - GitHub token with package read permissions or `${{ secrets.GITHUB_TOKEN }}`
