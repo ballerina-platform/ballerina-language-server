@@ -618,6 +618,7 @@ public final class Utils {
         if (Objects.nonNull(source.getResponses())) {
             target.setResponses(source.getResponses());
         }
+        target.setIsGraphqlId(source.isGraphqlId());
     }
 
     public static List<String> getAnnotationEdits(Service service) {

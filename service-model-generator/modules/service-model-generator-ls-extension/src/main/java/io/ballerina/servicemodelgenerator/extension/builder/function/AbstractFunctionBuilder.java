@@ -20,6 +20,7 @@ package io.ballerina.servicemodelgenerator.extension.builder.function;
 
 import com.google.gson.Gson;
 import com.google.gson.stream.JsonReader;
+import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.syntax.tree.ClassDefinitionNode;
 import io.ballerina.compiler.syntax.tree.DefaultableParameterNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
@@ -149,7 +150,7 @@ public abstract class AbstractFunctionBuilder implements NodeBuilder<Function> {
         FunctionDefinitionNode functionDefinitionNode = (FunctionDefinitionNode) context.node();
         Function functionModel;
         if (functionDefinitionNode.parent() instanceof ClassDefinitionNode) {
-            functionModel = getObjectFunctionFromSource(CLASS, functionDefinitionNode);
+            functionModel = getObjectFunctionFromSource(CLASS, functionDefinitionNode, context.semanticModel());
         } else {
             functionModel = getFunctionInsideService(context);
         }
@@ -167,12 +168,15 @@ public abstract class AbstractFunctionBuilder implements NodeBuilder<Function> {
                 .getMatchingServiceTypeFunction(context.orgName(), context.moduleName(), context.serviceType(),
                         functionName);
         return matchingServiceTypeFunction.map(serviceTypeFunction ->
-                getServiceTypeBoundedFunctionFromSource(serviceTypeFunction, functionDefinitionNode))
-                .orElseGet(() -> getObjectFunctionFromSource(SERVICE_DIAGRAM, functionDefinitionNode));
+                        getServiceTypeBoundedFunctionFromSource(serviceTypeFunction,
+                                functionDefinitionNode, context.semanticModel()))
+                .orElseGet(() -> getObjectFunctionFromSource(SERVICE_DIAGRAM,
+                        functionDefinitionNode, context.semanticModel()));
     }
 
     static Function getServiceTypeBoundedFunctionFromSource(ServiceTypeFunction serviceTypeFunction,
-                                                            FunctionDefinitionNode functionDefinitionNode) {
+                                                            FunctionDefinitionNode functionDefinitionNode,
+                                                            SemanticModel semanticModel) {
         Function function = ServiceModelUtils.getFunction(serviceTypeFunction);
         FunctionSignatureNode functionSignatureNode = functionDefinitionNode.functionSignature();
         Optional<ReturnTypeDescriptorNode> returnTypeDesc = functionSignatureNode.returnTypeDesc();
@@ -183,7 +187,7 @@ public abstract class AbstractFunctionBuilder implements NodeBuilder<Function> {
         SeparatedNodeList<ParameterNode> parameters = functionSignatureNode.parameters();
         List<Parameter> parameterModels = new ArrayList<>();
         parameters.forEach(parameterNode -> {
-            Optional<Parameter> parameterModel = getParameterModel(parameterNode);
+            Optional<Parameter> parameterModel = getParameterModel(parameterNode, semanticModel);
             parameterModel.ifPresent(parameterModels::add);
         });
         function.setParameters(parameterModels);
@@ -201,7 +205,8 @@ public abstract class AbstractFunctionBuilder implements NodeBuilder<Function> {
     }
 
     static Function getObjectFunctionFromSource(ServiceClassUtil.ServiceClassContext context,
-                                                FunctionDefinitionNode functionDefinitionNode) {
+                                                FunctionDefinitionNode functionDefinitionNode,
+                                                SemanticModel semanticModel) {
         Function functionModel = Function.getNewFunctionModel(context);
         functionModel.getName().setValue(functionDefinitionNode.functionName().text().trim());
 
@@ -228,7 +233,7 @@ public abstract class AbstractFunctionBuilder implements NodeBuilder<Function> {
         SeparatedNodeList<ParameterNode> parameters = functionSignatureNode.parameters();
         List<Parameter> parameterModels = new ArrayList<>();
         parameters.forEach(parameterNode -> {
-            Optional<Parameter> parameterModel = getParameterModel(parameterNode);
+            Optional<Parameter> parameterModel = getParameterModel(parameterNode, semanticModel);
             parameterModel.ifPresent(parameterModels::add);
         });
         functionModel.setParameters(parameterModels);
@@ -239,6 +244,10 @@ public abstract class AbstractFunctionBuilder implements NodeBuilder<Function> {
     }
 
     public static Optional<Parameter> getParameterModel(ParameterNode parameterNode) {
+        return getParameterModel(parameterNode, null);
+    }
+
+    public static Optional<Parameter> getParameterModel(ParameterNode parameterNode, SemanticModel semanticModel) {
         if (parameterNode instanceof RequiredParameterNode parameter) {
             if (parameter.paramName().isEmpty()) {
                 return Optional.empty();
