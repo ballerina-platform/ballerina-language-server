@@ -972,6 +972,7 @@ public final class Utils {
                 // Add GraphQL ID annotation for return type if isGraphqlId is true
                 if (returnType.isGraphqlId()) {
                     builder.append("@graphql:ID ");
+                    imports.put("graphql", "ballerina/graphql");
                 }
                 String returnTypeStr = getValueString(returnType);
                 if (addError && !returnTypeStr.contains("error")) {
@@ -1028,6 +1029,7 @@ public final class Utils {
                 // Add GraphQL ID annotation if isGraphqlId is true
                 if (param.isGraphqlId()) {
                     paramDef = String.format("@graphql:ID %s", paramDef);
+                    imports.put("graphql", "ballerina/graphql");
                 }
                 if (Objects.nonNull(param.getHttpParamType()) && !param.getHttpParamType().equals("Query")) {
                     paramDef = String.format("@http:%s %s", param.getHttpParamType(), paramDef);
