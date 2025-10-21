@@ -188,7 +188,7 @@ public abstract class AbstractFunctionBuilder implements NodeBuilder<Function> {
         SeparatedNodeList<ParameterNode> parameters = functionSignatureNode.parameters();
         List<Parameter> parameterModels = new ArrayList<>();
         parameters.forEach(parameterNode -> {
-            Optional<Parameter> parameterModel = getParameterModel(parameterNode, semanticModel);
+            Optional<Parameter> parameterModel = getParameterModel(parameterNode);
             parameterModel.ifPresent(parameterModels::add);
         });
         function.setParameters(parameterModels);
@@ -234,7 +234,7 @@ public abstract class AbstractFunctionBuilder implements NodeBuilder<Function> {
         SeparatedNodeList<ParameterNode> parameters = functionSignatureNode.parameters();
         List<Parameter> parameterModels = new ArrayList<>();
         parameters.forEach(parameterNode -> {
-            Optional<Parameter> parameterModel = getParameterModel(parameterNode, semanticModel);
+            Optional<Parameter> parameterModel = getParameterModel(parameterNode);
             parameterModel.ifPresent(parameterModels::add);
         });
         functionModel.setParameters(parameterModels);
@@ -245,10 +245,6 @@ public abstract class AbstractFunctionBuilder implements NodeBuilder<Function> {
     }
 
     public static Optional<Parameter> getParameterModel(ParameterNode parameterNode) {
-        return getParameterModel(parameterNode, null);
-    }
-
-    public static Optional<Parameter> getParameterModel(ParameterNode parameterNode, SemanticModel semanticModel) {
         if (parameterNode instanceof RequiredParameterNode parameter) {
             if (parameter.paramName().isEmpty()) {
                 return Optional.empty();
