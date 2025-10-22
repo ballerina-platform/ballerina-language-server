@@ -179,7 +179,7 @@
                 "label": "Parameter Type",
                 "description": "The type of the parameter"
               },
-              "valueType": "TYPE",
+              "valueType": "ACTION_TYPE",
               "enabled": true,
               "editable": true,
               "optional": false,

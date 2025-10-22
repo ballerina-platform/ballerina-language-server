@@ -72,6 +72,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_S
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.REMOTE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SUBSCRIBE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_EXPRESSION;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_ACTION_TYPE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.BALLERINA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.GRAPHQL;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.OBJECT_METHOD;
@@ -304,11 +305,13 @@ public class GraphqlFunctionBuilder extends AbstractFunctionBuilder {
                 Object value = function.getProperty(GRAPHQL_CONTEXT_KEY).getValueAsObject();
                 boolean isEnabled = value instanceof Boolean ? (Boolean) value : false;
                 parameter.setEnabled(isEnabled);
+                parameter.getType().setValueType(VALUE_TYPE_ACTION_TYPE);
             } else if (parameter.getName().getValue().equals(GRAPHQL_FIELD) &&
                         Objects.nonNull(function.getProperty(GRAPHQL_FIELD_KEY))) {
                 Object value = function.getProperty(GRAPHQL_FIELD_KEY).getValueAsObject();
                 boolean isEnabled = value instanceof Boolean ? (Boolean) value : false;
                 parameter.setEnabled(isEnabled);
+                parameter.getType().setValueType(VALUE_TYPE_ACTION_TYPE);
             }
         });
     }
