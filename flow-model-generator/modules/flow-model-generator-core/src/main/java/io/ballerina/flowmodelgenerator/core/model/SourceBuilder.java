@@ -227,14 +227,39 @@ public class SourceBuilder {
 
             String typeValue = type.value() != null ? type.value().toString() : "";
             if (typeValue.contains(":")) {
-                String modulePrefix = typeValue.substring(0, typeValue.indexOf(":"));
+                Set<String> modulePrefixes = new HashSet<>();
+                String[] typeParts = typeValue.split("\\|");
+                for (String part : typeParts) {
+                    part = part.trim();
+                    if (part.contains(":")) {
+                        String prefix = part.substring(0, part.indexOf(":"));
+                        modulePrefixes.add(prefix);
+                    }
+                }
+
                 Codedata codedata = flowNode.codedata();
                 if (codedata != null && codedata.module() != null) {
                     String codedataModulePrefix = codedata.module().contains(".") ?
                             codedata.module().substring(codedata.module().lastIndexOf(".") + 1) :
                             codedata.module();
-                    if (modulePrefix.equals(codedataModulePrefix)) {
-                        acceptImport(codedata.org(), codedata.module());
+
+                    for (String modulePrefix : modulePrefixes) {
+                        if (modulePrefix.equals(codedataModulePrefix)) {
+                            acceptImport(codedata.org(), codedata.module());
+                        } else {
+                            if (type.imports() != null) {
+                                type.imports().values().forEach(moduleId -> {
+                                    String[] importParts = moduleId.split("/");
+                                    String importModulePrefix = importParts[1].split(":")[0];
+                                    String actualModulePrefix = importModulePrefix.contains(".") ?
+                                            importModulePrefix.substring(importModulePrefix.lastIndexOf(".") + 1) :
+                                            importModulePrefix;
+                                    if (modulePrefix.equals(actualModulePrefix)) {
+                                        acceptImport(importParts[0], importModulePrefix);
+                                    }
+                                });
+                            }
+                        }
                     }
                 }
             }
