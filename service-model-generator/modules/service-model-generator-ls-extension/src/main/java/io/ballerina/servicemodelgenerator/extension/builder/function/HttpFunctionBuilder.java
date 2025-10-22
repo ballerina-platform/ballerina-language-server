@@ -92,8 +92,8 @@ public class HttpFunctionBuilder extends AbstractFunctionBuilder {
         if (isResource) {
             return getEnrichedResourceModel(functionDefinitionNode, context.semanticModel());
         }
-        Function functionModel = getEnrichedFunctionModel(ServiceClassUtil.ServiceClassContext.SERVICE_DIAGRAM,
-                functionDefinitionNode);
+        Function functionModel = getObjectFunctionFromSource(ServiceClassUtil.ServiceClassContext.SERVICE_DIAGRAM,
+                functionDefinitionNode, context.semanticModel());
         functionModel.setEditable(true);
         return functionModel;
     }

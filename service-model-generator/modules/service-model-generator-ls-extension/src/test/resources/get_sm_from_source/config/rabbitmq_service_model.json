@@ -10,7 +10,7 @@
     "offset": 0
   },
   "response": {
-    "id": "9",
+    "id": "10",
     "name": "RabbitMQ Event Handler",
     "type": "rabbitmq",
     "displayName": "RabbitMQ Event Handler",
@@ -74,7 +74,7 @@
           "Service"
         ],
         "enabled": false,
-        "editable": true,
+        "editable": false,
         "optional": false,
         "advanced": false
       },
@@ -214,7 +214,8 @@
             "editable": true,
             "optional": false,
             "advanced": false,
-            "hidden": false
+            "hidden": false,
+            "isGraphqlId": false
           },
           {
             "metadata": {
@@ -268,11 +269,42 @@
             "editable": true,
             "optional": true,
             "advanced": false,
-            "hidden": false
+            "hidden": false,
+            "isGraphqlId": false
+          },
+          {
+            "metadata": {
+              "label": "Data Binding",
+              "description": "Data binding parameter"
+            },
+            "kind": "DATA_BINDING",
+            "type": {
+              "valueType": "TYPE",
+              "value": "",
+              "enabled": true,
+              "editable": false,
+              "optional": false,
+              "advanced": false
+            },
+            "name": {
+              "valueType": "IDENTIFIER",
+              "value": "message",
+              "enabled": true,
+              "editable": false,
+              "optional": false,
+              "advanced": false
+            },
+            "enabled": false,
+            "editable": true,
+            "optional": false,
+            "advanced": false,
+            "hidden": false,
+            "isGraphqlId": false
           }
         ],
         "returnType": {
           "hasError": true,
+          "isGraphqlId": false,
           "metadata": {
             "label": "Return Type",
             "description": "The return type of the function"
@@ -300,6 +332,16 @@
               "line": 10,
               "offset": 5
             }
+          },
+          "moduleName": "rabbitmq"
+        },
+        "properties": {
+          "canDataBind": {
+            "value": "true",
+            "enabled": false,
+            "editable": false,
+            "optional": false,
+            "advanced": false
           }
         }
       },
@@ -379,7 +421,8 @@
             "editable": true,
             "optional": false,
             "advanced": false,
-            "hidden": false
+            "hidden": false,
+            "isGraphqlId": false
           },
           {
             "metadata": {
@@ -433,11 +476,13 @@
             "editable": true,
             "optional": false,
             "advanced": false,
-            "hidden": false
+            "hidden": false,
+            "isGraphqlId": false
           }
         ],
         "returnType": {
           "hasError": true,
+          "isGraphqlId": false,
           "metadata": {
             "label": "Return Type",
             "description": "The return type of the function"

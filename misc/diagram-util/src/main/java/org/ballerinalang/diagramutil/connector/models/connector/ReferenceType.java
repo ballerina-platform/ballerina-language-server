@@ -27,6 +27,7 @@ import io.ballerina.compiler.api.symbols.RecordFieldSymbol;
 import io.ballerina.compiler.api.symbols.RecordTypeSymbol;
 import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.api.symbols.SymbolKind;
+import io.ballerina.compiler.api.symbols.TupleTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeDefinitionSymbol;
 import io.ballerina.compiler.api.symbols.TypeDescKind;
 import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
@@ -37,6 +38,7 @@ import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefArra
 import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefConstType;
 import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefEnumType;
 import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefRecordType;
+import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefTupleType;
 import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefType;
 import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefUnionType;
 
@@ -92,7 +94,7 @@ public class ReferenceType {
         }
         RefType type = fromSemanticSymbol(typeSymbol, name, moduleId, typeDefSymbols);
 
-        if (type.dependentTypes == null) {
+        if (type.dependentTypes == null && !type.dependentTypeKeys.isEmpty()) {
             type.dependentTypes = new HashMap<>();
             for (String dependentTypeKey : type.dependentTypeKeys) {
                 RefType dependentType = visitedTypeMap.get(dependentTypeKey);
@@ -293,7 +295,34 @@ public class ReferenceType {
                 typeName = typeName.substring(1, typeName.length() - 1);
             }
             return new RefType(typeName);
+        } else if (kind == TypeDescKind.JSON) {
+            return new RefType("json");
+        } else if (kind == TypeDescKind.ANY) {
+            return new RefType("any");
+        } else if (kind == TypeDescKind.ANYDATA) {
+            return new RefType("anydata");
+        } else if (kind == TypeDescKind.XML) {
+            return new RefType("xml");
+        } else if (kind == TypeDescKind.XML_ELEMENT) {
+            return new RefType("xml:Element");
+        } else if (kind == TypeDescKind.XML_TEXT) {
+            return new RefType("xml:Text");
+        } else if (kind == TypeDescKind.XML_COMMENT) {
+            return new RefType("xml:Comment");
+        } else if (kind == TypeDescKind.XML_PROCESSING_INSTRUCTION) {
+            return new RefType("xml:ProcessingInstruction");
+        } else if (kind == TypeDescKind.TUPLE) {
+            TupleTypeSymbol typeSymbol = (TupleTypeSymbol) symbol;
+            RefTupleType tupleType = new RefTupleType(name);
+            for (TypeSymbol memberTypeSymbol : typeSymbol.memberTypeDescriptors()) {
+                String memberTypeName = memberTypeSymbol.getName().orElse("");
+                ModuleID memberModuleId = getModuleID(memberTypeSymbol, moduleID);
+                RefType refType = fromSemanticSymbol(memberTypeSymbol, memberTypeName, memberModuleId, typeDefSymbols);
+                tupleType.memberTypes.add(refType);
+            }
+            return tupleType;
         }
+
         throw new UnsupportedOperationException(
                 "Unsupported type kind: " + kind + " for symbol: " + symbol.getName().orElse("unknown"));
     }
@@ -410,15 +439,29 @@ public class ReferenceType {
             String depTypeKey = entry.getKey();
             RefType depType = entry.getValue();
             Symbol depSymbol = typeDefSymbols.stream()
-                    .filter(sym -> depType.name.equals(sym.getName().orElse("")))
+                    .filter(sym -> {
+                        if (!depType.name.equals(sym.getName().orElse(""))) {
+                            return false;
+                        }
+                        ModuleInfo depModuleInfo = depType.moduleInfo;
+                        if (depModuleInfo != null) {
+                            ModuleID symModuleId = getModuleID(sym);
+                            if (symModuleId != null) {
+                                return depModuleInfo.orgName.equals(symModuleId.orgName()) &&
+                                        depModuleInfo.moduleName.equals(symModuleId.moduleName()) &&
+                                        depModuleInfo.version.equals(symModuleId.version());
+                            }
+                        }
+                        return true;
+                    })
                     .findFirst()
                     .orElse(null);
 
             if (depSymbol != null) {
                 TypeDefinitionSymbol typeDefSymbol = (TypeDefinitionSymbol) depSymbol;
                 TypeSymbol typeDesc = typeDefSymbol.typeDescriptor();
-                String moduleId = typeDefSymbol.getModule().isPresent() ?
-                        typeDefSymbol.getModule().get().id().toString() : null;
+                String moduleId = typeDesc.getModule().isPresent() ?
+                        typeDesc.getModule().get().id().toString() : null;
                 String updatedHashCode = String.valueOf(Objects.hash(
                         moduleId,
                         typeDefSymbol.getName().orElse(""),
