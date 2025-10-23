@@ -64,7 +64,7 @@
         "kind": "REQUIRED",
         "type": {
           "placeholder": "string",
-          "valueType": "ACTION_TYPE",
+          "valueType": "TYPE",
           "valueTypeConstraint": "graphql:Context",
           "value": "graphql:Context",
           "imports": {
@@ -100,7 +100,7 @@
         "kind": "REQUIRED",
         "type": {
           "placeholder": "string",
-          "valueType": "ACTION_TYPE",
+          "valueType": "TYPE",
           "valueTypeConstraint": "graphql:Field",
           "value": "graphql:Field",
           "imports": {
@@ -139,7 +139,7 @@
             "label": "Argument Type",
             "description": "The type of the argument"
           },
-          "valueType": "ACTION_TYPE",
+          "valueType": "TYPE",
           "value": "string",
           "enabled": true,
           "editable": true,

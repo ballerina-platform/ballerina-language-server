@@ -65,7 +65,7 @@
         "kind": "REQUIRED",
         "type": {
           "placeholder": "string",
-          "valueType": "ACTION_TYPE",
+          "valueType": "TYPE",
           "valueTypeConstraint": "graphql:Context",
           "value": "graphql:Context",
           "imports": {
@@ -101,7 +101,7 @@
         "kind": "REQUIRED",
         "type": {
           "placeholder": "string",
-          "valueType": "ACTION_TYPE",
+          "valueType": "TYPE",
           "valueTypeConstraint": "graphql:Field",
           "value": "graphql:Field",
           "imports": {
