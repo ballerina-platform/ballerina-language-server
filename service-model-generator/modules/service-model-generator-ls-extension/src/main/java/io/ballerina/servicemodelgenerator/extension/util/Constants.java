@@ -100,7 +100,6 @@ public class Constants {
     public static final String VALUE_TYPE_EXPRESSION = "EXPRESSION";
     public static final String VALUE_TYPE_IDENTIFIER = "IDENTIFIER";
     public static final String VALUE_TYPE_TYPE = "TYPE";
-    public static final String VALUE_TYPE_ACTION_TYPE = "ACTION_TYPE";
     public static final String VALUE_TYPE_STRING = "STRING";
     public static final String HTTP_PARAM_TYPE_QUERY = "QUERY";
     public static final String HTTP_PARAM_TYPE_PAYLOAD = "PAYLOAD";
