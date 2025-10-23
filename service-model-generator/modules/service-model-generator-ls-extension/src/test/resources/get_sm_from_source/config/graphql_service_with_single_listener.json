@@ -179,7 +179,7 @@
                 "label": "Parameter Type",
                 "description": "The type of the parameter"
               },
-              "valueType": "ACTION_TYPE",
+              "valueType": "TYPE",
               "enabled": true,
               "editable": true,
               "optional": false,
@@ -471,7 +471,7 @@
                 "label": "Argument Type",
                 "description": "The type of the argument"
               },
-              "valueType": "TYPE",
+              "valueType": "ACTION_TYPE",
               "value": "",
               "enabled": true,
               "editable": true,
@@ -912,7 +912,7 @@
                 "label": "Argument Type",
                 "description": "The type of the argument"
               },
-              "valueType": "TYPE",
+              "valueType": "ACTION_TYPE",
               "value": "",
               "enabled": true,
               "editable": true,
@@ -1236,7 +1236,7 @@
                 "label": "Argument Type",
                 "description": "The type of the argument"
               },
-              "valueType": "TYPE",
+              "valueType": "ACTION_TYPE",
               "value": "",
               "enabled": true,
               "editable": true,
