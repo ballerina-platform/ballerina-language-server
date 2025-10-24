@@ -794,7 +794,7 @@
             {
               "metadata": {
                 "label": "Knowledge Base",
-                "description": "knowledge bases available in the integration"
+                "description": "Knowledge bases available in the integration"
               },
               "codedata": {
                 "node": "KNOWLEDGE_BASES",
