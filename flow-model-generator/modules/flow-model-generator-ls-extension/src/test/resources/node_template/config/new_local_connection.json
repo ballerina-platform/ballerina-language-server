@@ -8,7 +8,7 @@
   "codedata": {
     "node": "NEW_CONNECTION",
     "org": "nipunaf",
-    "module": "grs",
+    "module": "mod",
     "packageName": "new_connection1",
     "object": "Client",
     "symbol": "init",
@@ -25,7 +25,7 @@
     "codedata": {
       "node": "NEW_CONNECTION",
       "org": "nipunaf",
-      "module": "grs",
+      "module": "mod",
       "packageName": "new_connection1",
       "object": "Client",
       "symbol": "init",
@@ -229,7 +229,7 @@
           "description": "Type of the variable"
         },
         "valueType": "TYPE",
-        "value": "grs:Client",
+        "value": "mod:Client",
         "placeholder": "var",
         "optional": false,
         "editable": false,
@@ -237,7 +237,7 @@
         "hidden": true,
         "codedata": {},
         "imports": {
-          "grs": "nipunaf/new_connection1.grs"
+          "mod": "nipunaf/new_connection1.mod"
         }
       },
       "variable": {
@@ -246,7 +246,7 @@
           "description": "Name of the connection"
         },
         "valueType": "IDENTIFIER",
-        "value": "grsClient",
+        "value": "modClient",
         "optional": false,
         "editable": true,
         "advanced": false,
