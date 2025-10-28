@@ -35,4 +35,5 @@ module io.ballerina.LSExtensions.TriggerService {
     requires org.xerial.sqlitejdbc;
     requires io.ballerina.centralconnector;
     requires com.graphqljava;
+    requires org.apache.commons.io;
 }

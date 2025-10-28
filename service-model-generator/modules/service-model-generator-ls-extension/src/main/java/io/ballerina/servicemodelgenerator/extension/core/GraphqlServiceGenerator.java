@@ -23,17 +23,17 @@ import graphql.schema.idl.RuntimeWiring;
 import graphql.schema.idl.SchemaGenerator;
 import graphql.schema.idl.SchemaParser;
 import graphql.schema.idl.TypeDefinitionRegistry;
-import graphql.schema.idl.errors.SchemaProblem;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.MethodSymbol;
 import io.ballerina.compiler.api.symbols.ObjectTypeSymbol;
+import io.ballerina.compiler.api.symbols.Qualifier;
 import io.ballerina.compiler.api.symbols.ResourceMethodSymbol;
 import io.ballerina.compiler.api.symbols.TypeDefinitionSymbol;
 import io.ballerina.compiler.api.symbols.TypeDescKind;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
-import io.ballerina.graphql.generator.service.diagnostic.ServiceDiagnosticMessages;
-import io.ballerina.graphql.generator.service.exception.ServiceGenerationException;
+import io.ballerina.compiler.syntax.tree.SyntaxTree;
+import io.ballerina.graphql.generator.service.GraphqlServiceProject;
 import io.ballerina.graphql.generator.service.generator.ServiceCodeGenerator;
 import io.ballerina.graphql.generator.utils.SrcFilePojo;
 import io.ballerina.modelgenerator.commons.PackageUtil;
@@ -46,7 +46,11 @@ import io.ballerina.projects.ModuleName;
 import io.ballerina.projects.Package;
 import io.ballerina.projects.Project;
 import io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel;
+import io.ballerina.servicemodelgenerator.extension.util.ServiceClassModifier;
 import io.ballerina.servicemodelgenerator.extension.util.Utils;
+import io.ballerina.tools.text.LinePosition;
+import io.ballerina.tools.text.TextDocuments;
+import org.apache.commons.io.FilenameUtils;
 import org.ballerinalang.langserver.commons.eventsync.exceptions.EventSyncException;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceDocumentException;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
@@ -58,12 +62,17 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import static io.ballerina.graphql.generator.CodeGeneratorConstants.ROOT_PROJECT_NAME;
 import static io.ballerina.servicemodelgenerator.extension.core.OpenApiServiceGenerator.BALLERINA_LANG;
 import static io.ballerina.servicemodelgenerator.extension.core.OpenApiServiceGenerator.CLOSE_BRACE;
 import static io.ballerina.servicemodelgenerator.extension.core.OpenApiServiceGenerator.COLON;
@@ -72,6 +81,8 @@ import static io.ballerina.servicemodelgenerator.extension.core.OpenApiServiceGe
 import static io.ballerina.servicemodelgenerator.extension.core.OpenApiServiceGenerator.getParentModuleName;
 import static io.ballerina.servicemodelgenerator.extension.core.OpenApiServiceGenerator.getServiceTypeSymbol;
 import static io.ballerina.servicemodelgenerator.extension.core.OpenApiServiceGenerator.sanitizePackageNames;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.BALLERINA;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.GRAPHQL;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.importExists;
 
@@ -81,6 +92,7 @@ public class GraphqlServiceGenerator {
     private final WorkspaceManager workspaceManager;
 
     public static final String MAIN_BAL = "main.bal";
+    public static final String GRAPHQL_ID_ANNOT = "@graphql:ID";
 
     public GraphqlServiceGenerator(Path projectPath, WorkspaceManager workspaceManager) {
         this.projectPath = projectPath;
@@ -88,93 +100,96 @@ public class GraphqlServiceGenerator {
     }
 
     public Map<String, List<TextEdit>> generateService(ServiceInitModel serviceInitModel, String path, String listeners,
-                                                       String listenerDeclaration) throws IOException,
-            SchemaProblem, ServiceGenerationException, WorkspaceDocumentException, EventSyncException {
+                                                       String listenerDeclaration)
+            throws IOException, WorkspaceDocumentException, EventSyncException {
 
         SchemaParser schemaParser = new SchemaParser();
         SchemaGenerator schemaGenerator = new SchemaGenerator();
-        TypeDefinitionRegistry typeRegistry;
         String schema = serviceInitModel.getGraphqlSchema().getValue();
-
-        String sdlInput = extractSchemaContent(schema);
-        typeRegistry = schemaParser.parse(sdlInput);
+        File schemaFile = new File(schema);
+        String sdlInput = extractSchemaContent(schemaFile);
+        TypeDefinitionRegistry typeRegistry = schemaParser.parse(sdlInput);
         GraphQLSchema graphqlSchema = schemaGenerator.makeExecutableSchema(typeRegistry, RuntimeWiring.MOCKED_WIRING);
 
-        List<SrcFilePojo> srcFiles = new ArrayList<>();
+        List<SrcFilePojo> srcFiles;
+        GraphqlServiceProject graphqlProject = new GraphqlServiceProject(ROOT_PROJECT_NAME, schema, "");
+        graphqlProject.setGraphQLSchema(graphqlSchema);
         ServiceCodeGenerator svcCodeGenerator = new ServiceCodeGenerator();
-        svcCodeGenerator.generateServiceTypes("", "types.bal", graphqlSchema, srcFiles);
-        return generateService(srcFiles.getFirst(), path, listeners, listenerDeclaration);
+        try {
+            // TODO: Use the below line once GraphQL tool has been released V0.14.0 with the required changes
+//            SrcFilePojo srcFiles2 = svcCodeGenerator.generateServiceTypes(ROOT_PROJECT_NAME, "schema", graphqlSchema);
+            srcFiles = svcCodeGenerator.generateBalSources(graphqlProject);
+        } catch (Throwable e) {
+            throw new IOException("Failed to generate GraphQL types: " + e.getMessage(), e);
+        }
+        String svcTypeName = FilenameUtils.removeExtension(schemaFile.getName());
+        return generateServiceTextEdits(srcFiles.getFirst(), path, listeners, listenerDeclaration, svcTypeName);
     }
 
-    private Map<String, List<TextEdit>> generateService(SrcFilePojo srcFile, String path, String listeners,
-                                                        String listenerDeclaration)
-            throws WorkspaceDocumentException, EventSyncException, ServiceGenerationException {
+    private Map<String, List<TextEdit>> generateServiceTextEdits(SrcFilePojo srcFile, String path, String listeners,
+                                                        String listenerDeclaration, String svcTypeName)
+            throws WorkspaceDocumentException, EventSyncException, IOException {
 
+        String updatedSrc = updateGeneratedContent(srcFile.getContent());
         Path mainFile = projectPath.resolve(MAIN_BAL);
         Map<String, List<TextEdit>> textEditsMap = new LinkedHashMap<>();
         Project project = this.workspaceManager.loadProject(mainFile);
         Optional<Document> document = this.workspaceManager.document(mainFile);
         Optional<SemanticModel> semanticModel = this.workspaceManager.semanticModel(mainFile);
+
         if (document.isPresent() && semanticModel.isPresent()) {
             List<TextEdit> textEdits = new ArrayList<>();
             ModulePartNode modulePartNode = document.get().syntaxTree().rootNode();
-
-            if (!importExists(modulePartNode, "ballerina", "graphql")) {
-                String importText = Utils.getImportStmt("ballerina", "graphql");
+            if (!importExists(modulePartNode, BALLERINA, GRAPHQL)) {
+                String importText = Utils.getImportStmt(BALLERINA, GRAPHQL);
                 textEdits.add(new TextEdit(Utils.toRange(modulePartNode.lineRange().startLine()), importText));
             }
-            String serviceImplContent = genServiceImplementation(srcFile, path, listeners, project,
-             mainFile);
+            ModuleId moduleId = createServiceTypeFile(project, mainFile.toString(), updatedSrc, srcFile.getFileName());
+            String svcImplContent = genServiceImplementation(project, moduleId, path, listeners, svcTypeName);
             StringBuilder builder = new StringBuilder(NEW_LINE);
             if (Objects.nonNull(listenerDeclaration)) {
                 builder.append(listenerDeclaration).append(NEW_LINE);
             }
-            builder.append(serviceImplContent);
+            builder.append(svcImplContent);
             textEdits.add(new TextEdit(Utils.toRange(modulePartNode.lineRange().endLine()), builder.toString()));
             textEditsMap.put(mainFile.toAbsolutePath().toString(), textEdits);
         }
+
+        updatedSrc = removeServiceTypeDefinition(updatedSrc, svcTypeName);
+        textEditsMap.put(projectPath.resolve(srcFile.getFileName()).toAbsolutePath().toString(),
+                List.of(new TextEdit(Utils.toRange(LinePosition.from(0, 0)), updatedSrc)));
         return textEditsMap;
     }
 
-    private String genServiceImplementation(SrcFilePojo serviceType, String path, String listeners,
-                                            Project project, Path mainFile) throws ServiceGenerationException {
-        Package currentPackage = project.currentPackage();
-        Module module = currentPackage.module(ModuleName.from(currentPackage.packageName()));
-        ModuleId moduleId = module.moduleId();
-        DocumentId serviceObjDocId = DocumentId.create(mainFile.toString(), moduleId);
-        DocumentConfig documentConfig = DocumentConfig.from(
-                serviceObjDocId, serviceType.getContent(), serviceType.getFileName());
-        module.modify().addDocument(documentConfig).apply();
-
+    private String genServiceImplementation(Project project, ModuleId moduleId, String path, String listeners,
+                                            String svcTypeName) throws IOException {
         SemanticModel semanticModel = PackageUtil.getCompilation(project).getSemanticModel(moduleId);
-        TypeDefinitionSymbol symbol = getServiceTypeSymbol(semanticModel.moduleSymbols(), "schema");
+        TypeDefinitionSymbol symbol = getServiceTypeSymbol(semanticModel.moduleSymbols(), svcTypeName);
         if (symbol == null) {
-            throw new ServiceGenerationException(ServiceDiagnosticMessages.GRAPHQL_SERVICE_GEN_100, null,
-                    "Cannot find service type definition");
+            throw new IOException("Cannot find service type definition");
         }
-
         TypeSymbol typeSymbol = symbol.typeDescriptor();
         if (typeSymbol.typeKind() != TypeDescKind.OBJECT) {
-            throw new ServiceGenerationException(ServiceDiagnosticMessages.GRAPHQL_SERVICE_GEN_100, null,
-                    "Cannot find service object type definition");
+            throw new IOException("Cannot find service type definition");
         }
-
         Map<String, MethodSymbol> methodSymbolMap = ((ObjectTypeSymbol) typeSymbol).methods();
         StringBuilder serviceImpl = new StringBuilder();
         serviceImpl.append(String.format(SERVICE_DECLARATION, path, listeners));
         serviceImpl.append(LS);
         for (Map.Entry<String, MethodSymbol> entry : methodSymbolMap.entrySet()) {
             MethodSymbol methodSymbol = entry.getValue();
-            if (methodSymbol instanceof ResourceMethodSymbol resourceMethodSymbol) {
-                serviceImpl.append(getResourceFunction(resourceMethodSymbol, getParentModuleName(symbol)));
+            if (methodSymbol instanceof ResourceMethodSymbol || methodSymbol.qualifiers().contains(Qualifier.REMOTE)) {
+                serviceImpl.append(getResourceFunction(methodSymbol, getParentModuleName(symbol)));
             }
         }
         serviceImpl.append(CLOSE_BRACE).append(LS);
         return serviceImpl.toString();
     }
 
-    private String getResourceFunction(ResourceMethodSymbol resourceMethodSymbol, String parentModuleName) {
-        String resourceSignature = resourceMethodSymbol.signature();
+    private String getResourceFunction(MethodSymbol methodSymbol, String parentModuleName) {
+        String documentation = getFunctionDocumentation(methodSymbol);
+        String signature = methodSymbol.signature();
+        String resourceSignature = documentation.isEmpty() ? signature : documentation + LS + signature;
         if (Objects.nonNull(parentModuleName)) {
             resourceSignature = resourceSignature.replace(parentModuleName + COLON, "");
         }
@@ -185,23 +200,64 @@ public class GraphqlServiceGenerator {
         return genResourceFunctionBody(resourceSignature);
     }
 
-    private String genResourceFunctionBody(String resourceSignature) {
-        return LS + "\t" + sanitizePackageNames(resourceSignature) + " {" + LS + "\t}" + LS;
+    private String getFunctionDocumentation(MethodSymbol methodSymbol) {
+        return methodSymbol.documentation()
+                .map(doc -> {
+                    String description = doc.description().orElse("");
+                    // Join parameter docs
+                    String paramDocs = doc.parameterMap().entrySet().stream()
+                            .filter(param -> !param.getValue().isEmpty())
+                            .map(param -> "+ " + param.getKey() + " - " + param.getValue())
+                            .collect(Collectors.joining(NEW_LINE));
+
+                    String combined = Stream.of(description, paramDocs)
+                            .filter(s -> !s.isEmpty())
+                            .collect(Collectors.joining(NEW_LINE));
+
+                    return Arrays.stream(combined.split(NEW_LINE))
+                            .map(line -> "# " + line)
+                            .collect(Collectors.joining(LS));
+                }).orElse("");
     }
 
+    private ModuleId createServiceTypeFile(Project project, String mainFile, String content, String fileName) {
+        Package currentPackage = project.currentPackage();
+        Module module = currentPackage.module(ModuleName.from(currentPackage.packageName()));
+        ModuleId moduleId = module.moduleId();
+        DocumentId serviceObjDocId = DocumentId.create(mainFile, moduleId);
+        DocumentConfig documentConfig = DocumentConfig.from(serviceObjDocId, content, fileName);
+        module.modify().addDocument(documentConfig).apply();
+        return moduleId;
+    }
 
-    /**
-     * Extracts the schema content.
-     *
-     * @param schema                                the schema value of the Graphql config file
-     * @return                                      the schema content
-     * @throws java.io.IOException                          If an I/O error occurs
-     *
-     * since 1.4.0
-     */
-    public static String extractSchemaContent(String schema) throws IOException {
-        File schemaFile = new File(schema);
+    private String updateGeneratedContent(String content) {
+        SyntaxTree syntaxTree = SyntaxTree.from(TextDocuments.from(content));
+        ModulePartNode oldRoot = syntaxTree.rootNode();
+        ServiceClassModifier svcClassModifier = new ServiceClassModifier();
+        ModulePartNode newRoot = svcClassModifier.transform(oldRoot);
+        return newRoot.toString();
+    }
+
+    private String genResourceFunctionBody(String resourceSignature) {
+        return LS + "\t" + sanitizePackageNames(resourceSignature) + " {" + LS + "\t" +
+                "return error(\"Not Implemented\");" + LS + "\t}" + LS;
+    }
+
+    private static String extractSchemaContent(File schemaFile) throws IOException {
         Path schemaPath = Paths.get(schemaFile.getCanonicalPath());
         return String.join(NEW_LINE, Files.readAllLines(schemaPath));
+    }
+
+    private String removeServiceTypeDefinition(String content, String svcTypeName) {
+        String regex = "(?s)type\\s+" + Pattern.quote(svcTypeName)
+                + "\\s+service\\s+object\\s*\\{.*?\\*graphql:Service;.*?\\};";
+        String cleaned = content.replaceAll(regex, "").trim();
+
+        // Remove import if ID type is not used
+        if (!cleaned.contains(GRAPHQL_ID_ANNOT)) {
+            regex = "(?m)^\\s*import\\s+ballerina/graphql;\\s*(\\r?\\n)?";
+            cleaned = cleaned.replaceAll(regex, "").trim();
+        }
+        return cleaned;
     }
 }

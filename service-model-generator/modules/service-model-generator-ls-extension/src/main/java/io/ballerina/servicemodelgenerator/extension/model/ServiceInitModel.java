@@ -153,7 +153,7 @@ public class ServiceInitModel {
     }
 
     public Value getGraphqlSchema() {
-        return properties.get("gqlSchema");
+        return properties.get("spec");
     }
 
     public String getServiceContractTypeName() {
