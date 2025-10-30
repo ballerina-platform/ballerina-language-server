@@ -40,7 +40,7 @@
             "type": "LISTENER"
           },
           "placeholder": "",
-          "valueType": "MULTIPLE_SELECT",
+          "valueType": "MULTIPLE_SELECT_LISTENER",
           "valueTypeConstraint": "http:Listener",
           "value": "",
           "values": [],
@@ -72,7 +72,7 @@
               "properties": {
                 "basePath": {
                   "metadata": {
-                    "label": "Service Base Path",
+                    "label": "Base Path",
                     "description": ""
                   },
                   "codedata": {
@@ -351,9 +351,9 @@
               "editable": true,
               "optional": false,
               "advanced": false,
-              "httpParamType": "PAYLOAD",
               "hidden": false,
-              "isGraphqlId": false
+              "isGraphqlId": false,
+              "httpParamType": "PAYLOAD"
             },
             "query": {
               "metadata": {
@@ -385,9 +385,9 @@
               "editable": true,
               "optional": false,
               "advanced": false,
-              "httpParamType": "QUERY",
               "hidden": false,
-              "isGraphqlId": false
+              "isGraphqlId": false,
+              "httpParamType": "QUERY"
             },
             "header": {
               "metadata": {
@@ -419,9 +419,9 @@
               "editable": true,
               "optional": false,
               "advanced": false,
-              "httpParamType": "Header",
               "hidden": false,
-              "isGraphqlId": false
+              "isGraphqlId": false,
+              "httpParamType": "Header"
             }
           },
           "returnType": {
@@ -467,10 +467,9 @@
                   "optional": true,
                   "advanced": false
                 },
-                "enabled": true,
+                "enabled": false,
                 "editable": false,
-                "advanced": false,
-                "isHttpResponseType": false
+                "advanced": false
               },
               {
                 "statusCode": {
@@ -513,10 +512,9 @@
                   "optional": true,
                   "advanced": false
                 },
-                "enabled": true,
+                "enabled": false,
                 "editable": false,
-                "advanced": false,
-                "isHttpResponseType": false
+                "advanced": false
               }
             ],
             "schema": {
@@ -595,10 +593,9 @@
                   "optional": true,
                   "advanced": false
                 },
-                "enabled": true,
+                "enabled": false,
                 "editable": false,
-                "advanced": false,
-                "isHttpResponseType": false
+                "advanced": false
               }
             },
             "hasError": false,

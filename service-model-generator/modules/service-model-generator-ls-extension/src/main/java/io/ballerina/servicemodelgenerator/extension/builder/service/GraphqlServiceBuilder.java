@@ -64,7 +64,10 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.OPEN_B
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.PROPERTY_DESIGN_APPROACH;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SERVICE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SPACE;
-import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getFunction;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.PROP_READONLY_METADATA_KEY;
+import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.extractServicePathInfo;
+import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getFunctionFromServiceTypeFunction;
+import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getReadonlyMetadata;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getServiceTypeIdentifier;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.updateFunction;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.updateListenerItems;
@@ -85,6 +88,8 @@ public class GraphqlServiceBuilder extends AbstractServiceBuilder {
 
     private static final String GRAPHQL_SERVICE_MODEL_LOCATION = "services/graphql.json";
     private static final String LISTENER_VAR_NAME = "listenerVarName";
+    private static final String DEFAULT_LISTENER_NAME = "graphqlListener";
+    private static final String DEFAULT_SERVICE_PATH = "/graphql";
     private static final String PORT = "port";
 
     @Override
@@ -117,7 +122,7 @@ public class GraphqlServiceBuilder extends AbstractServiceBuilder {
 
         StringBuilder listenerDeclaration = new StringBuilder("listener graphql:Listener ");
         String listenerVarName = Objects.nonNull(properties.get(LISTENER_VAR_NAME)) ?
-                properties.get(LISTENER_VAR_NAME).getValue() : "graphqlListener";
+                properties.get(LISTENER_VAR_NAME).getValue() : DEFAULT_LISTENER_NAME;
         if (Objects.nonNull(properties.get(PORT))) {
                 listenerDeclaration.append(listenerVarName).append(" = ").append("new (")
                         .append(properties.get(PORT).getValue()).append(");");
@@ -126,7 +131,7 @@ public class GraphqlServiceBuilder extends AbstractServiceBuilder {
         }
         if (Objects.nonNull(serviceInitModel.getGraphqlSchema())) {
             return new GraphqlServiceGenerator(context.project().sourceRoot(), context.workspaceManager())
-                    .generateService(serviceInitModel, "/graphql", listenerVarName,
+                    .generateService(serviceInitModel, DEFAULT_SERVICE_PATH, listenerVarName,
                             listenerDeclaration.toString());
         }
 
@@ -163,7 +168,7 @@ public class GraphqlServiceBuilder extends AbstractServiceBuilder {
         Service serviceModel = service.get();
         int packageId = Integer.parseInt(serviceModel.getId());
         ServiceDatabaseManager.getInstance().getMatchingServiceTypeFunctions(packageId, serviceType)
-                .forEach(function -> serviceModel.getFunctions().add(getFunction(function)));
+                .forEach(function -> serviceModel.getFunctions().add(getFunctionFromServiceTypeFunction(function)));
         serviceModel.getServiceType().setValue(serviceType);
 
         ServiceDeclarationNode serviceNode = (ServiceDeclarationNode) context.node();
@@ -180,6 +185,18 @@ public class GraphqlServiceBuilder extends AbstractServiceBuilder {
         updateServiceDocs(serviceNode, serviceModel);
         updateAnnotationAttachmentProperty(serviceNode, serviceModel);
         updateListenerItems(context.moduleName(), context.semanticModel(), context.project(), serviceModel);
+
+        // Initialize readOnly metadata if not present in template (GraphqlServiceBuilder uses custom template)
+        if (serviceModel.getProperty(PROP_READONLY_METADATA_KEY) == null) {
+            String modelServiceType = serviceModel.getType();
+            Value readOnlyMetadata = getReadonlyMetadata(serviceModel.getOrgName(), serviceModel.getPackageName(),
+                    modelServiceType);
+            serviceModel.getProperties().put(PROP_READONLY_METADATA_KEY, readOnlyMetadata);
+        }
+
+        // Add readOnly metadata extraction (same logic as parent class)
+        updateReadOnlyMetadataWithAnnotations(serviceModel, serviceNode, context);
+
         return serviceModel;
     }
 
@@ -207,6 +224,7 @@ public class GraphqlServiceBuilder extends AbstractServiceBuilder {
             if (serviceModel.getFunctions().stream().noneMatch(newFunction -> isPresent(funcInSource, newFunction))) {
                 updateGraphqlFunctionMetaData(funcInSource);
                 serviceModel.addFunction(funcInSource);
+                funcInSource.setOptional(true);
             }
         });
     }

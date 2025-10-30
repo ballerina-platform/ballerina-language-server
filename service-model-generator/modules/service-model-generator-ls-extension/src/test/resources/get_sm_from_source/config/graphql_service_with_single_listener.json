@@ -46,7 +46,7 @@
           "type": "LISTENER"
         },
         "placeholder": "",
-        "valueType": "MULTIPLE_SELECT",
+        "valueType": "MULTIPLE_SELECT_LISTENER",
         "valueTypeConstraint": "graphql:Listener",
         "value": "graphQLListener",
         "values": [],
@@ -54,6 +54,27 @@
           "graphQLListener",
           "(+) Create and use a graphql listener with default configurations"
         ],
+        "properties": {
+          "graphQLListener": {
+            "codedata": {
+              "lineRange": {
+                "fileName": "main.bal",
+                "startLine": {
+                  "line": 25,
+                  "offset": 20
+                },
+                "endLine": {
+                  "line": 25,
+                  "offset": 35
+                }
+              }
+            },
+            "enabled": false,
+            "editable": false,
+            "optional": false,
+            "advanced": false
+          }
+        },
         "enabled": true,
         "editable": true,
         "optional": false,
@@ -98,6 +119,18 @@
         "optional": false,
         "advanced": false
       },
+      "readOnlyMetadata": {
+        "codedata": {
+          "type": "READONLY"
+        },
+        "placeholder": "false",
+        "valueType": "SINGLE_SELECT",
+        "value": {},
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      },
       "annotServiceConfig": {
         "metadata": {
           "label": "Service Configuration",
@@ -123,7 +156,7 @@
         "enabled": true,
         "editable": true,
         "optional": true,
-        "advanced": true
+        "advanced": false
       }
     },
     "codedata": {
@@ -241,7 +274,7 @@
           "advanced": false
         },
         "enabled": true,
-        "optional": false,
+        "optional": true,
         "editable": true,
         "canAddParameters": true,
         "codedata": {
@@ -257,6 +290,7 @@
             }
           },
           "orgName": "ballerina",
+          "packageName": "graphql",
           "moduleName": "graphql"
         },
         "properties": {
@@ -339,13 +373,13 @@
             },
             "kind": "REQUIRED",
             "type": {
+              "imports": {
+                "graphql": "ballerina/graphql:1.16.0"
+              },
               "placeholder": "string",
               "valueType": "TYPE",
               "valueTypeConstraint": "graphql:Context",
               "value": "graphql:Context",
-              "imports": {
-                "graphql": "ballerina/graphql:1.16.0"
-              },
               "enabled": true,
               "editable": false,
               "optional": false,
@@ -375,13 +409,13 @@
             },
             "kind": "REQUIRED",
             "type": {
+              "imports": {
+                "graphql": "ballerina/graphql:1.16.0"
+              },
               "placeholder": "string",
               "valueType": "TYPE",
               "valueTypeConstraint": "graphql:Field",
               "value": "graphql:Field",
-              "imports": {
-                "graphql": "ballerina/graphql:1.16.0"
-              },
               "enabled": true,
               "editable": false,
               "optional": false,
@@ -471,7 +505,7 @@
                 "label": "Argument Type",
                 "description": "The type of the argument"
               },
-              "valueType": "TYPE",
+              "valueType": "ACTION_TYPE",
               "value": "",
               "enabled": true,
               "editable": true,
@@ -568,7 +602,7 @@
           "advanced": false
         },
         "enabled": true,
-        "optional": false,
+        "optional": true,
         "editable": true,
         "canAddParameters": false,
         "codedata": {
@@ -584,6 +618,7 @@
             }
           },
           "orgName": "ballerina",
+          "packageName": "graphql",
           "moduleName": "graphql"
         },
         "properties": {
@@ -721,13 +756,13 @@
             },
             "kind": "REQUIRED",
             "type": {
+              "imports": {
+                "graphql": "ballerina/graphql:1.16.0"
+              },
               "placeholder": "string",
               "valueType": "TYPE",
               "valueTypeConstraint": "graphql:Context",
               "value": "graphql:Context",
-              "imports": {
-                "graphql": "ballerina/graphql:1.16.0"
-              },
               "enabled": true,
               "editable": false,
               "optional": false,
@@ -757,13 +792,13 @@
             },
             "kind": "REQUIRED",
             "type": {
+              "imports": {
+                "graphql": "ballerina/graphql:1.16.0"
+              },
               "placeholder": "string",
               "valueType": "TYPE",
               "valueTypeConstraint": "graphql:Field",
               "value": "graphql:Field",
-              "imports": {
-                "graphql": "ballerina/graphql:1.16.0"
-              },
               "enabled": true,
               "editable": false,
               "optional": false,
@@ -912,7 +947,7 @@
                 "label": "Argument Type",
                 "description": "The type of the argument"
               },
-              "valueType": "TYPE",
+              "valueType": "ACTION_TYPE",
               "value": "",
               "enabled": true,
               "editable": true,
@@ -1009,7 +1044,7 @@
           "advanced": false
         },
         "enabled": true,
-        "optional": false,
+        "optional": true,
         "editable": true,
         "canAddParameters": false,
         "codedata": {
@@ -1025,6 +1060,7 @@
             }
           },
           "orgName": "ballerina",
+          "packageName": "graphql",
           "moduleName": "graphql"
         },
         "properties": {
@@ -1163,13 +1199,13 @@
             },
             "kind": "REQUIRED",
             "type": {
+              "imports": {
+                "graphql": "ballerina/graphql:1.16.0"
+              },
               "placeholder": "string",
               "valueType": "TYPE",
               "valueTypeConstraint": "graphql:Context",
               "value": "graphql:Context",
-              "imports": {
-                "graphql": "ballerina/graphql:1.16.0"
-              },
               "enabled": true,
               "editable": false,
               "optional": false,
@@ -1199,13 +1235,13 @@
             },
             "kind": "REQUIRED",
             "type": {
+              "imports": {
+                "graphql": "ballerina/graphql:1.16.0"
+              },
               "placeholder": "string",
               "valueType": "TYPE",
               "valueTypeConstraint": "graphql:Field",
               "value": "graphql:Field",
-              "imports": {
-                "graphql": "ballerina/graphql:1.16.0"
-              },
               "enabled": true,
               "editable": false,
               "optional": false,
@@ -1236,7 +1272,7 @@
                 "label": "Argument Type",
                 "description": "The type of the argument"
               },
-              "valueType": "TYPE",
+              "valueType": "ACTION_TYPE",
               "value": "",
               "enabled": true,
               "editable": true,
@@ -1333,7 +1369,7 @@
           "advanced": false
         },
         "enabled": true,
-        "optional": false,
+        "optional": true,
         "editable": true,
         "canAddParameters": false,
         "codedata": {
@@ -1349,6 +1385,7 @@
             }
           },
           "orgName": "ballerina",
+          "packageName": "graphql",
           "moduleName": "graphql"
         },
         "properties": {

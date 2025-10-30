@@ -173,7 +173,7 @@
       "advanced": false
     },
     "enabled": true,
-    "optional": false,
+    "optional": true,
     "editable": true,
     "canAddParameters": true,
     "codedata": {
@@ -187,7 +187,10 @@
           "line": 8,
           "offset": 4
         }
-      }
+      },
+      "orgName": "ballerina",
+      "packageName": "http",
+      "moduleName": "http"
     }
   }
 }
