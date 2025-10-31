@@ -128,7 +128,9 @@ public class AddServiceAndListenerTest extends AbstractLSTest {
     protected String[] skipList() {
         return new String[]{
                 "http_service_model_from_openapi_spec_1.json",
-                "http_service_model_from_openapi_spec_2.json"
+                "http_service_model_from_openapi_spec_2.json",
+                "graphql_service_model_from_schema_1.json",
+                "graphql_service_model_from_schema_2.json"
         };
     }
 

@@ -15,7 +15,7 @@ type Query {
   search(text: String!): [SearchResult!]
 }
 
-"A mechanical character from the Star Wars universe"
+"A character from the Star Wars universe"
 interface Character {
   "The unique identifier of the character"
   id: String!
@@ -61,8 +61,8 @@ type Starship {
   name: String!
   "The length of the starship, or null if unknown"
   length: Float
-  "Cordinates of the starship, or null if unknown"
-  cordinates: [[Float!]!]
+  "Coordinates of the starship, or null if unknown"
+  coordinates: [[Float!]!]
 }
 
 "An autonomous mechanical character in the Star Wars universe"
