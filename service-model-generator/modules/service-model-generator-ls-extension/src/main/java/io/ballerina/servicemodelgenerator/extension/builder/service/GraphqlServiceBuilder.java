@@ -56,6 +56,7 @@ import java.util.Optional;
 import static io.ballerina.servicemodelgenerator.extension.builder.FunctionBuilderRouter.getFunctionFromSource;
 import static io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel.KEY_CONFIGURE_LISTENER;
 import static io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel.KEY_LISTENER_VAR_NAME;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.BASE_PATH;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.CLOSE_BRACE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.GRAPHQL;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE;
@@ -90,6 +91,7 @@ public class GraphqlServiceBuilder extends AbstractServiceBuilder {
     private static final String LISTENER_VAR_NAME = "listenerVarName";
     private static final String DEFAULT_LISTENER_NAME = "graphqlListener";
     private static final String DEFAULT_SERVICE_PATH = "/graphql";
+    private static final String DEFAULT_PORT = "8080";
     private static final String PORT = "port";
 
     @Override
@@ -123,12 +125,12 @@ public class GraphqlServiceBuilder extends AbstractServiceBuilder {
         StringBuilder listenerDeclaration = new StringBuilder("listener graphql:Listener ");
         String listenerVarName = Objects.nonNull(properties.get(LISTENER_VAR_NAME)) ?
                 properties.get(LISTENER_VAR_NAME).getValue() : DEFAULT_LISTENER_NAME;
+        String port = DEFAULT_PORT;
         if (Objects.nonNull(properties.get(PORT))) {
-                listenerDeclaration.append(listenerVarName).append(" = ").append("new (")
-                        .append(properties.get(PORT).getValue()).append(");");
-        } else {
-            listenerDeclaration.append(listenerVarName).append(" = ").append("new (8080);");
+            port = properties.get(PORT).getValue();
         }
+        listenerDeclaration.append(listenerVarName).append(" = new (")
+                .append(port).append(");");
         if (Objects.nonNull(serviceInitModel.getGraphqlSchema())) {
             return new GraphqlServiceGenerator(context.project().sourceRoot(), context.workspaceManager())
                     .generateService(serviceInitModel, DEFAULT_SERVICE_PATH, listenerVarName,
@@ -137,7 +139,7 @@ public class GraphqlServiceBuilder extends AbstractServiceBuilder {
 
         ModulePartNode modulePartNode = context.document().syntaxTree().rootNode();
 
-        String basePath = properties.get("basePath").getValue();
+        String basePath = properties.get(BASE_PATH).getValue();
         StringBuilder builder = new StringBuilder(NEW_LINE)
                 .append(listenerDeclaration)
                 .append(NEW_LINE)

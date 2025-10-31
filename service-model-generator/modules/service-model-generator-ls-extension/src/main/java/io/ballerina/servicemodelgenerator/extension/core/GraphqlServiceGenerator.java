@@ -86,6 +86,11 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.GRAPHQ
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.importExists;
 
+/**
+ * Generates service from the GraphQL schema.
+ *
+ * @since 1.4.0
+ */
 public class GraphqlServiceGenerator {
 
     private final Path projectPath;
