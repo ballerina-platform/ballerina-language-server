@@ -321,7 +321,9 @@ public abstract class AbstractServiceBuilder implements ServiceNodeBuilder {
                     .setItems(items)
                     .setTypeMembers(property.memberTypes())
                     .enabled(true)
-                    .editable(true);
+                    .editable(true)
+                    .optional(property.optional())
+                    .setAdvanced(property.advanced());
             serviceInitModel.addProperty(property.keyName(), builder.build());
         }
 

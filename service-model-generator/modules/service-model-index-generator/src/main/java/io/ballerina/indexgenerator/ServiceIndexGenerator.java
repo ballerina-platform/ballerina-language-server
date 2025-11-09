@@ -240,7 +240,7 @@ class ServiceIndexGenerator {
                 int id = DatabaseManager.insertServiceInitializerProperty(packageId, propertyName,
                         property.label(), property.description(), property.defaultValue(), property.placeholder(),
                         property.valueType(), property.typeConstraint(), property.sourceKind(),
-                        GSON.toJson(property.selections()));
+                        GSON.toJson(property.selections()), property.optional(), property.advanced());
                 for (ServiceInitializerPropertyMemberType memberType : property.typeMembers()) {
                     DatabaseManager.insertServiceInitializerPropertyMemberType(id, memberType.type(),
                             memberType.kind(), memberType.packageInfo());
@@ -698,7 +698,7 @@ class ServiceIndexGenerator {
     record ServiceInitializerProperty(String label, String description, String defaultValue, String placeholder,
                                       String valueType, String typeConstraint,
                                       List<ServiceInitializerPropertyMemberType> typeMembers, String sourceKind,
-                                      List<Object> selections) {
+                                      List<Object> selections, boolean optional, boolean advanced) {
     }
 
     record ServiceInitializerPropertyMemberType(String type, String packageInfo, String kind) {
