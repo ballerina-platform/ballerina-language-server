@@ -27,6 +27,7 @@ import io.ballerina.projects.DiagnosticResult;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.Project;
 import io.ballerina.projects.ProjectEnvironmentBuilder;
+import io.ballerina.projects.ProjectLoadResult;
 import io.ballerina.projects.directory.ProjectLoader;
 import io.ballerina.tools.diagnostics.Diagnostic;
 import org.ballerinalang.annotation.JavaSPIService;
@@ -104,18 +105,21 @@ public class BallerinaBaseCompilerApi extends BallerinaCompilerApi {
 
     @Override
     public Project loadProject(Path path) {
-        return ProjectLoader.loadProject(path);
+        ProjectLoadResult projectLoadResult = ProjectLoader.load(path);
+        return projectLoadResult.project();
     }
 
     @Override
     public Project loadProject(Path path, BuildOptions buildOptions) {
         ProjectEnvironmentBuilder envBuilder = ProjectEnvironmentBuilder.getDefaultBuilder();
-        return ProjectLoader.loadProject(path, envBuilder);
+        ProjectLoadResult projectLoadResult = ProjectLoader.load(path, envBuilder, buildOptions);
+        return projectLoadResult.project();
     }
 
     @Override
     public Project loadProject(Path path, ProjectEnvironmentBuilder environmentBuilder) {
-        return ProjectLoader.loadProject(path, environmentBuilder);
+        ProjectLoadResult projectLoadResult = ProjectLoader.load(path, environmentBuilder);
+        return projectLoadResult.project();
     }
 
     @Override
