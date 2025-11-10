@@ -13,6 +13,13 @@
         "valueType": "enum",
         "defaultValue": "Auto Detect",
         "options": ["Auto Detect","3", "4"]
+      },
+      {
+        "key": "multiRoot",
+        "label": "Multi-Root Project",
+        "description": "Indicates if the MuleSoft project is a multi-root workspace.",
+        "valueType": "boolean",
+        "defaultValue": false
       }
     ]
   },
