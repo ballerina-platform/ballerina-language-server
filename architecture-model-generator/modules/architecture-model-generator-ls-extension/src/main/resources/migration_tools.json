@@ -16,8 +16,8 @@
       },
       {
         "key": "multiRoot",
-        "label": "Multi-Root Project",
-        "description": "Indicates if the MuleSoft project is a multi-root workspace.",
+        "label": "Migrate Multiple Projects",
+        "description": "Enable to process all MuleSoft projects in the folder.",
         "valueType": "boolean",
         "defaultValue": false
       }
