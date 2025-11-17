@@ -241,28 +241,34 @@ public class JsonToTypeMapper {
     }
 
     private RecordField createRecordField(Map.Entry<String, JsonElement> entry, boolean isOptional) {
-        String fieldName = entry.getKey();
+        String originalFieldName = entry.getKey();
+        String fieldName = escapeIdentifier(originalFieldName);
         JsonElement element = entry.getValue();
+
+        String annotation = null;
+        if (needsJsonAnnotation(originalFieldName, fieldName)) {
+            annotation = String.format("@jsondata:Name {\n        value: \"%s\"\n    }", originalFieldName);
+        }
 
         if (element.isJsonPrimitive()) {
             String typeName = getPrimitiveType(element.getAsJsonPrimitive());
-            return new RecordField(fieldName, new PrimitiveTypeDesc(typeName), isOptional);
+            return new RecordField(fieldName, new PrimitiveTypeDesc(typeName), isOptional, annotation);
         } else if (element.isJsonObject()) {
             String typeName = escapeIdentifier(getRecordName(fieldName.trim()));
             String updatedTypeName = getAndUpdateFieldNames(
                     typeName, false, new ArrayList<>(existingFieldNamesSet), updatedFieldNames
             );
-            return new RecordField(fieldName, new ReferenceTypeDesc(updatedTypeName), isOptional);
+            return new RecordField(fieldName, new ReferenceTypeDesc(updatedTypeName), isOptional, annotation);
         } else if (element.isJsonNull()) {
-            return new RecordField(fieldName, new NilTypeDesc(), isOptional);
+            return new RecordField(fieldName, new NilTypeDesc(), isOptional, annotation);
         } else if (element.isJsonArray()) {
             String typeName = escapeIdentifier(getRecordName(fieldName.trim()));
             String updatedTypeName = getAndUpdateFieldNames(
                     typeName, false, new ArrayList<>(existingFieldNamesSet), updatedFieldNames
             );
-            return new RecordField(fieldName, new ReferenceTypeDesc(updatedTypeName), isOptional);
+            return new RecordField(fieldName, new ReferenceTypeDesc(updatedTypeName), isOptional, annotation);
         }
-        return new RecordField(fieldName, null);
+        return new RecordField(fieldName, null, isOptional, annotation);
     }
 
     private ArrayTypeDesc createArrayTypeDesc(String typeName, JsonArray jsonArray) {
@@ -316,6 +322,10 @@ public class JsonToTypeMapper {
     private String getRecordName(String name) {
         String cap = StringUtils.capitalize(name);
         return (typePrefix == null || typePrefix.isEmpty()) ? cap : StringUtils.capitalize(typePrefix) + cap;
+    }
+
+    private boolean needsJsonAnnotation(String originalName, String escapedName) {
+        return !originalName.equals(escapedName);
     }
 
     private String getNextAvailableTypeName(String baseName) {
@@ -391,7 +401,7 @@ public class JsonToTypeMapper {
             boolean isOptional = f1.isOptional || f2.isOptional;
 
             if (f1.type.toString().equals(f2.type.toString()) && isOptional) {
-                updatedRecordFields.add(new RecordField(fieldName, f1.type, true));
+                updatedRecordFields.add(new RecordField(fieldName, f1.type, true, f1.annotation));
                 continue;
             }
 
@@ -401,7 +411,7 @@ public class JsonToTypeMapper {
 
                 if (f1Type.toString().equals(f2Type.toString())) {
                     OptionalTypeDesc optionalTypeDesc = new OptionalTypeDesc(f1Type);
-                    updatedRecordFields.add(new RecordField(fieldName, optionalTypeDesc, isOptional));
+                    updatedRecordFields.add(new RecordField(fieldName, optionalTypeDesc, isOptional, f1.annotation));
                     continue;
                 }
 
@@ -409,17 +419,17 @@ public class JsonToTypeMapper {
                     TypeDesc nonNilType = f1Type instanceof NilTypeDesc ? f2Type : f1Type;
                     if (isNullAsOptional) {
                         // If null is treated as optional, we add the field as an optional field with the non-nil type.
-                        updatedRecordFields.add(new RecordField(fieldName, nonNilType, true));
+                        updatedRecordFields.add(new RecordField(fieldName, nonNilType, true, f1.annotation));
                         continue;
                     }
                     OptionalTypeDesc optionalNonNilType = new OptionalTypeDesc(nonNilType);
-                    updatedRecordFields.add(new RecordField(fieldName, optionalNonNilType, isOptional));
+                    updatedRecordFields.add(new RecordField(fieldName, optionalNonNilType, isOptional, f1.annotation));
                     continue;
                 }
 
                 UnionTypeDesc unionTypeDesc = new UnionTypeDesc(List.of(f1Type, f2Type));
                 OptionalTypeDesc optionalTypeDesc = new OptionalTypeDesc(unionTypeDesc);
-                updatedRecordFields.add(new RecordField(fieldName, optionalTypeDesc, isOptional));
+                updatedRecordFields.add(new RecordField(fieldName, optionalTypeDesc, isOptional, f1.annotation));
                 continue;
             }
 
@@ -427,16 +437,16 @@ public class JsonToTypeMapper {
                 TypeDesc nonNilType = f1.type instanceof NilTypeDesc ? f2.type : f1.type;
                 if (isNullAsOptional) {
                     // If null is treated as optional, we add the field as an optional field with the non-nil type.
-                    updatedRecordFields.add(new RecordField(fieldName, nonNilType, true));
+                    updatedRecordFields.add(new RecordField(fieldName, nonNilType, true, f1.annotation));
                     continue;
                 }
                 OptionalTypeDesc optionalNonNilType = new OptionalTypeDesc(nonNilType);
-                updatedRecordFields.add(new RecordField(fieldName, optionalNonNilType, isOptional));
+                updatedRecordFields.add(new RecordField(fieldName, optionalNonNilType, isOptional, f1.annotation));
                 continue;
             }
 
             UnionTypeDesc unionTypeDesc = new UnionTypeDesc(List.of(f1.type, f2.type));
-            updatedRecordFields.add(new RecordField(fieldName, unionTypeDesc, isOptional));
+            updatedRecordFields.add(new RecordField(fieldName, unionTypeDesc, isOptional, f1.annotation));
         }
 
         for (RecordField recordField : differentRecordFields.values()) {
@@ -453,7 +463,8 @@ public class JsonToTypeMapper {
                     recordFields.add(new RecordField(
                             field.fieldName,
                             convertToInlineTypeDesc(field.type),
-                            field.isOptional
+                            field.isOptional,
+                            field.annotation
                     ));
                 }
                 yield new RecordTypeDesc(recordFields, !this.allowAdditionalFields);
@@ -626,21 +637,40 @@ public class JsonToTypeMapper {
         final String fieldName;
         final TypeDesc type;
         boolean isOptional = false;
+        final String annotation;
 
         RecordField(String fieldName, TypeDesc type) {
             this.fieldName = fieldName;
             this.type = type;
+            this.annotation = null;
         }
 
         RecordField(String fieldName, TypeDesc type, boolean isOptional) {
             this.fieldName = fieldName;
             this.type = type;
             this.isOptional = isOptional;
+            this.annotation = null;
+        }
+
+        RecordField(String fieldName, TypeDesc type, boolean isOptional, String annotation) {
+            this.fieldName = fieldName;
+            this.type = type;
+            this.isOptional = isOptional;
+            this.annotation = annotation;
         }
 
         @Override
         public String toString() {
-            return type.toString() + " " + fieldName + (isOptional ? "?" : "") + ";";
+            StringBuilder sb = new StringBuilder();
+            if (annotation != null) {
+                sb.append(annotation).append("\n    ");
+            }
+            sb.append(type.toString()).append(" ").append(fieldName);
+            if (isOptional) {
+                sb.append("?");
+            }
+            sb.append(";");
+            return sb.toString();
         }
     }
 
