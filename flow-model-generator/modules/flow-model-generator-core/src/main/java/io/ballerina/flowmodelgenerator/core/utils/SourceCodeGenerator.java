@@ -49,6 +49,10 @@ public class SourceCodeGenerator {
     private static final String LS = System.lineSeparator();
 
     public String generateCodeSnippetForType(TypeData typeData) {
+        return generateCodeSnippetForType(typeData, false);
+    }
+
+    public String generateCodeSnippetForType(TypeData typeData, boolean isNewType) {
         NodeKind nodeKind = typeData.codedata().node();
         return switch (nodeKind) {
             case SERVICE_DECLARATION, CLASS -> "";  // TODO: Implement this
@@ -451,7 +455,7 @@ public class SourceCodeGenerator {
         return template.formatted(annotatedTypeDesc, paramName, defaultValue);
     }
 
-    private static List<AnnotationAttachment> getAnnotationAttachments(Member member) {
+    private List<AnnotationAttachment> getAnnotationAttachments(Member member) {
         List<AnnotationAttachment> copyOfAnnotAttachments;
         if (Objects.nonNull(member.annotationAttachments())) {
             copyOfAnnotAttachments = new ArrayList<>(member.annotationAttachments());
@@ -466,6 +470,8 @@ public class SourceCodeGenerator {
                     null
             ));
         }
+
+
         return copyOfAnnotAttachments;
     }
 
@@ -546,6 +552,7 @@ public class SourceCodeGenerator {
         return readonlyProperty != null && readonlyProperty.value().equals("true");
     }
 
+
     /**
      * Helper method to add imports from a member to the imports map.
      *
@@ -561,6 +568,7 @@ public class SourceCodeGenerator {
             this.imports.putIfAbsent(TypeUtils.GRAPHQL_DEFAULT_MODULE_PREFIX,
                     TypeUtils.BALLERINA_ORG + "/" + TypeUtils.GRAPHQL_DEFAULT_MODULE_PREFIX);
         }
+
     }
 
     /**
@@ -579,4 +587,5 @@ public class SourceCodeGenerator {
                     TypeUtils.BALLERINA_ORG + "/" + TypeUtils.GRAPHQL_DEFAULT_MODULE_PREFIX);
         }
     }
+
 }

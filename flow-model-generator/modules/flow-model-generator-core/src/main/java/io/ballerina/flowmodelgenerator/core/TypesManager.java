@@ -47,7 +47,9 @@ import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.NonTerminalNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
+import io.ballerina.flowmodelgenerator.core.model.AnnotationAttachment;
 import io.ballerina.flowmodelgenerator.core.model.Codedata;
+import io.ballerina.flowmodelgenerator.core.model.Member;
 import io.ballerina.flowmodelgenerator.core.model.TypeData;
 import io.ballerina.flowmodelgenerator.core.utils.SourceCodeGenerator;
 import io.ballerina.flowmodelgenerator.core.utils.TypeTransformer;
@@ -194,13 +196,18 @@ public class TypesManager {
         Map<Path, List<TextEdit>> textEditsMap = new HashMap<>();
         textEditsMap.put(filePath, textEdits);
 
-        // Regenerate code snippet for the type
-        SourceCodeGenerator sourceCodeGenerator = new SourceCodeGenerator();
-        String codeSnippet = sourceCodeGenerator.generateCodeSnippetForType(typeData);
-
         SyntaxTree syntaxTree = this.typeDocument.syntaxTree();
         ModulePartNode rootNode = syntaxTree.rootNode();
         LineRange lineRange = typeData.codedata().lineRange();
+
+        // If editing existing type, remove jsondata:Name annotations from members
+        if (lineRange != null) {
+            typeData = removeJsonDataAnnotations(typeData);
+        }
+
+        // Regenerate code snippet for the type
+        SourceCodeGenerator sourceCodeGenerator = new SourceCodeGenerator();
+        String codeSnippet = sourceCodeGenerator.generateCodeSnippetForType(typeData);
         if (lineRange == null) {
             textEdits.add(new TextEdit(CommonUtils.toRange(rootNode.lineRange().endLine()), codeSnippet));
         } else {
@@ -576,6 +583,89 @@ public class TypesManager {
 
     private static String getImportStmt(String org, String module) {
         return String.format("%nimport %s/%s;%n", org, module);
+    }
+
+    /**
+     * Removes jsondata:Name annotations from all members of a TypeData when editing existing types.
+     * This ensures that edit operations don't carry forward JSON-specific annotations.
+     *
+     * @param typeData The TypeData to clean up
+     * @return A new TypeData with jsondata:Name annotations removed from members
+     */
+    private TypeData removeJsonDataAnnotations(TypeData typeData) {
+        if (typeData.members() == null || typeData.members().isEmpty()) {
+            return typeData;
+        }
+
+        // Clean up members by removing jsondata:Name annotations
+        List<Member> cleanedMembers = new ArrayList<>();
+        for (Member member : typeData.members()) {
+            Member cleanedMember = removeJsonDataAnnotationFromMember(member);
+            cleanedMembers.add(cleanedMember);
+        }
+
+        // Return a new TypeData with the cleaned members
+        return new TypeData(
+                typeData.name(),
+                typeData.editable(),
+                typeData.metadata(),
+                typeData.codedata(),
+                typeData.properties(),
+                cleanedMembers,
+                typeData.restMember(),
+                typeData.includes(),
+                typeData.functions(),
+                typeData.annotationAttachments(),
+                typeData.allowAdditionalFields()
+        );
+    }
+
+    /**
+     * Removes jsondata:Name annotation from a single member.
+     *
+     * @param member The member to clean up
+     * @return A new Member without jsondata:Name annotations
+     */
+    private Member removeJsonDataAnnotationFromMember(Member member) {
+        if (member.annotationAttachments() == null || member.annotationAttachments().isEmpty()) {
+            return member;
+        }
+
+        // Filter out jsondata:Name annotations
+        List<AnnotationAttachment> filteredAnnotations = member.annotationAttachments().stream()
+                .filter(annotation -> !isJsonDataNameAnnotation(annotation))
+                .toList();
+
+        // Return the same member if no annotations were removed
+        if (filteredAnnotations.size() == member.annotationAttachments().size()) {
+            return member;
+        }
+
+        // Return a new Member with filtered annotations
+        return new Member(
+                member.kind(),
+                member.refs(),
+                member.type(),
+                member.name(),
+                member.defaultValue(),
+                member.optional(),
+                member.readonly(),
+                member.isGraphqlId(),
+                member.docs(),
+                filteredAnnotations.isEmpty() ? null : filteredAnnotations,
+                member.imports()
+        );
+    }
+
+    /**
+     * Checks if an annotation is a jsondata:Name annotation.
+     *
+     * @param annotation The annotation to check
+     * @return true if it's a jsondata:Name annotation, false otherwise
+     */
+    private boolean isJsonDataNameAnnotation(AnnotationAttachment annotation) {
+        return "jsondata".equals(annotation.modulePrefix()) &&
+               "Name".equals(annotation.name());
     }
 
     public record TypeDataWithRefs(Object type, List<Object> refs) {

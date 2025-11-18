@@ -32,6 +32,7 @@ import io.ballerina.flowmodelgenerator.core.DeleteNodeHandler;
 import io.ballerina.flowmodelgenerator.core.TypesManager;
 import io.ballerina.flowmodelgenerator.core.converters.JsonToTypeMapper;
 import io.ballerina.flowmodelgenerator.core.model.Codedata;
+import io.ballerina.flowmodelgenerator.core.model.Property;
 import io.ballerina.flowmodelgenerator.core.model.PropertyTypeMemberInfo;
 import io.ballerina.flowmodelgenerator.core.model.TypeData;
 import io.ballerina.flowmodelgenerator.core.type.RecordValueGenerator;
@@ -76,6 +77,7 @@ import org.eclipse.lsp4j.services.LanguageServer;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -374,7 +376,8 @@ public class TypesManagerService implements ExtendedLanguageServerService {
                 Document document = FileSystemUtils.getDocument(workspaceManager, filePath);
                 List<TypeData> typeDataList = new ArrayList<>();
                 for (JsonElement element : request.types()) {
-                    typeDataList.add((new Gson()).fromJson(element, TypeData.class));
+                    TypeData typeData = (new Gson()).fromJson(element, TypeData.class);
+                    typeDataList.add(typeData);
                 }
                 TypesManager typesManager = new TypesManager(document);
                 response.setTextEdits(typesManager.createMultipleTypes(filePath, typeDataList));
@@ -617,6 +620,7 @@ public class TypesManagerService implements ExtendedLanguageServerService {
                 .filter(symbol -> symbol.kind() == SymbolKind.TYPE_DEFINITION && symbol.nameEquals(type))
                 .findFirst();
     }
+
 
     private record PackageNameModulePartName(String packageName, String modulePartName) {
 

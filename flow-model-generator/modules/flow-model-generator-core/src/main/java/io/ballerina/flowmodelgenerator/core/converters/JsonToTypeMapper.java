@@ -26,8 +26,10 @@ import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import io.ballerina.flowmodelgenerator.core.TypesManager;
 import io.ballerina.flowmodelgenerator.core.converters.exception.JsonToRecordConverterException;
+import io.ballerina.flowmodelgenerator.core.model.AnnotationAttachment;
 import io.ballerina.flowmodelgenerator.core.model.Member;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
+import io.ballerina.flowmodelgenerator.core.model.Property;
 import io.ballerina.flowmodelgenerator.core.model.TypeData;
 import org.apache.commons.lang3.StringUtils;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
@@ -247,7 +249,7 @@ public class JsonToTypeMapper {
 
         String annotation = null;
         if (needsJsonAnnotation(originalFieldName, fieldName)) {
-            annotation = String.format("@jsondata:Name {\n        value: \"%s\"\n    }", originalFieldName);
+            annotation = originalFieldName;
         }
 
         if (element.isJsonPrimitive()) {
@@ -514,17 +516,23 @@ public class JsonToTypeMapper {
 
         return switch (typeDesc) {
             case RecordTypeDesc recordTypeDesc -> {
-                Member.MemberBuilder memberBuilder = new Member.MemberBuilder();
                 List<Member> members = new ArrayList<>(recordTypeDesc.fields.size());
-
                 for (RecordField field : recordTypeDesc.fields) {
-                    members.add(memberBuilder
+                    Member.MemberBuilder memberBuilder = new Member.MemberBuilder();
+                    memberBuilder
                             .kind(Member.MemberKind.FIELD)
                             .type(toTypeData(null, field.type))
                             .name(field.fieldName)
                             .refs(List.of())
-                            .optional((field.type instanceof NilTypeDesc && isNullAsOptional) || field.isOptional)
-                            .build());
+                            .optional((field.type instanceof NilTypeDesc && isNullAsOptional) || field.isOptional);
+                    if (field.annotation != null) {
+                        Property.Builder<Object> propertyBuilder = new Property.Builder<>(null);
+                        Property property = propertyBuilder.value(field.annotation).build();
+                        AnnotationAttachment annotationAttachment =
+                                new AnnotationAttachment("jsondata", "Name", Map.of("value", property));
+                        memberBuilder.annotationAttachments(List.of(annotationAttachment));
+                    }
+                    members.add(memberBuilder.build());
                 }
 
                 /*
@@ -534,6 +542,7 @@ public class JsonToTypeMapper {
                 * E.g. record {| int id; string name; json...; |} instead of record { int id; string name; }
                 */
                 if (this.allowAdditionalFields) {
+                    Member.MemberBuilder memberBuilder = new Member.MemberBuilder();
                     typeDataBuilder.restMember(memberBuilder
                             .kind(Member.MemberKind.FIELD)
                             .type(JSON_KEYWORD)
