@@ -249,7 +249,7 @@ public class JsonToTypeMapper {
 
         String annotation = null;
         if (needsJsonAnnotation(originalFieldName, fieldName)) {
-            annotation = originalFieldName;
+            annotation = "\"" + originalFieldName.replace("\"", "\\\"") + "\"";
         }
 
         if (element.isJsonPrimitive()) {
