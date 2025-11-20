@@ -69,6 +69,10 @@ public class JsonToTypeMapper {
     private static final String DECIMAL_TYPE = "decimal";
     private static final String INT_TYPE = "int";
     private static final String ANYDATA_TYPE = "anydata";
+    public static final String BALLERINA_JSONDATA = "ballerina/data.jsondata";
+    public static final String JSONDATA = "jsondata";
+    public static final String NAME = "Name";
+    public static final String VALUE_PROPERTY = "value";
 
     private final Set<String> existingFieldNamesSet;
     private final Map<String, String> updatedFieldNames;
@@ -529,8 +533,9 @@ public class JsonToTypeMapper {
                         Property.Builder<Object> propertyBuilder = new Property.Builder<>(null);
                         Property property = propertyBuilder.value(field.annotation).build();
                         AnnotationAttachment annotationAttachment =
-                                new AnnotationAttachment("jsondata", "Name", Map.of("value", property));
+                                new AnnotationAttachment(JSONDATA, NAME, Map.of(VALUE_PROPERTY, property));
                         memberBuilder.annotationAttachments(List.of(annotationAttachment));
+                        memberBuilder.imports(Map.of(JSONDATA, BALLERINA_JSONDATA));
                     }
                     members.add(memberBuilder.build());
                 }

@@ -32,7 +32,6 @@ import io.ballerina.flowmodelgenerator.core.DeleteNodeHandler;
 import io.ballerina.flowmodelgenerator.core.TypesManager;
 import io.ballerina.flowmodelgenerator.core.converters.JsonToTypeMapper;
 import io.ballerina.flowmodelgenerator.core.model.Codedata;
-import io.ballerina.flowmodelgenerator.core.model.Property;
 import io.ballerina.flowmodelgenerator.core.model.PropertyTypeMemberInfo;
 import io.ballerina.flowmodelgenerator.core.model.TypeData;
 import io.ballerina.flowmodelgenerator.core.type.RecordValueGenerator;
@@ -77,7 +76,6 @@ import org.eclipse.lsp4j.services.LanguageServer;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
