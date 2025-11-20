@@ -15,3 +15,15 @@ type Employee record {|
     string name;
     int id;
 |};
+
+type Attendance record {|
+     int total_count;
+     @jsondata:Name {
+          value: "+1"
+     }
+     int \+1;
+     @jsondata:Name {
+          value: "-1"
+     }
+     int \-1;
+|}

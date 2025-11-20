@@ -3,6 +3,136 @@
   "description": "Get all types associated with the package",
   "types": [
     {
+      "name": "RecordName",
+      "editable": true,
+      "metadata": {
+        "label": "RecordName",
+        "description": ""
+      },
+      "codedata": {
+        "node": "RECORD",
+        "lineRange": {
+          "fileName": "types.bal",
+          "startLine": {
+            "line": 145,
+            "offset": 5
+          },
+          "endLine": {
+            "line": 145,
+            "offset": 15
+          }
+        }
+      },
+      "properties": {
+        "name": {
+          "metadata": {
+            "label": "Type name",
+            "description": "Unique name to identify the type"
+          },
+          "valueType": "IDENTIFIER",
+          "value": "RecordName",
+          "optional": false,
+          "editable": false,
+          "advanced": false,
+          "hidden": false
+        },
+        "isPublic": {
+          "metadata": {
+            "label": "public",
+            "description": "Is this public"
+          },
+          "valueType": "FLAG",
+          "value": "false",
+          "optional": true,
+          "editable": true,
+          "advanced": false,
+          "hidden": false
+        },
+        "description": {
+          "metadata": {
+            "label": "Type description",
+            "description": "Detailed description about the type"
+          },
+          "valueType": "STRING",
+          "value": "",
+          "optional": false,
+          "editable": true,
+          "advanced": false,
+          "hidden": false
+        },
+        "isArray": {
+          "metadata": {
+            "label": "Is array type",
+            "description": "Is this type an array or list value"
+          },
+          "valueType": "FLAG",
+          "value": "false",
+          "optional": true,
+          "editable": true,
+          "advanced": true,
+          "hidden": false
+        },
+        "arraySize": {
+          "metadata": {
+            "label": "Size of the array",
+            "description": "Array dimensions"
+          },
+          "valueType": "STRING",
+          "value": "",
+          "optional": true,
+          "editable": true,
+          "advanced": true,
+          "hidden": false
+        }
+      },
+      "members": [
+        {
+          "kind": "FIELD",
+          "refs": [],
+          "type": "int",
+          "name": "total_count",
+          "optional": false,
+          "readonly": false,
+          "isGraphqlId": false,
+          "docs": "",
+          "annotationAttachments": []
+        },
+        {
+          "kind": "FIELD",
+          "refs": [],
+          "type": "int",
+          "name": "\\+1",
+          "optional": false,
+          "readonly": false,
+          "isGraphqlId": false,
+          "docs": "",
+          "annotationAttachments": [
+            {
+              "modulePrefix": "jsondata",
+              "name": "Name",
+              "properties": {
+                "value": {
+                  "valueType": "EXPRESSION",
+                  "valueTypeConstraint": "string",
+                  "value": "\"+1\"",
+                  "optional": false,
+                  "editable": false,
+                  "advanced": false,
+                  "hidden": false
+                }
+              }
+            }
+          ],
+          "imports": {
+            "jsondata": "ballerina/data.jsondata"
+          }
+        }
+      ],
+      "includes": [],
+      "annotationAttachments": [],
+      "allowAdditionalFields": true
+    },
+    {
       "name": "Address",
       "editable": true,
       "metadata": {
@@ -14,11 +144,11 @@
         "lineRange": {
           "fileName": "types.bal",
           "startLine": {
-            "line": 2,
+            "line": 3,
             "offset": 5
           },
           "endLine": {
-            "line": 2,
+            "line": 3,
             "offset": 12
           }
         }
@@ -183,11 +313,11 @@
         "lineRange": {
           "fileName": "types.bal",
           "startLine": {
-            "line": 120,
+            "line": 121,
             "offset": 5
           },
           "endLine": {
-            "line": 120,
+            "line": 121,
             "offset": 10
           }
         }
@@ -336,11 +466,11 @@
         "lineRange": {
           "fileName": "types.bal",
           "startLine": {
-            "line": 61,
+            "line": 62,
             "offset": 5
           },
           "endLine": {
-            "line": 61,
+            "line": 62,
             "offset": 17
           }
         }
@@ -469,11 +599,11 @@
         "lineRange": {
           "fileName": "types.bal",
           "startLine": {
-            "line": 114,
+            "line": 115,
             "offset": 5
           },
           "endLine": {
-            "line": 114,
+            "line": 115,
             "offset": 10
           }
         }
@@ -605,11 +735,11 @@
         "lineRange": {
           "fileName": "types.bal",
           "startLine": {
-            "line": 42,
+            "line": 43,
             "offset": 5
           },
           "endLine": {
-            "line": 42,
+            "line": 43,
             "offset": 10
           }
         }
@@ -727,11 +857,11 @@
         "lineRange": {
           "fileName": "types.bal",
           "startLine": {
-            "line": 75,
+            "line": 76,
             "offset": 12
           },
           "endLine": {
-            "line": 75,
+            "line": 76,
             "offset": 23
           }
         }
@@ -1163,11 +1293,11 @@
         "lineRange": {
           "fileName": "types.bal",
           "startLine": {
-            "line": 63,
+            "line": 64,
             "offset": 5
           },
           "endLine": {
-            "line": 63,
+            "line": 64,
             "offset": 9
           }
         }
@@ -1309,11 +1439,11 @@
         "lineRange": {
           "fileName": "types.bal",
           "startLine": {
-            "line": 53,
+            "line": 54,
             "offset": 5
           },
           "endLine": {
-            "line": 53,
+            "line": 54,
             "offset": 14
           }
         }
@@ -1511,11 +1641,11 @@
         "lineRange": {
           "fileName": "types.bal",
           "startLine": {
-            "line": 142,
+            "line": 143,
             "offset": 5
           },
           "endLine": {
-            "line": 142,
+            "line": 143,
             "offset": 10
           }
         }
@@ -1663,11 +1793,11 @@
         "lineRange": {
           "fileName": "types.bal",
           "startLine": {
-            "line": 31,
+            "line": 32,
             "offset": 5
           },
           "endLine": {
-            "line": 31,
+            "line": 32,
             "offset": 14
           }
         }
@@ -2017,11 +2147,11 @@
         "lineRange": {
           "fileName": "types.bal",
           "startLine": {
-            "line": 134,
+            "line": 135,
             "offset": 5
           },
           "endLine": {
-            "line": 134,
+            "line": 135,
             "offset": 10
           }
         }
@@ -2222,11 +2352,11 @@
         "lineRange": {
           "fileName": "types.bal",
           "startLine": {
-            "line": 48,
+            "line": 49,
             "offset": 5
           },
           "endLine": {
-            "line": 48,
+            "line": 49,
             "offset": 11
           }
         }
@@ -2337,11 +2467,11 @@
         "lineRange": {
           "fileName": "types.bal",
           "startLine": {
-            "line": 139,
+            "line": 140,
             "offset": 5
           },
           "endLine": {
-            "line": 139,
+            "line": 140,
             "offset": 10
           }
         }
@@ -2478,11 +2608,11 @@
         "lineRange": {
           "fileName": "types.bal",
           "startLine": {
-            "line": 126,
+            "line": 127,
             "offset": 15
           },
           "endLine": {
-            "line": 126,
+            "line": 127,
             "offset": 20
           }
         }
@@ -2683,11 +2813,11 @@
         "lineRange": {
           "fileName": "types.bal",
           "startLine": {
-            "line": 37,
+            "line": 38,
             "offset": 5
           },
           "endLine": {
-            "line": 37,
+            "line": 38,
             "offset": 12
           }
         }
@@ -2912,11 +3042,11 @@
         "lineRange": {
           "fileName": "types.bal",
           "startLine": {
-            "line": 65,
+            "line": 66,
             "offset": 5
           },
           "endLine": {
-            "line": 65,
+            "line": 66,
             "offset": 16
           }
         }
@@ -3036,11 +3166,11 @@
         "lineRange": {
           "fileName": "types.bal",
           "startLine": {
-            "line": 59,
+            "line": 60,
             "offset": 5
           },
           "endLine": {
-            "line": 59,
+            "line": 60,
             "offset": 10
           }
         }
@@ -3158,11 +3288,11 @@
         "lineRange": {
           "fileName": "types.bal",
           "startLine": {
-            "line": 85,
+            "line": 86,
             "offset": 47
           },
           "endLine": {
-            "line": 85,
+            "line": 86,
             "offset": 54
           }
         }
@@ -3674,11 +3804,11 @@
         "lineRange": {
           "fileName": "types.bal",
           "startLine": {
-            "line": 67,
+            "line": 68,
             "offset": 5
           },
           "endLine": {
-            "line": 67,
+            "line": 68,
             "offset": 17
           }
         }
@@ -3869,11 +3999,11 @@
         "lineRange": {
           "fileName": "types.bal",
           "startLine": {
-            "line": 69,
+            "line": 70,
             "offset": 5
           },
           "endLine": {
-            "line": 69,
+            "line": 70,
             "offset": 20
           }
         }
@@ -4110,11 +4240,11 @@
         "lineRange": {
           "fileName": "types.bal",
           "startLine": {
-            "line": 12,
+            "line": 13,
             "offset": 5
           },
           "endLine": {
-            "line": 12,
+            "line": 13,
             "offset": 11
           }
         }

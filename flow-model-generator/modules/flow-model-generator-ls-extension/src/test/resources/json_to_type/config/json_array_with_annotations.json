@@ -1,0 +1,11 @@
+{
+  "description": "JSON object with mixed typed fields (arrays of different object types)",
+  "filePath": "proj/types.bal",
+  "jsonString": "{\n\"total_count\":0,\n\"+1\":0,\n\"-1\":0\n}",
+  "typeName": "Attendance",
+  "prefix": "",
+  "isNullAsOptional": false,
+  "allowAdditionalFields": false,
+  "asInline": false,
+  "expectedTypes": "\nimport ballerina/data.jsondata;\n\n\ntype Attendance record {|\n\tint total_count;\n\t@jsondata:Name{\nvalue: \"+1\"\n}\n\tint \\+1;\n\t@jsondata:Name{\nvalue: \"-1\"\n}\n\tint \\-1;\n|};\n"
+}

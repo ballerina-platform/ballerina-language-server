@@ -1,0 +1,174 @@
+{
+  "filePath": "test_pack1/types.bal",
+  "description": "Create a new record type",
+  "type": {
+    "name": "Attendance",
+    "editable": true,
+    "metadata": {
+      "label": "Attendance",
+      "description": ""
+    },
+    "codedata": {
+      "node": "RECORD"
+    },
+    "properties": {
+      "name": {
+        "metadata": {
+          "label": "Type name",
+          "description": "Unique name to identify the type"
+        },
+        "valueType": "IDENTIFIER",
+        "value": "Attendance",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": false
+      },
+      "isPublic": {
+        "metadata": {
+          "label": "public",
+          "description": "Is this public"
+        },
+        "valueType": "FLAG",
+        "value": "true",
+        "optional": true,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "description": {
+        "metadata": {
+          "label": "Type description",
+          "description": "Detailed description about the type"
+        },
+        "valueType": "STRING",
+        "value": "",
+        "optional": true,
+        "editable": false,
+        "advanced": false,
+        "hidden": false
+      },
+      "isArray": {
+        "metadata": {
+          "label": "Is array type",
+          "description": "Is this type an array or list value"
+        },
+        "valueType": "FLAG",
+        "value": "false",
+        "optional": true,
+        "editable": false,
+        "advanced": false,
+        "hidden": false
+      },
+      "arraySize": {
+        "metadata": {
+          "label": "Size of the array",
+          "description": "Array dimensions"
+        },
+        "valueType": "STRING",
+        "value": "",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false
+      }
+    },
+    "members": [
+      {
+        "kind": "FIELD",
+        "refs": [],
+        "type": "int",
+        "name": "total_count",
+        "optional": false,
+        "readonly": false,
+        "isGraphqlId": false
+      },
+      {
+        "kind": "FIELD",
+        "refs": [],
+        "type": "int",
+        "name": "\\+1",
+        "optional": false,
+        "readonly": false,
+        "isGraphqlId": false,
+        "annotationAttachments": [
+          {
+            "modulePrefix": "jsondata",
+            "name": "Name",
+            "properties": {
+              "value": {
+                "value": "\"+1\"",
+                "optional": false,
+                "editable": false,
+                "advanced": false,
+                "hidden": false
+              }
+            }
+          }
+        ],
+        "imports": {
+          "jsondata": "ballerina/data.jsondata"
+        }
+      },
+      {
+        "kind": "FIELD",
+        "refs": [],
+        "type": "int",
+        "name": "\\-1",
+        "optional": false,
+        "readonly": false,
+        "isGraphqlId": false,
+        "annotationAttachments": [
+          {
+            "modulePrefix": "jsondata",
+            "name": "Name",
+            "properties": {
+              "value": {
+                "value": "\"-1\"",
+                "optional": false,
+                "editable": false,
+                "advanced": false,
+                "hidden": false
+              }
+            }
+          }
+        ],
+        "imports": {
+          "jsondata": "ballerina/data.jsondata"
+        }
+      }
+    ],
+    "includes": [],
+    "allowAdditionalFields": false
+  },
+  "output": {
+    "test_pack1/types.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 0,
+            "character": 0
+          },
+          "end": {
+            "line": 0,
+            "character": 0
+          }
+        },
+        "newText": "\nimport ballerina/data.jsondata;\n"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 37,
+            "character": 0
+          },
+          "end": {
+            "line": 37,
+            "character": 0
+          }
+        },
+        "newText": "\ntype Attendance record {|\n\tint total_count;\n\t@jsondata:Name{\nvalue: \"+1\"\n}\n\tint \\+1;\n\t@jsondata:Name{\nvalue: \"-1\"\n}\n\tint \\-1;\n|};"
+      }
+    ]
+  }
+}

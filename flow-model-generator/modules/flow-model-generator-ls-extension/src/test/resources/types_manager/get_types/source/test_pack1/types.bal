@@ -1,3 +1,4 @@
+import ballerina/data.jsondata;
 import ballerina/time;
 
 type Address record {|
@@ -141,3 +142,11 @@ type Users readonly & User1[];
 
 # Readonly and union type
 type User5 readonly & (User1 | Person);
+
+type RecordName record {
+    int total_count;
+    @jsondata:Name {
+        value: "+1"
+    }
+    int \+1;
+};
