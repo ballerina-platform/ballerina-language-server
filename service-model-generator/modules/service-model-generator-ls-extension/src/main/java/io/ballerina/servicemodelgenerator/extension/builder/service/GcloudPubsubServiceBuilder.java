@@ -18,6 +18,7 @@
 
 package io.ballerina.servicemodelgenerator.extension.builder.service;
 
+import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
 import io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel;
@@ -30,6 +31,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TYPE_LISTENER_PARAM_INCLUDED_FIELD;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.CLOSE_BRACE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.GCLOUD_PUBSUB;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE;
@@ -38,6 +40,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.OPEN_B
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SERVICE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SPACE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.TWO_NEW_LINES;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_EXPRESSION;
 import static io.ballerina.servicemodelgenerator.extension.util.DatabindUtil.addDataBindingParam;
 import static io.ballerina.servicemodelgenerator.extension.util.JmsUtil.ON_MESSAGE_FUNCTION_NAME;
 import static io.ballerina.servicemodelgenerator.extension.util.JmsUtil.buildServiceCodeEdits;
@@ -54,17 +57,48 @@ public final class GcloudPubsubServiceBuilder extends AbstractServiceBuilder {
 
     private static final String TYPE_PUBSUB_SERVICE_CONFIG = "pubsub:ServiceConfig";
     private static final String SERVICE_TYPE = "pubsub:Service";
+    private static final String PROPERTY_CREDENTIALS = "credentials";
+    private static final String PROPERTY_AUTH = "auth";
+    private static final String AUTH_CONFIG_TEMPLATE = "{path: \"%s\"}";
     public static final String PAYLOAD_FIELD_NAME = "data";
     public static final String TYPE_PREFIX = "Message";
 
     @Override
     public Map<String, List<TextEdit>> addServiceInitSource(AddServiceInitModelContext context) {
         ServiceInitModel serviceInitModel = context.serviceInitModel();
+        Map<String, Value> properties = serviceInitModel.getProperties();
+
+        applyCredentialsProperty(properties);
 
         ListenerDTO listenerDTO = buildListenerDTO(context);
 
         String serviceCode = buildPubsubServiceCode(serviceInitModel, listenerDTO);
         return buildServiceCodeEdits(context, serviceCode, null);
+    }
+
+    private void applyCredentialsProperty(Map<String, Value> properties) {
+        if (!properties.containsKey(PROPERTY_CREDENTIALS)) {
+            return;
+        }
+
+        Value credentialsValue = properties.get(PROPERTY_CREDENTIALS);
+        if (credentialsValue == null || credentialsValue.getValue() == null
+                || credentialsValue.getValue().isEmpty()) {
+            return;
+        }
+
+        String credentialsPath = credentialsValue.getValue();
+        String authConfig = String.format(AUTH_CONFIG_TEMPLATE, credentialsPath);
+
+        Value authValue = new Value.ValueBuilder()
+                .value(authConfig)
+                .valueType(VALUE_TYPE_EXPRESSION)
+                .enabled(true)
+                .editable(false)
+                .setCodedata(new Codedata(null, ARG_TYPE_LISTENER_PARAM_INCLUDED_FIELD))
+                .build();
+        properties.put(PROPERTY_AUTH, authValue);
+        properties.remove(PROPERTY_CREDENTIALS);
     }
 
     private String buildPubsubServiceCode(ServiceInitModel serviceInitModel, ListenerDTO listenerDTO) {

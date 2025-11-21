@@ -1575,12 +1575,25 @@
           "typeMembers": [],
           "sourceKind": "SOURCE_ANNOTATION",
           "selections": []
+        },
+        "credentials": {
+          "label": "User Credentials",
+          "description": "The service account credentials JSON file path",
+          "defaultValue": "",
+          "placeholder": "\"/path/to/credentials.json\"",
+          "valueType": "FILE_SELECT",
+          "typeConstraint": "string",
+          "optional": true,
+          "advanced": true,
+          "typeMembers": [],
+          "sourceKind": "LISTENER_PARAM_INCLUDED_FIELD",
+          "selections": []
         }
       },
       "readOnlyMetadata": [
         {
-          "key": "subscriptionId",
-          "displayName": "Subscription ID",
+          "key": "subscription",
+          "displayName": "Subscription",
           "kind": "ANNOTATION"
         }
       ]
