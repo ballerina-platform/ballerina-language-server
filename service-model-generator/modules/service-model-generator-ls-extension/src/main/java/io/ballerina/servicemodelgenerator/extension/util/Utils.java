@@ -106,10 +106,13 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ANNOT_PREFIX;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.AT;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.BALLERINA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.CD_TYPE_ANNOTATION_ATTACHMENT;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.CLOSE_BRACE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.CLOSE_PAREN;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.COLON;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.COMMA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.GET;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.GRAPHQL_CONTEXT;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.GRAPHQL_FIELD;
@@ -122,6 +125,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_R
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_RESOURCE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_SUBSCRIPTION;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.OPEN_BRACE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.OPEN_PAREN;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.PROPERTY_DESIGN_APPROACH;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.REMOTE;
@@ -221,8 +225,8 @@ public final class Utils {
     }
 
     /**
-     * Applies the properties of the enabled choice from the specified choice property key in the service init model.
-     * If an enabled choice exists, its properties are added to the service and the choice property is removed.
+     * Applies the properties of the enabled choice from the specified choice property key in the service init model. If
+     * an enabled choice exists, its properties are added to the service and the choice property is removed.
      *
      * @param service the service initialization model to update
      * @param key     the key of the choice property to process
@@ -263,9 +267,9 @@ public final class Utils {
      * Extracts the line range that encompasses all listener expressions in a service declaration.
      *
      * @param serviceNode the service declaration node containing listener expressions
-     * @return an {@link Optional} containing the {@link LineRange} that spans from the start
-     * of the first listener expression to the end of the last listener expression,
-     * or {@link Optional#empty()} if no listener expressions are found
+     * @return an {@link Optional} containing the {@link LineRange} that spans from the start of the first listener
+     * expression to the end of the last listener expression, or {@link Optional#empty()} if no listener expressions are
+     * found
      */
     public static Optional<LineRange> getListenerExpressionsLineRange(ServiceDeclarationNode serviceNode) {
         SeparatedNodeList<ExpressionNode> expressions = serviceNode.expressions();
@@ -418,7 +422,6 @@ public final class Utils {
         }
         return Optional.empty();
     }
-
 
     private static Parameter createParameter(String paramName, String paramKind, String typeName) {
         Parameter parameterModel = Parameter.getNewFunctionParameter();
@@ -613,8 +616,8 @@ public final class Utils {
     }
 
     /**
-     * This function will add the annotations of a parameter as properties to the parameter model.
-     * We can pass a skip list to skip certain annotations.
+     * This function will add the annotations of a parameter as properties to the parameter model. We can pass a skip
+     * list to skip certain annotations.
      *
      * @param parameterModel Parameter model we need to add the annotations as properties
      * @param annotations    Annotations of the parameter
@@ -816,6 +819,42 @@ public final class Utils {
         return Objects.nonNull(value.getCodedata()) && Objects.nonNull(value.getCodedata().getType()) &&
                 value.getCodedata().getType().equals(CD_TYPE_ANNOTATION_ATTACHMENT)
                 && (value.isEnabledWithValue() || !value.isEnabled() && !value.isEditable());
+    }
+
+    /**
+     * Builds a generic service annotation string from properties. This method iterates through properties, filters
+     * those marked as service annotations, and constructs a properly formatted annotation string.
+     *
+     * @param annotationType The annotation type identifier (e.g., "pubsub:ServiceConfig")
+     * @param properties     The service properties containing configuration values
+     * @return The formatted annotation string
+     */
+    public static String buildServiceAnnotation(String annotationType, Map<String, Value> properties) {
+        StringBuilder annotation = new StringBuilder();
+        annotation.append(AT).append(annotationType).append(SPACE).append(OPEN_BRACE).append(NEW_LINE);
+
+        List<String> annotationParams = new ArrayList<>();
+
+        for (Map.Entry<String, Value> entry : properties.entrySet()) {
+            String propertyName = entry.getKey();
+            Value propertyValue = entry.getValue();
+
+            if (propertyValue != null && propertyValue.getCodedata() != null) {
+                String argType = propertyValue.getCodedata().getArgType();
+                if (Constants.ARG_TYPE_SERVICE_ANNOTATION.equals(argType)) {
+                    if (propertyValue.getValue() != null && !propertyValue.getValue().isBlank()) {
+                        annotationParams.add(propertyName + COLON + SPACE + propertyValue.getValue());
+                    }
+                }
+            }
+        }
+
+        if (!annotationParams.isEmpty()) {
+            annotation.append(String.join(COMMA + NEW_LINE, annotationParams)).append(NEW_LINE);
+        }
+
+        annotation.append(CLOSE_BRACE).append(NEW_LINE);
+        return annotation.toString();
     }
 
     public static String getDocumentationEdits(Service service) {
@@ -1077,7 +1116,6 @@ public final class Utils {
             hasErrorInReturn = returnParts.contains("error") || returnParts.contains("error?");
         }
 
-
         // function body
         builder.append("{").append(NEW_LINE);
         if (hasErrorInReturn) {
@@ -1295,9 +1333,8 @@ public final class Utils {
     }
 
     /**
-     * Resolves a Ballerina module by organization, package, and module name.
-     * If the module is not found locally, attempts to pull it from the central repository,
-     * notifies the client about the process.
+     * Resolves a Ballerina module by organization, package, and module name. If the module is not found locally,
+     * attempts to pull it from the central repository, notifies the client about the process.
      *
      * @param orgName        the organization name
      * @param packageName    the package name
