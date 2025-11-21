@@ -24,13 +24,20 @@ import io.ballerina.servicemodelgenerator.extension.model.Service;
 import io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
 import io.ballerina.servicemodelgenerator.extension.model.context.AddServiceInitModelContext;
+import io.ballerina.servicemodelgenerator.extension.model.context.GetServiceInitModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.context.ModelFromSourceContext;
+import io.ballerina.servicemodelgenerator.extension.util.ListenerUtil;
 import org.eclipse.lsp4j.TextEdit;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+import static io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel.KEY_CONFIGURE_LISTENER;
+import static io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel.KEY_EXISTING_LISTENER;
+import static io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel.KEY_LISTENER_VAR_NAME;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TYPE_LISTENER_PARAM_INCLUDED_FIELD;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.CLOSE_BRACE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.GCLOUD_PUBSUB;
@@ -43,9 +50,11 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.TWO_NE
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_EXPRESSION;
 import static io.ballerina.servicemodelgenerator.extension.util.DatabindUtil.addDataBindingParam;
 import static io.ballerina.servicemodelgenerator.extension.util.JmsUtil.ON_MESSAGE_FUNCTION_NAME;
+import static io.ballerina.servicemodelgenerator.extension.util.JmsUtil.buildListenerChoice;
 import static io.ballerina.servicemodelgenerator.extension.util.JmsUtil.buildServiceCodeEdits;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getRequiredFunctionsForServiceType;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionAddContext.TRIGGER_ADD;
+import static io.ballerina.servicemodelgenerator.extension.util.Utils.applyEnabledChoiceProperty;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.buildServiceAnnotation;
 
 /**
@@ -58,10 +67,40 @@ public final class GcloudPubsubServiceBuilder extends AbstractServiceBuilder {
     private static final String TYPE_PUBSUB_SERVICE_CONFIG = "pubsub:ServiceConfig";
     private static final String SERVICE_TYPE = "pubsub:Service";
     private static final String PROPERTY_CREDENTIALS = "credentials";
+    private static final String PROPERTY_PROJECT_ID = "project";
     private static final String PROPERTY_AUTH = "auth";
     private static final String AUTH_CONFIG_TEMPLATE = "{path: \"%s\"}";
     public static final String PAYLOAD_FIELD_NAME = "data";
     public static final String TYPE_PREFIX = "Message";
+    private static final String LABEL_GCLOUD_PUBSUB = "Google Cloud Pub/Sub";
+
+    // Listener configuration property keys
+    private static final String[] LISTENER_CONFIG_KEYS = {
+            PROPERTY_PROJECT_ID, PROPERTY_CREDENTIALS, KEY_LISTENER_VAR_NAME
+    };
+
+    @Override
+    public ServiceInitModel getServiceInitModel(GetServiceInitModelContext context) {
+        ServiceInitModel serviceInitModel = super.getServiceInitModel(context);
+        if (serviceInitModel == null) {
+            return null;
+        }
+
+        Map<String, Value> properties = serviceInitModel.getProperties();
+        Set<String> listeners = ListenerUtil.getCompatibleListeners(context.moduleName(),
+                context.semanticModel(), context.project());
+
+        if (!listeners.isEmpty()) {
+            Map<String, Value> listenerProps = new LinkedHashMap<>();
+            for (String key : LISTENER_CONFIG_KEYS) {
+                listenerProps.put(key, properties.remove(key));
+            }
+            Value choicesProperty = buildListenerChoice(listenerProps, listeners, LABEL_GCLOUD_PUBSUB);
+            properties.put(KEY_CONFIGURE_LISTENER, choicesProperty);
+        }
+
+        return serviceInitModel;
+    }
 
     @Override
     public Map<String, List<TextEdit>> addServiceInitSource(AddServiceInitModelContext context) {
@@ -70,9 +109,28 @@ public final class GcloudPubsubServiceBuilder extends AbstractServiceBuilder {
 
         applyCredentialsProperty(properties);
 
-        ListenerDTO listenerDTO = buildListenerDTO(context);
+        if (!properties.containsKey(KEY_CONFIGURE_LISTENER)) {
+            return addServiceWithNewListener(context);
+        }
+
+        applyEnabledChoiceProperty(serviceInitModel, KEY_CONFIGURE_LISTENER);
+
+        ListenerDTO listenerDTO;
+        applyCredentialsProperty(properties);
+        if (properties.containsKey(KEY_EXISTING_LISTENER)) {
+            listenerDTO = new ListenerDTO(context.serviceInitModel().getModuleName(),
+                    properties.get(KEY_EXISTING_LISTENER).getValue(), "");
+        } else {
+            listenerDTO = buildListenerDTO(context);
+        }
 
         String serviceCode = buildPubsubServiceCode(serviceInitModel, listenerDTO);
+        return buildServiceCodeEdits(context, serviceCode, null);
+    }
+
+    private Map<String, List<TextEdit>> addServiceWithNewListener(AddServiceInitModelContext context) {
+        ListenerDTO listenerDTO = buildListenerDTO(context);
+        String serviceCode = buildPubsubServiceCode(context.serviceInitModel(), listenerDTO);
         return buildServiceCodeEdits(context, serviceCode, null);
     }
 
@@ -110,16 +168,19 @@ public final class GcloudPubsubServiceBuilder extends AbstractServiceBuilder {
         List<String> functionsStr = AbstractServiceBuilder.buildMethodDefinitions(
                 functions, TRIGGER_ADD, new HashMap<>());
 
-        return NEW_LINE
-                + listenerDTO.listenerDeclaration()
-                + NEW_LINE
-                + serviceAnnotation
+        String code = NEW_LINE;
+        if (!listenerDTO.listenerDeclaration().isEmpty()) {
+            code += listenerDTO.listenerDeclaration() + NEW_LINE;
+        }
+        code += serviceAnnotation
                 + SERVICE + SPACE + SERVICE_TYPE + SPACE
                 + ON + SPACE + listenerDTO.listenerVarName() + SPACE
                 + OPEN_BRACE
                 + NEW_LINE
                 + String.join(TWO_NEW_LINES, functionsStr) + NEW_LINE
                 + CLOSE_BRACE + NEW_LINE;
+
+        return code;
     }
 
     @Override
