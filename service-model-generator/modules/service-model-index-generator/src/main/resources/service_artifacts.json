@@ -1507,7 +1507,7 @@
                   "name": "caller",
                   "label": "Caller",
                   "description": "The Pub/Sub caller to acknowledge the message",
-                  "kind": "OPTIONAL",
+                  "kind": "REQUIRED",
                   "type": "pubsub:Caller",
                   "defaultValue": "",
                   "importStatements": "",
