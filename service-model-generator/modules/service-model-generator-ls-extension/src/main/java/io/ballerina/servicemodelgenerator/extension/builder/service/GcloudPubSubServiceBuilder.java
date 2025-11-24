@@ -71,7 +71,7 @@ public final class GcloudPubSubServiceBuilder extends AbstractServiceBuilder {
     private static final String PROPERTY_AUTH = "auth";
     private static final String AUTH_CONFIG_TEMPLATE = "{path: \"%s\"}";
     public static final String PAYLOAD_FIELD_NAME = "data";
-    public static final String TYPE_PREFIX = "Message";
+    public static final String TYPE_PREFIX = "PubSubMessage";
     private static final String LABEL_GCLOUD_PUBSUB = "Google Cloud Pub/Sub";
 
     // Listener configuration property keys
@@ -142,6 +142,7 @@ public final class GcloudPubSubServiceBuilder extends AbstractServiceBuilder {
         Value credentialsValue = properties.get(PROPERTY_CREDENTIALS);
         if (credentialsValue == null || credentialsValue.getValue() == null
                 || credentialsValue.getValue().isEmpty()) {
+            properties.remove(PROPERTY_CREDENTIALS);
             return;
         }
 

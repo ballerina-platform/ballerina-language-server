@@ -1577,7 +1577,7 @@
           "selections": []
         },
         "credentials": {
-          "label": "User Credentials",
+          "label": "User Credentials JSON",
           "description": "The service account credentials JSON file path",
           "defaultValue": "",
           "placeholder": "\"/path/to/credentials.json\"",
