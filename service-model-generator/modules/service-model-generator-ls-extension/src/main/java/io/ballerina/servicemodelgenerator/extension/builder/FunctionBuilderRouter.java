@@ -27,7 +27,7 @@ import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.Project;
 import io.ballerina.servicemodelgenerator.extension.builder.function.DefaultFunctionBuilder;
-import io.ballerina.servicemodelgenerator.extension.builder.function.GcloudPubsubFunctionBuilder;
+import io.ballerina.servicemodelgenerator.extension.builder.function.GcloudPubSubFunctionBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.function.GraphqlFunctionBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.function.HttpFunctionBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.function.KafkaFunctionBuilder;
@@ -74,7 +74,7 @@ public class FunctionBuilderRouter {
         put(MCP, McpFunctionBuilder::new);
         put(KAFKA, KafkaFunctionBuilder::new);
         put(SOLACE, SolaceFunctionBuilder::new);
-        put(GCLOUD_PUBSUB, GcloudPubsubFunctionBuilder::new);
+        put(GCLOUD_PUBSUB, GcloudPubSubFunctionBuilder::new);
     }};
 
     private static NodeBuilder<Function> getFunctionBuilder(String protocol) {

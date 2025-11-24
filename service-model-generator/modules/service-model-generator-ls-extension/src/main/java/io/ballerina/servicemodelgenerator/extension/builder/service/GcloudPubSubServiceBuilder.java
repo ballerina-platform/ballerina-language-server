@@ -62,7 +62,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Utils.buildServi
  *
  * @since 1.4.0
  */
-public final class GcloudPubsubServiceBuilder extends AbstractServiceBuilder {
+public final class GcloudPubSubServiceBuilder extends AbstractServiceBuilder {
 
     private static final String TYPE_PUBSUB_SERVICE_CONFIG = "pubsub:ServiceConfig";
     private static final String SERVICE_TYPE = "pubsub:Service";

@@ -27,8 +27,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static io.ballerina.servicemodelgenerator.extension.builder.service.GcloudPubsubServiceBuilder.PAYLOAD_FIELD_NAME;
-import static io.ballerina.servicemodelgenerator.extension.builder.service.GcloudPubsubServiceBuilder.TYPE_PREFIX;
+import static io.ballerina.servicemodelgenerator.extension.builder.service.GcloudPubSubServiceBuilder.PAYLOAD_FIELD_NAME;
+import static io.ballerina.servicemodelgenerator.extension.builder.service.GcloudPubSubServiceBuilder.TYPE_PREFIX;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.GCLOUD_PUBSUB;
 
 /**
@@ -36,7 +36,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.GCLOUD
  *
  * @since 1.4.0
  */
-public final class GcloudPubsubFunctionBuilder extends AbstractFunctionBuilder {
+public final class GcloudPubSubFunctionBuilder extends AbstractFunctionBuilder {
 
     private static final String REQUIRED_PARAM_TYPE = "pubsub:Message";
 

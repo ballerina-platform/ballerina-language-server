@@ -27,7 +27,7 @@ import io.ballerina.projects.Project;
 import io.ballerina.servicemodelgenerator.extension.builder.service.AiChatServiceBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.service.AsbServiceBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.service.DefaultServiceBuilder;
-import io.ballerina.servicemodelgenerator.extension.builder.service.GcloudPubsubServiceBuilder;
+import io.ballerina.servicemodelgenerator.extension.builder.service.GcloudPubSubServiceBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.service.GraphqlServiceBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.service.HttpServiceBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.service.KafkaServiceBuilder;
@@ -85,7 +85,7 @@ public class ServiceBuilderRouter {
         put(KAFKA, KafkaServiceBuilder::new);
         put(ASB, AsbServiceBuilder::new);
         put(SOLACE, SolaceServiceBuilder::new);
-        put(GCLOUD_PUBSUB, GcloudPubsubServiceBuilder::new);
+        put(GCLOUD_PUBSUB, GcloudPubSubServiceBuilder::new);
     }};
 
     public static ServiceNodeBuilder getServiceBuilder(String protocol) {
