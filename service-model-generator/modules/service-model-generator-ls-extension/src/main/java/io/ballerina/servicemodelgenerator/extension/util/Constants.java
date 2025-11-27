@@ -66,6 +66,7 @@ public class Constants {
     public static final String ASB = "asb";
     public static final String SF = "salesforce";
     public static final String TRIGGER_GITHUB = "trigger.github";
+    public static final String GCLOUD_PUBSUB = "gcloud.pubsub";
 
     public static final String FTP = "ftp";
     public static final String FILE = "file";
@@ -125,6 +126,7 @@ public class Constants {
             "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD";
     public static final String ARG_TYPE_SERVICE_BASE_PATH = "SERVICE_BASE_PATH";
     public static final String ARG_TYPE_SERVICE_TYPE_DESCRIPTOR = "SERVICE_TYPE_DESCRIPTOR";
+    public static final String ARG_TYPE_SERVICE_ANNOTATION = "SOURCE_ANNOTATION";
 
     public static final String TYPE_SERVICE = "Service";
 

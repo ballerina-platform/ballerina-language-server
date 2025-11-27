@@ -142,11 +142,13 @@ CREATE TABLE ServiceInitializerProperty (
     description TEXT NOT NULL,
     default_value TEXT,
     placeholder TEXT,
-    value_type TEXT CHECK(value_type IN ('TYPE', 'FLAG', 'EXPRESSION', 'SINGLE_SELECT')),
+    value_type TEXT CHECK(value_type IN ('TYPE', 'FLAG', 'EXPRESSION', 'SINGLE_SELECT', 'FILE_SELECT')),
     type_constraint TEXT,
     source_kind TEXT CHECK(source_kind IN ('SERVICE_TYPE_DESCRIPTOR', 'SERVICE_BASE_PATH', 'LISTENER_PARAM_REQUIRED',
     'LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD', 'LISTENER_PARAM_INCLUDED_FIELD', 'SOURCE_ANNOTATION')),
     selections TEXT, -- Comma-separated values for selection options
+    optional INTEGER DEFAULT 0, -- Whether the property is optional
+    advanced INTEGER DEFAULT 0, -- Whether the property is advanced/hidden by default
     FOREIGN KEY (package_id) REFERENCES Package(package_id) ON DELETE CASCADE
 );
 

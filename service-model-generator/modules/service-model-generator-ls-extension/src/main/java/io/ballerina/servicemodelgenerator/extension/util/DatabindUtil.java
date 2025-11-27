@@ -62,7 +62,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import static io.ballerina.servicemodelgenerator.extension.util.Constants.COLON;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.DATA_BINDING;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.DATA_BINDING_PROPERTY;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.DATA_BINDING_TEMPLATE;
@@ -433,7 +432,8 @@ public final class DatabindUtil {
         );
 
         return createTypeDefinitionEdits(context.project(), typeName, baseType,
-                newDataBindingType, payloadFieldName, context.filePath(), context.workspaceManager());
+                context.function().getCodedata().getModuleName(), newDataBindingType, payloadFieldName,
+                context.filePath(), context.workspaceManager());
     }
 
     /**
@@ -552,7 +552,8 @@ public final class DatabindUtil {
             } else {
                 typesEdits =
                         createTypeDefinitionEdits(context.project(), customWrapperTypeName, baseType,
-                                newDataBindingType, payloadFieldName, context.filePath(), context.workspaceManager());
+                                context.function().getCodedata().getModuleName(), newDataBindingType, payloadFieldName,
+                                context.filePath(), context.workspaceManager());
             }
         } else if (existingTypeName != null) {
             typeName = existingTypeName;
@@ -563,8 +564,9 @@ public final class DatabindUtil {
                     generateNewDataBindTypeName(context.filePath(), context.workspaceManager(), context.semanticModel(),
                             context.functionNode(),
                             prefix);
-            typesEdits = createTypeDefinitionEdits(context.project(), typeName, baseType, newDataBindingType,
-                    payloadFieldName, context.filePath(), context.workspaceManager());
+            typesEdits = createTypeDefinitionEdits(context.project(), typeName, baseType,
+                    context.function().getCodedata().getModuleName(), newDataBindingType, payloadFieldName,
+                    context.filePath(), context.workspaceManager());
         }
 
         updateFunctionParameters(function, dataBindingParam, typeName, isArray);
@@ -799,24 +801,20 @@ public final class DatabindUtil {
     }
 
     /**
-     * Extracts import statements needed for the given baseType. For example, "kafka:AnydataConsumerRecord" returns
-     * org/kafka imports.
+     * Generates the required import statements for the base type if they do not already exist in the module part node.
      *
-     * @param baseType       The base record type (e.g., "kafka:AnydataConsumerRecord")
-     * @param modulePartNode The module part node to check existing imports
+     * @param baseTypeModuleName The module name of the base type
+     * @param modulePartNode     The module part node to check existing imports
      * @return Set of import statements to add
      */
-    private static Set<String> extractRequiredImports(String baseType, ModulePartNode modulePartNode) {
+    private static Set<String> extractRequiredImports(String baseTypeModuleName,
+                                                      ModulePartNode modulePartNode) {
         Set<String> imports = new HashSet<>();
 
-        if (baseType.contains(COLON)) {
-            String moduleName = baseType.substring(0, baseType.indexOf(COLON));
-            String org = "ballerinax";
-            String importModule = moduleName.toLowerCase(java.util.Locale.ENGLISH);
+        String org = "ballerinax";
 
-            if (!importExists(modulePartNode, org, importModule)) {
-                imports.add(getImportStmt(org, importModule));
-            }
+        if (!importExists(modulePartNode, org, baseTypeModuleName)) {
+            imports.add(getImportStmt(org, baseTypeModuleName));
         }
 
         return imports;
@@ -826,13 +824,15 @@ public final class DatabindUtil {
      * Prepares the context for type definition edit operations by loading the types document and extracting required
      * imports.
      *
-     * @param project          The Ballerina project
-     * @param baseType         The base record type (e.g., "kafka:AnydataConsumerRecord")
-     * @param contextFilePath  The context file path for locating types.bal
-     * @param workspaceManager The workspace manager for document retrieval
+     * @param project            The Ballerina project
+     * @param baseType           The base record type (e.g., "kafka:AnydataConsumerRecord")
+     * @param baseTypeModuleName The module name of the base type
+     * @param contextFilePath    The context file path for locating types.bal
+     * @param workspaceManager   The workspace manager for document retrieval
      * @return TypeDefinitionEditContext containing types document, module part node, required imports, and project
      */
     private static TypeDefinitionEditContext prepareTypeDefinitionEditContext(Project project, String baseType,
+                                                                              String baseTypeModuleName,
                                                                               String contextFilePath,
                                                                               WorkspaceManager workspaceManager) {
         Document typesDocument = getTypesDocument(contextFilePath, workspaceManager);
@@ -841,7 +841,7 @@ public final class DatabindUtil {
         }
 
         ModulePartNode modulePartNode = typesDocument.syntaxTree().rootNode();
-        Set<String> requiredImports = extractRequiredImports(baseType, modulePartNode);
+        Set<String> requiredImports = extractRequiredImports(baseTypeModuleName, modulePartNode);
 
         return new TypeDefinitionEditContext(typesDocument, modulePartNode, requiredImports, project);
     }
@@ -857,12 +857,14 @@ public final class DatabindUtil {
      * @return Map of file paths to TextEdit lists
      */
     private static Map<String, List<TextEdit>> createTypeDefinitionEdits(Project project, String typeName,
-                                                                         String baseType, String dataBindingType,
+                                                                         String baseType, String baseTypeModuleName,
+                                                                         String dataBindingType,
                                                                          String payloadFieldName,
                                                                          String contextFilePath,
                                                                          WorkspaceManager workspaceManager) {
         TypeDefinitionEditContext context =
-                prepareTypeDefinitionEditContext(project, baseType, contextFilePath, workspaceManager);
+                prepareTypeDefinitionEditContext(project, baseType, baseTypeModuleName, contextFilePath,
+                        workspaceManager);
         if (context == null) {
             return Map.of();
         }
@@ -1101,7 +1103,8 @@ public final class DatabindUtil {
                                                                          String newTypeName) {
         Project project = context.project() != null ? context.project() : context.document().module().project();
         TypeDefinitionEditContext editContext =
-                prepareTypeDefinitionEditContext(project, baseType, context.filePath(), context.workspaceManager());
+                prepareTypeDefinitionEditContext(project, baseType, context.function().getCodedata().getModuleName(),
+                        context.filePath(), context.workspaceManager());
         if (editContext == null) {
             return Map.of();
         }
@@ -1121,8 +1124,9 @@ public final class DatabindUtil {
 
         if (existingTypeDef == null) {
             // Type doesn't exist, create it instead
-            return createTypeDefinitionEdits(context.project(), existingTypeName, baseType, newDataBindingType,
-                    payloadFieldName, context.filePath(), context.workspaceManager());
+            return createTypeDefinitionEdits(context.project(), existingTypeName, baseType,
+                    context.function().getCodedata().getModuleName(), newDataBindingType, payloadFieldName,
+                    context.filePath(), context.workspaceManager());
         }
 
         // Use newTypeName if provided for renaming, otherwise use existingTypeName

@@ -27,6 +27,7 @@ import io.ballerina.projects.Project;
 import io.ballerina.servicemodelgenerator.extension.builder.service.AiChatServiceBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.service.AsbServiceBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.service.DefaultServiceBuilder;
+import io.ballerina.servicemodelgenerator.extension.builder.service.GcloudPubSubServiceBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.service.GraphqlServiceBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.service.HttpServiceBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.service.KafkaServiceBuilder;
@@ -57,6 +58,7 @@ import java.util.function.Supplier;
 
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.AI;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ASB;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.GCLOUD_PUBSUB;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.GRAPHQL;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.HTTP;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.KAFKA;
@@ -66,8 +68,8 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.SOLACE
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.TCP;
 
 /**
- * ServiceBuilderRouter is responsible for routing service building requests to the appropriate service builder
- * based on the protocol type.
+ * ServiceBuilderRouter is responsible for routing service building requests to the appropriate service builder based on
+ * the protocol type.
  *
  * @since 1.2.0
  */
@@ -83,6 +85,7 @@ public class ServiceBuilderRouter {
         put(KAFKA, KafkaServiceBuilder::new);
         put(ASB, AsbServiceBuilder::new);
         put(SOLACE, SolaceServiceBuilder::new);
+        put(GCLOUD_PUBSUB, GcloudPubSubServiceBuilder::new);
     }};
 
     public static ServiceNodeBuilder getServiceBuilder(String protocol) {

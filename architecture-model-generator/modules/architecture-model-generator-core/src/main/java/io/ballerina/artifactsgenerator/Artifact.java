@@ -91,7 +91,8 @@ public record Artifact(String id, LineRange location, String type, String name, 
             Map.entry("github", "GitHub Event Integration"),
             Map.entry("twilio", "Twilio Event Integration"),
             Map.entry("ai", "AI Agent Services"),
-            Map.entry("solace", "Solace Event Integration")
+            Map.entry("solace", "Solace Event Integration"),
+            Map.entry("gcloud.pubsub", "Google Cloud Pub/Sub Event Integration")
     );
 
     /**
@@ -99,7 +100,8 @@ public record Artifact(String id, LineRange location, String type, String name, 
      * module can have multiple field names to try in order of preference.
      */
     private static final Map<String, String[]> moduleAnnotationFields = Map.of(
-            "solace", new String[]{"queueName", "topicName"}
+            "solace", new String[]{"queueName", "topicName"},
+            "gcloud.pubsub", new String[]{"subscription"}
     );
 
     public static String getCategory(String type) {

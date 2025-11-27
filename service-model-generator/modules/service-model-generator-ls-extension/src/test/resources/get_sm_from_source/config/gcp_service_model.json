@@ -1,0 +1,469 @@
+{
+  "filePath": "sample14/main.bal",
+  "description": "Test the generation of service model for a gcloud.pubsub service",
+  "start": {
+    "line": 4,
+    "offset": 0
+  },
+  "end": {
+    "line": 16,
+    "offset": 1
+  },
+  "response": {
+    "id": "17",
+    "name": "Google Cloud Pub/Sub Event Integration",
+    "type": "gcloud.pubsub",
+    "displayName": "Google Cloud Pub/Sub Event Integration",
+    "moduleName": "gcloud.pubsub",
+    "orgName": "ballerinax",
+    "version": "1.0.0",
+    "packageName": "gcloud.pubsub",
+    "listenerProtocol": "pubsub",
+    "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_gcloud.pubsub_1.0.0.png",
+    "documentation": {
+      "metadata": {
+        "label": "Description",
+        "description": "The description of the class"
+      },
+      "codedata": {
+        "type": "DOCUMENTATION"
+      },
+      "valueType": "STRING",
+      "valueTypeConstraint": "string",
+      "enabled": true,
+      "editable": true,
+      "optional": true,
+      "advanced": false
+    },
+    "properties": {
+      "listener": {
+        "metadata": {
+          "label": "Listener",
+          "description": "The Listener to be bound with the service"
+        },
+        "codedata": {
+          "type": "LISTENER"
+        },
+        "placeholder": "",
+        "valueType": "SINGLE_SELECT_LISTENER",
+        "valueTypeConstraint": "pubsub:Listener",
+        "value": "pubsubListener",
+        "values": [],
+        "items": [
+          "pubsubListener"
+        ],
+        "properties": {
+          "pubsubListener": {
+            "codedata": {
+              "lineRange": {
+                "fileName": "main.bal",
+                "startLine": {
+                  "line": 7,
+                  "offset": 26
+                },
+                "endLine": {
+                  "line": 7,
+                  "offset": 40
+                }
+              }
+            },
+            "enabled": false,
+            "editable": false,
+            "optional": false,
+            "advanced": false
+          }
+        },
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      },
+      "serviceType": {
+        "metadata": {
+          "label": "Service Type",
+          "description": "The name of the service contract type"
+        },
+        "codedata": {
+          "type": "SERVICE_TYPE"
+        },
+        "placeholder": "Service",
+        "valueType": "SINGLE_SELECT",
+        "valueTypeConstraint": "string",
+        "value": "Service",
+        "items": [
+          "",
+          "Service"
+        ],
+        "enabled": false,
+        "editable": false,
+        "optional": false,
+        "advanced": false
+      },
+      "readOnlyMetadata": {
+        "codedata": {
+          "type": "READONLY"
+        },
+        "placeholder": "false",
+        "valueType": "SINGLE_SELECT",
+        "value": {
+          "Subscription": [
+            "sub1"
+          ]
+        },
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      },
+      "annotServiceConfig": {
+        "metadata": {
+          "label": "Service Configuration",
+          "description": "Define advanced subscription configurations"
+        },
+        "codedata": {
+          "type": "ANNOTATION_ATTACHMENT",
+          "originalName": "ServiceConfig"
+        },
+        "placeholder": "{}",
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "pubsub:ServiceConfiguration",
+        "value": "{\n    subscription: \"sub1\"\n}",
+        "values": [],
+        "typeMembers": [
+          {
+            "type": "ServiceConfiguration",
+            "packageInfo": "ballerinax:gcloud.pubsub:1.0.0",
+            "kind": "RECORD_TYPE",
+            "selected": true
+          }
+        ],
+        "enabled": true,
+        "editable": true,
+        "optional": true,
+        "advanced": false
+      }
+    },
+    "codedata": {
+      "lineRange": {
+        "fileName": "main.bal",
+        "startLine": {
+          "line": 4,
+          "offset": 0
+        },
+        "endLine": {
+          "line": 16,
+          "offset": 1
+        }
+      },
+      "orgName": "ballerinax",
+      "packageName": "gcloud.pubsub",
+      "moduleName": "gcloud.pubsub"
+    },
+    "functions": [
+      {
+        "metadata": {
+          "label": "onMessage",
+          "description": "The `onMessage` remote method will be triggered when a message is received from a Google Cloud Pub/Sub subscription"
+        },
+        "kind": "REMOTE",
+        "name": {
+          "metadata": {
+            "label": "onMessage",
+            "description": "The `onMessage` remote method will be triggered when a message is received from a Google Cloud Pub/Sub subscription"
+          },
+          "placeholder": "onMessage",
+          "valueType": "IDENTIFIER",
+          "value": "onMessage",
+          "enabled": true,
+          "editable": false,
+          "optional": false,
+          "advanced": false
+        },
+        "parameters": [
+          {
+            "metadata": {
+              "label": "message",
+              "description": "The received Pub/Sub message"
+            },
+            "kind": "REQUIRED",
+            "type": {
+              "metadata": {
+                "label": "Parameter Type",
+                "description": "The type of the parameter"
+              },
+              "placeholder": "pubsub:Message",
+              "valueType": "TYPE",
+              "value": "pubsub:Message",
+              "enabled": true,
+              "editable": true,
+              "optional": true,
+              "advanced": false
+            },
+            "name": {
+              "metadata": {
+                "label": "message",
+                "description": "The received Pub/Sub message"
+              },
+              "placeholder": "message",
+              "valueType": "IDENTIFIER",
+              "value": "message",
+              "enabled": true,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            },
+            "defaultValue": {
+              "metadata": {
+                "label": "Default Value",
+                "description": "The default value of the parameter"
+              },
+              "placeholder": "",
+              "valueType": "EXPRESSION",
+              "value": "",
+              "enabled": true,
+              "editable": true,
+              "optional": true,
+              "advanced": false
+            },
+            "enabled": false,
+            "editable": true,
+            "optional": false,
+            "advanced": false,
+            "hidden": false,
+            "isGraphqlId": false
+          },
+          {
+            "metadata": {
+              "label": "caller",
+              "description": "The Pub/Sub caller to acknowledge the message"
+            },
+            "kind": "REQUIRED",
+            "type": {
+              "metadata": {
+                "label": "Parameter Type",
+                "description": "The type of the parameter"
+              },
+              "placeholder": "pubsub:Caller",
+              "valueType": "TYPE",
+              "value": "pubsub:Caller",
+              "enabled": true,
+              "editable": false,
+              "optional": true,
+              "advanced": false
+            },
+            "name": {
+              "metadata": {
+                "label": "caller",
+                "description": "The Pub/Sub caller to acknowledge the message"
+              },
+              "placeholder": "caller",
+              "valueType": "IDENTIFIER",
+              "value": "caller",
+              "enabled": true,
+              "editable": false,
+              "optional": false,
+              "advanced": false
+            },
+            "defaultValue": {
+              "metadata": {
+                "label": "Default Value",
+                "description": "The default value of the parameter"
+              },
+              "placeholder": "",
+              "valueType": "EXPRESSION",
+              "value": "",
+              "enabled": true,
+              "editable": true,
+              "optional": true,
+              "advanced": false
+            },
+            "enabled": true,
+            "editable": true,
+            "optional": false,
+            "advanced": false,
+            "hidden": false,
+            "isGraphqlId": false
+          },
+          {
+            "metadata": {
+              "label": "Data Binding",
+              "description": "Data binding parameter"
+            },
+            "kind": "DATA_BINDING",
+            "type": {
+              "valueType": "TYPE",
+              "value": "",
+              "enabled": true,
+              "editable": false,
+              "optional": false,
+              "advanced": false
+            },
+            "name": {
+              "valueType": "IDENTIFIER",
+              "value": "message",
+              "enabled": true,
+              "editable": false,
+              "optional": false,
+              "advanced": false
+            },
+            "enabled": false,
+            "editable": true,
+            "optional": false,
+            "advanced": false,
+            "hidden": false,
+            "isGraphqlId": false
+          }
+        ],
+        "returnType": {
+          "hasError": true,
+          "isGraphqlId": false,
+          "metadata": {
+            "label": "Return Type",
+            "description": "The return type of the function"
+          },
+          "placeholder": "error?",
+          "valueType": "TYPE",
+          "value": "error?",
+          "enabled": true,
+          "editable": false,
+          "optional": true,
+          "advanced": false
+        },
+        "enabled": true,
+        "optional": false,
+        "editable": false,
+        "canAddParameters": false,
+        "codedata": {
+          "lineRange": {
+            "fileName": "main.bal",
+            "startLine": {
+              "line": 8,
+              "offset": 4
+            },
+            "endLine": {
+              "line": 14,
+              "offset": 5
+            }
+          },
+          "moduleName": "gcloud.pubsub"
+        },
+        "properties": {
+          "wrapperTypeName": {
+            "value": "PubSubMessage",
+            "enabled": false,
+            "editable": false,
+            "optional": false,
+            "advanced": false
+          },
+          "payloadFieldName": {
+            "value": "data",
+            "enabled": false,
+            "editable": false,
+            "optional": false,
+            "advanced": false
+          },
+          "canDataBind": {
+            "value": "true",
+            "enabled": false,
+            "editable": false,
+            "optional": false,
+            "advanced": false
+          }
+        }
+      },
+      {
+        "metadata": {
+          "label": "onError",
+          "description": "Triggers when an error occurs during message processing"
+        },
+        "kind": "REMOTE",
+        "name": {
+          "metadata": {
+            "label": "onError",
+            "description": "Triggers when an error occurs during message processing"
+          },
+          "placeholder": "onError",
+          "valueType": "IDENTIFIER",
+          "value": "onError",
+          "enabled": true,
+          "editable": false,
+          "optional": false,
+          "advanced": false
+        },
+        "parameters": [
+          {
+            "metadata": {
+              "label": "error",
+              "description": "The error occurred during message processing"
+            },
+            "kind": "REQUIRED",
+            "type": {
+              "metadata": {
+                "label": "Parameter Type",
+                "description": "The type of the parameter"
+              },
+              "placeholder": "pubsub:Error",
+              "valueType": "TYPE",
+              "value": "pubsub:Error",
+              "enabled": true,
+              "editable": false,
+              "optional": true,
+              "advanced": false
+            },
+            "name": {
+              "metadata": {
+                "label": "error",
+                "description": "The error occurred during message processing"
+              },
+              "placeholder": "error",
+              "valueType": "IDENTIFIER",
+              "value": "error",
+              "enabled": true,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            },
+            "defaultValue": {
+              "metadata": {
+                "label": "Default Value",
+                "description": "The default value of the parameter"
+              },
+              "placeholder": "",
+              "valueType": "EXPRESSION",
+              "value": "",
+              "enabled": true,
+              "editable": true,
+              "optional": true,
+              "advanced": false
+            },
+            "enabled": true,
+            "editable": true,
+            "optional": false,
+            "advanced": false,
+            "hidden": false,
+            "isGraphqlId": false
+          }
+        ],
+        "returnType": {
+          "hasError": true,
+          "isGraphqlId": false,
+          "metadata": {
+            "label": "Return Type",
+            "description": "The return type of the function"
+          },
+          "placeholder": "error?",
+          "valueType": "TYPE",
+          "value": "error?",
+          "enabled": true,
+          "editable": false,
+          "optional": true,
+          "advanced": false
+        },
+        "enabled": false,
+        "optional": true,
+        "editable": false,
+        "canAddParameters": false
+      }
+    ]
+  }
+}

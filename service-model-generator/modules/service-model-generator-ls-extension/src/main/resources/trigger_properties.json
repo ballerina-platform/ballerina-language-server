@@ -109,5 +109,18 @@
       "messaging",
       "event"
     ]
+  },
+  "12": {
+    "name": "gcloud.pubsub",
+    "orgName": "ballerinax",
+    "packageName": "gcloud.pubsub",
+    "keywords": [
+      "gcloud",
+      "google cloud",
+      "pub/sub",
+      "pubsub",
+      "messaging",
+      "event"
+    ]
   }
 }

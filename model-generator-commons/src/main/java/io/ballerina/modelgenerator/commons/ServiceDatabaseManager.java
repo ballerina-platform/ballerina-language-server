@@ -330,7 +330,9 @@ public class ServiceDatabaseManager {
                 sql2.append("sip.value_type as valueType, ");
                 sql2.append("sip.type_constraint as typeConstraint, ");
                 sql2.append("sip.source_kind as sourceKind, ");
-                sql2.append("sip.selections ");
+                sql2.append("sip.selections, ");
+                sql2.append("sip.optional, ");
+                sql2.append("sip.advanced ");
                 sql2.append("FROM ServiceInitializerProperty sip ");
                 sql2.append("WHERE sip.package_id = ?");
 
@@ -368,7 +370,9 @@ public class ServiceDatabaseManager {
                 rs.getString("typeConstraint"),
                 rs.getString("sourceKind"),
                 rs.getString("selections"),
-                getServiceInitPropertyMemberTypes(initializerId)
+                getServiceInitPropertyMemberTypes(initializerId),
+                rs.getBoolean("optional"),
+                rs.getBoolean("advanced")
         );
     }
 

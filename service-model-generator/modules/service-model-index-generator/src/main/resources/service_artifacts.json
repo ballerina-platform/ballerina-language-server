@@ -1452,6 +1452,151 @@
           "kind": "ANNOTATION"
         }
       ]
+    },
+    {
+      "name": "gcloud.pubsub",
+      "version": "1.0.0",
+      "serviceTypeSkipList": [],
+      "serviceDeclaration": {
+        "displayName": "Google Cloud Pub/Sub Event Integration",
+        "description": "Create a service to handle messages from a Google Cloud Pub/Sub subscription",
+        "optionalTypeDescriptor": 1,
+        "typeDescriptorLabel": "Service Type",
+        "typeDescriptorDescription": "The name of the service contract type",
+        "typeDescriptorDefaultValue": "Service",
+        "addDefaultTypeDescriptor": 0,
+        "optionalAbsoluteResourcePath": 1,
+        "absoluteResourcePathLabel": "Service Base Path",
+        "absoluteResourcePathDescription": "",
+        "absoluteResourcePathDefaultValue": "",
+        "optionalStringLiteral": 1,
+        "stringLiteralLabel": "Service Base Path",
+        "stringLiteralDescription": "",
+        "stringLiteralDefaultValue": "",
+        "listenerKind": "SINGLE_SELECT",
+        "kind": "event"
+      },
+      "serviceTypes": {
+        "Service": {
+          "name": "Service",
+          "description": "",
+          "functions": [
+            {
+              "name": "onMessage",
+              "description": "The `onMessage` remote method will be triggered when a message is received from a Google Cloud Pub/Sub subscription",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 0,
+              "optional": 0,
+              "parameters": [
+                {
+                  "name": "message",
+                  "label": "Message",
+                  "description": "The received Pub/Sub message",
+                  "kind": "REQUIRED",
+                  "type": "pubsub:Message",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 1
+                },
+                {
+                  "name": "caller",
+                  "label": "Caller",
+                  "description": "The Pub/Sub caller to acknowledge the message",
+                  "kind": "REQUIRED",
+                  "type": "pubsub:Caller",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 0,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onError",
+              "description": "Triggers when an error occurs during message processing",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 0,
+              "optional": 1,
+              "parameters": [
+                {
+                  "name": "error",
+                  "label": "Error",
+                  "description": "The error occurred during message processing",
+                  "kind": "REQUIRED",
+                  "type": "pubsub:Error",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "annotations": {
+        "ServiceConfig": {
+          "attachmentPoints": [
+            "SERVICE"
+          ],
+          "displayName": "Service Configuration",
+          "description": "Define advanced subscription configurations",
+          "typeConstraint": "pubsub:ServiceConfiguration"
+        }
+      },
+      "initForm": {
+        "project": {
+          "label": "Project ID",
+          "description": "The Google Cloud project ID",
+          "defaultValue": "",
+          "placeholder": "\"my-gcp-project\"",
+          "valueType": "EXPRESSION",
+          "typeConstraint": "string",
+          "typeMembers": [],
+          "sourceKind": "LISTENER_PARAM_REQUIRED",
+          "selections": []
+        },
+        "subscription": {
+          "label": "Subscription",
+          "description": "The name of the Pub/Sub subscription to pull messages from",
+          "defaultValue": "",
+          "placeholder": "",
+          "valueType": "EXPRESSION",
+          "typeConstraint": "string",
+          "typeMembers": [],
+          "sourceKind": "SOURCE_ANNOTATION",
+          "selections": []
+        },
+        "credentials": {
+          "label": "User Credentials JSON",
+          "description": "The service account credentials JSON file path",
+          "defaultValue": "",
+          "placeholder": "\"/path/to/credentials.json\"",
+          "valueType": "FILE_SELECT",
+          "typeConstraint": "string",
+          "optional": true,
+          "advanced": true,
+          "typeMembers": [],
+          "sourceKind": "LISTENER_PARAM_INCLUDED_FIELD",
+          "selections": []
+        }
+      },
+      "readOnlyMetadata": [
+        {
+          "key": "subscription",
+          "displayName": "Subscription",
+          "kind": "ANNOTATION"
+        }
+      ]
     }
   ]
 }

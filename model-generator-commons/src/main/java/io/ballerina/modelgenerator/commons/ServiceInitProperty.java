@@ -22,5 +22,6 @@ import java.util.List;
 
 public record ServiceInitProperty(String keyName, String label, String description, String defaultValue,
                                   String placeholder, String valueType, String typeConstraint, String sourceKind,
-                                  String selections, List<ParameterMemberTypeData> memberTypes) {
+                                  String selections, List<ParameterMemberTypeData> memberTypes, boolean optional,
+                                  boolean advanced) {
 }
