@@ -635,7 +635,9 @@ public class DataMapManager {
                     current = current.parent();
                 }
             }
-            matchingNode = new MatchingNode(matchingNode.expr(), matchingNode.queryExpr(), parentLetExpr);
+            if (parentLetExpr != null) {
+                matchingNode = new MatchingNode(matchingNode.expr(), matchingNode.queryExpr(), parentLetExpr);
+            }
         }
         return new TargetNode(typeSymbol, getLastNonNumericName(fieldSplits), matchingNode);
     }
