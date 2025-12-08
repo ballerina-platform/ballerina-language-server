@@ -623,6 +623,20 @@ public class DataMapManager {
         if (matchingNode == null) {
             return null;
         }
+        if (matchingNode.letExpr() == null) {
+            LetExpressionNode parentLetExpr = null;
+            if (parentNode.kind() == SyntaxKind.LET_VAR_DECL) {
+                Node current = parentNode.parent();
+                while (current != null) {
+                    if (current.kind() == SyntaxKind.LET_EXPRESSION) {
+                        parentLetExpr = (LetExpressionNode) current;
+                        break;
+                    }
+                    current = current.parent();
+                }
+            }
+            matchingNode = new MatchingNode(matchingNode.expr(), matchingNode.queryExpr(), parentLetExpr);
+        }
         return new TargetNode(typeSymbol, getLastNonNumericName(fieldSplits), matchingNode);
     }
 
