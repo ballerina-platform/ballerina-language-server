@@ -114,6 +114,7 @@ import org.ballerinalang.diagramutil.connector.models.connector.ReferenceType;
 import org.ballerinalang.diagramutil.connector.models.connector.Type;
 import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefArrayType;
 import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefEnumType;
+import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefJsonType;
 import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefMapType;
 import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefRecordType;
 import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefStreamType;
@@ -242,6 +243,17 @@ public class DataMapManager {
 
         String name = targetNode.name();
         MappingPort refOutputPort = null;
+
+        // Check if we need to infer JSON structure from mapping constructor
+        if (refType != null && "json".equals(refType.name) && targetNode.matchingNode() != null
+                && targetNode.matchingNode().expr() != null
+                && targetNode.matchingNode().expr().kind() == SyntaxKind.MAPPING_CONSTRUCTOR) {
+            // Infer JSON structure from the mapping constructor
+            MappingConstructorExpressionNode mappingExpr =
+                    (MappingConstructorExpressionNode) targetNode.matchingNode().expr();
+            refType = inferJsonStructure(mappingExpr, semanticModel, typeDefSymbols);
+        }
+
         if (refType != null) {
             refOutputPort = getRefMappingPort(name, name, refType, new HashMap<>(), references);
         }
@@ -1137,6 +1149,7 @@ public class DataMapManager {
             case "tuple" -> handleTupleType(id, name, typeName, type, visitedTypes, references);
             case "map" -> handleMapType(id, name, type, visitedTypes, references);
             case "stream" -> handleStreamType(id, name, type, visitedTypes, references);
+            case "json" -> handleJsonType(id, name, typeName, type, visitedTypes, references);
             default -> {
                 if (type.hashCode != null && !type.hashCode.isEmpty()) {
                     throw new IllegalStateException("Unexpected type with hashCode: " + type.typeName);
@@ -1157,11 +1170,34 @@ public class DataMapManager {
         recordPort.typeInfo = (typeName != null && isExternalType(type)) ? createTypeInfo(type) : null;
 
         processRecordFields(recordPort, recordType, visitedTypes, references);
+
+        // For inferred JSON types (key is null), don't add to references and return fields directly
+        if (recordType.key == null) {
+            processDependentTypes(id, recordType.dependentTypes, visitedTypes, references);
+            return recordPort;
+        }
+
         addToReferences(references, recordType.key, recordPort);
         processDependentTypes(id, recordType.dependentTypes, visitedTypes, references);
 
         return new MappingRecordPort(recordPort);
     }
+
+    private MappingPort handleJsonType(String id, String name, String typeName, RefType type,
+                                         Map<String, Type> visitedTypes, Map<String, MappingPort> references) {
+        if (!(type instanceof RefJsonType jsonType)) {
+            return createJsonPort(id, name, typeName, type);
+        }
+
+        String jsonTypeName = resolveTypeName(typeName != null ? typeName : "json", type, typeName != null);
+        MappingJsonPort jsonPort = new MappingJsonPort(id, name, jsonTypeName, "json", jsonType.key);
+        jsonPort.typeInfo = (typeName != null && isExternalType(type)) ? createTypeInfo(type) : null;
+
+        processJsonFields(jsonPort, jsonType, visitedTypes, references);
+        return jsonPort;
+    }
+
+
 
     private MappingPort handleArrayType(String id, String name, RefType type,
                                         Map<String, Type> visitedTypes, Map<String, MappingPort> references) {
@@ -1277,6 +1313,13 @@ public class DataMapManager {
         MappingRecordPort recordPort = new MappingRecordPort(id, name, recordTypeName, "record", type.key);
         recordPort.typeInfo = isExternalType(type) ? createTypeInfo(type) : null;
         return recordPort;
+    }
+
+    private MappingJsonPort createJsonPort(String id, String name, String typeName, RefType type) {
+        String jsonTypeName = resolveTypeName(typeName, type, true);
+        MappingJsonPort jsonPort = new MappingJsonPort(id, name, jsonTypeName, "json", type.key);
+        jsonPort.typeInfo = isExternalType(type) ? createTypeInfo(type) : null;
+        return jsonPort;
     }
 
     private String resolveTypeName(String typeName, RefType type, boolean includePrefix) {
@@ -1396,6 +1439,16 @@ public class DataMapManager {
                     field.type(), visitedTypes, references);
             fieldPort.setOptional(field.optional());
             recordPort.fields.add(fieldPort);
+        }
+    }
+
+    private void processJsonFields(MappingJsonPort jsonPort, RefJsonType jsonType,
+                                     Map<String, Type> visitedTypes, Map<String, MappingPort> references) {
+        for (ReferenceType.Field field : jsonType.fields) {
+            MappingPort fieldPort = getRefMappingPort(field.fieldName(), field.fieldName(),
+                    field.type(), visitedTypes, references);
+            fieldPort.setOptional(field.optional());
+            jsonPort.fields.add(fieldPort);
         }
     }
 
@@ -2805,6 +2858,100 @@ public class DataMapManager {
         return modulePartNode.findNode(TextRange.from(start, end - start), true);
     }
 
+    /**
+     * Infers the JSON structure from a mapping constructor expression.
+     * For each field in the mapping constructor:
+     * - If the value is a direct field access (e.g., payload.id), infer the type from the field
+     * - Otherwise, mark the field as type json
+     *
+     * @param mappingExpr The mapping constructor expression node
+     * @param semanticModel The semantic model for type inference
+     * @param typeDefSymbols List of type definition symbols
+     * @return RefRecordType representing the inferred JSON structure, or null if inference fails
+     */
+    private RefType inferJsonStructure(MappingConstructorExpressionNode mappingExpr,
+                                       SemanticModel semanticModel,
+                                       List<Symbol> typeDefSymbols) {
+        RefJsonType jsonType = new RefJsonType("json");
+        jsonType.typeName = "json";
+        jsonType.key = null;  // Use null key to avoid adding to references
+        jsonType.hashCode = null;
+        jsonType.moduleInfo = null;
+
+        for (MappingFieldNode fieldNode : mappingExpr.fields()) {
+            if (fieldNode.kind() != SyntaxKind.SPECIFIC_FIELD) {
+                continue;
+            }
+
+            SpecificFieldNode specificField = (SpecificFieldNode) fieldNode;
+            String fieldName = specificField.fieldName().toSourceCode().trim();
+
+            Optional<ExpressionNode> optFieldExpr = specificField.valueExpr();
+            if (optFieldExpr.isEmpty()) {
+                continue;
+            }
+
+            ExpressionNode fieldExpr = optFieldExpr.get();
+            RefType fieldType = inferFieldType(fieldExpr, semanticModel, typeDefSymbols);
+
+            // Add field to the record type
+            jsonType.fields.add(new ReferenceType.Field(fieldName, fieldType, false, ""));
+        }
+
+        return jsonType;
+    }
+
+    /**
+     * Infers the type of a field expression.
+     * - If it's a direct field access, infer the actual type
+     * - Otherwise, return json type
+     *
+     * @param expr The expression node
+     * @param semanticModel The semantic model for type inference
+     * @param typeDefSymbols List of type definition symbols
+     * @return RefType representing the inferred type
+     */
+    private RefType inferFieldType(ExpressionNode expr, SemanticModel semanticModel,
+                                    List<Symbol> typeDefSymbols) {
+        // Check if it's a direct field access (e.g., payload.id)
+        if (isDirectFieldAccess(expr)) {
+            // Try to get the type from semantic model
+            Optional<TypeSymbol> optTypeSymbol = semanticModel.typeOf(expr);
+            if (optTypeSymbol.isPresent()) {
+                try {
+                    TypeSymbol typeSymbol = CommonUtils.getRawType(optTypeSymbol.get());
+                    RefType refType = ReferenceType.fromSemanticSymbol(typeSymbol, typeDefSymbols);
+                    if (refType != null) {
+                        return refType;
+                    }
+                } catch (UnsupportedOperationException e) {
+                    // Fall through to return json type
+                }
+            }
+        }
+
+        // Default to json type for complex expressions
+        return new RefType("json");
+    }
+
+    /**
+     * Checks if an expression is a direct field access.
+     * Examples of direct field access:
+     * - payload.id
+     * - payload.customerName
+     * - obj.field
+     *
+     * @param expr The expression node
+     * @return true if it's a direct field access, false otherwise
+     */
+    private boolean isDirectFieldAccess(ExpressionNode expr) {
+        SyntaxKind kind = expr.kind();
+
+        // Direct field access, optional field access, simple name reference, or qualified name reference
+        return kind == SyntaxKind.FIELD_ACCESS || kind == SyntaxKind.OPTIONAL_FIELD_ACCESS
+                || kind == SyntaxKind.SIMPLE_NAME_REFERENCE || kind == SyntaxKind.QUALIFIED_NAME_REFERENCE;
+    }
+
     private record Model(List<MappingPort> inputs, MappingPort output, List<MappingPort> subMappings,
                          List<Mapping> mappings, Query query, Map<String, MappingPort> refs) {
 
@@ -3032,6 +3179,33 @@ public class DataMapManager {
         }
 
         MappingRecordPort(MappingRecordPort mappingRecordPort, boolean isReferenceType) {
+            super(mappingRecordPort.typeName, mappingRecordPort.kind);
+            this.fields = mappingRecordPort.fields;
+        }
+
+    }
+
+    private static class MappingJsonPort extends MappingPort {
+        List<MappingPort> fields = new ArrayList<>();
+
+        MappingJsonPort(String name, String displayName, String typeName, String kind) {
+            super(name, displayName, typeName, kind);
+        }
+
+        MappingJsonPort(String name, String displayName, String typeName, String kind, String reference) {
+            super(name, displayName, typeName, kind, reference);
+        }
+
+        MappingJsonPort(String name, String displayName, String typeName, String kind, Boolean optional) {
+            super(name, displayName, typeName, kind, optional);
+        }
+
+        MappingJsonPort(MappingJsonPort mappingRecordPort) {
+            super(mappingRecordPort.name, mappingRecordPort.displayName, mappingRecordPort.typeName,
+                    mappingRecordPort.kind, mappingRecordPort.ref, mappingRecordPort.typeInfo);
+        }
+
+        MappingJsonPort(MappingJsonPort mappingRecordPort, boolean isReferenceType) {
             super(mappingRecordPort.typeName, mappingRecordPort.kind);
             this.fields = mappingRecordPort.fields;
         }
