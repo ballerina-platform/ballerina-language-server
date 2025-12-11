@@ -2865,7 +2865,7 @@ public class DataMapManager {
     /**
      * Infers the JSON structure from a mapping constructor expression.
      * For each field in the mapping constructor:
-     * - If the value is a direct field access (e.g., payload.id), infer the type from the field
+     * - If the value is of a suitable structure, infer the type from the field
      * - Otherwise, mark the field as type json
      *
      * @param mappingExpr The mapping constructor expression node
@@ -2903,7 +2903,7 @@ public class DataMapManager {
 
     /**
      * Infers the type of a field expression.
-     * - If it's a direct field access, infer the actual type
+     * - If it's suitable type, infer the actual type
      * - Otherwise, return json type
      *
      * @param expr The expression node
@@ -3097,13 +3097,9 @@ public class DataMapManager {
 
     /**
      * Checks if an expression is an applicable type to inference.
-     * Examples of direct field access:
-     * - payload.id
-     * - payload.customerName
-     * - obj.field
      *
      * @param expr The expression node
-     * @return true if it's a direct field access, false otherwise
+     * @return true if it's an applicable type, false otherwise
      */
     private boolean isApplicableInference(ExpressionNode expr) {
         SyntaxKind kind = expr.kind();
