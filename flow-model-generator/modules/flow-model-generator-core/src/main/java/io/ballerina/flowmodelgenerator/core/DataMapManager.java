@@ -38,6 +38,7 @@ import io.ballerina.compiler.api.symbols.TypeDescKind;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
 import io.ballerina.compiler.api.symbols.VariableSymbol;
+import io.ballerina.compiler.syntax.tree.AssignmentStatementNode;
 import io.ballerina.compiler.syntax.tree.BinaryExpressionNode;
 import io.ballerina.compiler.syntax.tree.BindingPatternNode;
 import io.ballerina.compiler.syntax.tree.BracedExpressionNode;
@@ -106,6 +107,7 @@ import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.ModuleDescriptor;
 import io.ballerina.tools.diagnostics.Diagnostic;
+import io.ballerina.tools.diagnostics.Location;
 import io.ballerina.tools.text.LinePosition;
 import io.ballerina.tools.text.LineRange;
 import io.ballerina.tools.text.TextDocument;
@@ -243,12 +245,10 @@ public class DataMapManager {
 
         String name = targetNode.name();
         MappingPort refOutputPort = null;
-
-        // Check if we need to infer JSON structure from mapping constructor
-        if (refType != null && "json".equals(refType.name) && targetNode.matchingNode() != null
-                && targetNode.matchingNode().expr() != null
-                && targetNode.matchingNode().expr().kind() == SyntaxKind.MAPPING_CONSTRUCTOR) {
-            // Infer JSON structure from the mapping constructor
+        MatchingNode targetMatchingNode = targetNode.matchingNode();
+        ExpressionNode targetExpr = targetMatchingNode != null ? targetMatchingNode.expr() : null;
+        if (refType != null && "json".equals(refType.name) && targetExpr != null
+                && targetExpr.kind() == SyntaxKind.MAPPING_CONSTRUCTOR) {
             MappingConstructorExpressionNode mappingExpr =
                     (MappingConstructorExpressionNode) targetNode.matchingNode().expr();
             refType = inferJsonStructure(mappingExpr, semanticModel, typeDefSymbols);
@@ -930,8 +930,19 @@ public class DataMapManager {
 
                 VariableSymbol varSymbol = (VariableSymbol) symbol;
                 String name = optName.get();
-                MappingPort refMappingPort =
-                        generateMappingPort(semanticModel, varSymbol.typeDescriptor(), name, name, references);
+                MappingPort refMappingPort = null;
+                TypeSymbol typeSymbol = varSymbol.typeDescriptor();
+                TypeSymbol rawType = CommonUtils.getRawType(typeSymbol);
+                if (rawType.typeKind() == TypeDescKind.JSON) {
+                    RefType inferredType = inferJsonStructureForVariable(varSymbol, semanticModel, typeDefSymbols,
+                            position);
+                    if (inferredType != null) {
+                        refMappingPort = getRefMappingPort(name, name, inferredType, new HashMap<>(), references);
+                    }
+                } else {
+                    refMappingPort =
+                            generateMappingPort(semanticModel, varSymbol.typeDescriptor(), name, name, references);
+                }
                 if (refMappingPort == null) {
                     continue;
                 }
@@ -1190,7 +1201,7 @@ public class DataMapManager {
         }
 
         String jsonTypeName = resolveTypeName(typeName != null ? typeName : "json", type, typeName != null);
-        MappingJsonPort jsonPort = new MappingJsonPort(id, name, jsonTypeName, "json", jsonType.key);
+        MappingJsonPort jsonPort = new MappingJsonPort(id, name, jsonTypeName, "json");
         jsonPort.typeInfo = (typeName != null && isExternalType(type)) ? createTypeInfo(type) : null;
 
         processJsonFields(jsonPort, jsonType, visitedTypes, references);
@@ -1317,7 +1328,7 @@ public class DataMapManager {
 
     private MappingJsonPort createJsonPort(String id, String name, String typeName, RefType type) {
         String jsonTypeName = resolveTypeName(typeName, type, true);
-        MappingJsonPort jsonPort = new MappingJsonPort(id, name, jsonTypeName, "json", type.key);
+        MappingJsonPort jsonPort = new MappingJsonPort(id, name, jsonTypeName, "json");
         jsonPort.typeInfo = isExternalType(type) ? createTypeInfo(type) : null;
         return jsonPort;
     }
@@ -2874,9 +2885,6 @@ public class DataMapManager {
                                        List<Symbol> typeDefSymbols) {
         RefJsonType jsonType = new RefJsonType("json");
         jsonType.typeName = "json";
-        jsonType.key = null;  // Use null key to avoid adding to references
-        jsonType.hashCode = null;
-        jsonType.moduleInfo = null;
 
         for (MappingFieldNode fieldNode : mappingExpr.fields()) {
             if (fieldNode.kind() != SyntaxKind.SPECIFIC_FIELD) {
@@ -2894,7 +2902,6 @@ public class DataMapManager {
             ExpressionNode fieldExpr = optFieldExpr.get();
             RefType fieldType = inferFieldType(fieldExpr, semanticModel, typeDefSymbols);
 
-            // Add field to the record type
             jsonType.fields.add(new ReferenceType.Field(fieldName, fieldType, false, ""));
         }
 
@@ -2913,9 +2920,7 @@ public class DataMapManager {
      */
     private RefType inferFieldType(ExpressionNode expr, SemanticModel semanticModel,
                                     List<Symbol> typeDefSymbols) {
-        // Check if it's a direct field access (e.g., payload.id)
-        if (isDirectFieldAccess(expr)) {
-            // Try to get the type from semantic model
+        if (isApplicableInference(expr)) {
             Optional<TypeSymbol> optTypeSymbol = semanticModel.typeOf(expr);
             if (optTypeSymbol.isPresent()) {
                 try {
@@ -2925,17 +2930,180 @@ public class DataMapManager {
                         return refType;
                     }
                 } catch (UnsupportedOperationException e) {
-                    // Fall through to return json type
+                    return new RefType("json");
                 }
             }
         }
-
-        // Default to json type for complex expressions
         return new RefType("json");
     }
 
     /**
-     * Checks if an expression is a direct field access.
+     * Infers JSON structure for an input variable by finding the most recent assignment
+     * before the current position.
+     *
+     * @param varSymbol The variable symbol (must be of type json)
+     * @param semanticModel The semantic model for type inference
+     * @param typeDefSymbols List of type definition symbols
+     * @param currentPosition The position where we're evaluating the data mapper
+     * @return RefType representing the inferred JSON structure, or null if no inference is needed
+     */
+    private RefType inferJsonStructureForVariable(VariableSymbol varSymbol, SemanticModel semanticModel,
+                                                  List<Symbol> typeDefSymbols, LinePosition currentPosition) {
+        String varName = varSymbol.getName().orElse(null);
+        if (varName == null) {
+            return null;
+        }
+
+        ModulePartNode modulePartNode = this.document.syntaxTree().rootNode();
+        for (ModuleMemberDeclarationNode member : modulePartNode.members()) {
+            if (member.kind() == SyntaxKind.MODULE_VAR_DECL) {
+                ModuleVariableDeclarationNode moduleVarDecl = (ModuleVariableDeclarationNode) member;
+                String declVarName = moduleVarDecl.typedBindingPattern().bindingPattern().toSourceCode().trim();
+
+                if (varName.equals(declVarName)) {
+                    Optional<ExpressionNode> optInitializer = moduleVarDecl.initializer();
+                    if (optInitializer.isPresent() &&
+                        optInitializer.get().kind() == SyntaxKind.MAPPING_CONSTRUCTOR) {
+                        MappingConstructorExpressionNode mappingExpr =
+                            (MappingConstructorExpressionNode) optInitializer.get();
+                        return inferJsonStructure(mappingExpr, semanticModel, typeDefSymbols);
+                    }
+                    return null;
+                }
+            }
+        }
+
+        Optional<Location> optLocation = varSymbol.getLocation();
+        if (optLocation.isEmpty()) {
+            return null;
+        }
+
+        Location location = optLocation.get();
+        Document varDocument;
+        try {
+            varDocument = CommonUtils.getDocument(this.document.module().project(), location);
+        } catch (Exception e) {
+            return null;
+        }
+
+        if (varDocument == null) {
+            return null;
+        }
+
+        SyntaxTree syntaxTree = varDocument.syntaxTree();
+        ModulePartNode varModulePartNode = syntaxTree.rootNode();
+        MappingConstructorExpressionNode mostRecentMapping =
+            findMostRecentJsonAssignment(varModulePartNode, varName, currentPosition);
+        if (mostRecentMapping != null) {
+            return inferJsonStructure(mostRecentMapping, semanticModel, typeDefSymbols);
+        }
+        return null;
+    }
+
+    /**
+     * Finds the most recent JSON assignment (with mapping constructor) to a variable before the given position.
+     * Checks both the initial variable declaration and any subsequent assignments.
+     *
+     * @param root The root node to search from
+     * @param varName The variable name
+     * @param currentPosition The current position
+     * @return The most recent MappingConstructorExpressionNode, or null if none found
+     */
+    private MappingConstructorExpressionNode findMostRecentJsonAssignment(Node root, String varName,
+                                                                          LinePosition currentPosition) {
+        MappingConstructorExpressionNode mostRecent = null;
+        LinePosition mostRecentPosition = null;
+
+        List<Node> assignments = findAllAssignments(root, varName);
+
+        for (Node assignment : assignments) {
+            MappingConstructorExpressionNode mappingConstructor = null;
+            LinePosition assignmentPosition = null;
+
+            if (assignment.kind() == SyntaxKind.LOCAL_VAR_DECL) {
+                VariableDeclarationNode varDecl = (VariableDeclarationNode) assignment;
+                Optional<ExpressionNode> optInit = varDecl.initializer();
+                if (optInit.isPresent() && optInit.get().kind() == SyntaxKind.MAPPING_CONSTRUCTOR) {
+                    mappingConstructor = (MappingConstructorExpressionNode) optInit.get();
+                    assignmentPosition = assignment.lineRange().startLine();
+                }
+            } else if (assignment.kind() == SyntaxKind.ASSIGNMENT_STATEMENT) {
+                AssignmentStatementNode assignmentStmt = (AssignmentStatementNode) assignment;
+                ExpressionNode expr = assignmentStmt.expression();
+                if (expr.kind() == SyntaxKind.MAPPING_CONSTRUCTOR) {
+                    mappingConstructor = (MappingConstructorExpressionNode) expr;
+                    assignmentPosition = assignment.lineRange().startLine();
+                }
+            }
+
+            if (mappingConstructor != null && assignmentPosition != null) {
+                if ((isBeforePosition(assignmentPosition, currentPosition)) &&
+                        (mostRecentPosition == null || isAfterPosition(assignmentPosition, mostRecentPosition))) {
+                    mostRecent = mappingConstructor;
+                    mostRecentPosition = assignmentPosition;
+                }
+            }
+        }
+
+        return mostRecent;
+    }
+
+    /**
+     * Finds all assignments (declaration + reassignments) to a variable.
+     */
+    private List<Node> findAllAssignments(Node node, String varName) {
+        List<Node> assignments = new ArrayList<>();
+        findAllAssignmentsRecursive(node, varName, assignments);
+        return assignments;
+    }
+
+    private void findAllAssignmentsRecursive(Node node, String varName, List<Node> assignments) {
+        if (node.kind() == SyntaxKind.LOCAL_VAR_DECL) {
+            VariableDeclarationNode varDecl = (VariableDeclarationNode) node;
+            String declVarName = varDecl.typedBindingPattern().bindingPattern().toSourceCode().trim();
+            if (varName.equals(declVarName)) {
+                assignments.add(node);
+            }
+        } else if (node.kind() == SyntaxKind.ASSIGNMENT_STATEMENT) {
+            AssignmentStatementNode assignmentStmt = (AssignmentStatementNode) node;
+            Node varRef = assignmentStmt.varRef();
+            if (varRef.kind() == SyntaxKind.SIMPLE_NAME_REFERENCE) {
+                SimpleNameReferenceNode nameRef = (SimpleNameReferenceNode) varRef;
+                if (varName.equals(nameRef.name().text())) {
+                    assignments.add(node);
+                }
+            }
+        }
+
+        if (node instanceof NonTerminalNode nonTerminalNode) {
+            for (Node child : nonTerminalNode.children()) {
+                findAllAssignmentsRecursive(child, varName, assignments);
+            }
+        }
+    }
+
+    private boolean isBeforePosition(io.ballerina.tools.text.LinePosition pos1, LinePosition pos2) {
+        if (pos1.line() < pos2.line()) {
+            return true;
+        }
+        if (pos1.line() == pos2.line()) {
+            return pos1.offset() < pos2.offset();
+        }
+        return false;
+    }
+
+    private boolean isAfterPosition(LinePosition pos1, LinePosition pos2) {
+        if (pos1.line() > pos2.line()) {
+            return true;
+        }
+        if (pos1.line() == pos2.line()) {
+            return pos1.offset() > pos2.offset();
+        }
+        return false;
+    }
+
+    /**
+     * Checks if an expression is an applicable type to inference.
      * Examples of direct field access:
      * - payload.id
      * - payload.customerName
@@ -2944,12 +3112,12 @@ public class DataMapManager {
      * @param expr The expression node
      * @return true if it's a direct field access, false otherwise
      */
-    private boolean isDirectFieldAccess(ExpressionNode expr) {
+    private boolean isApplicableInference(ExpressionNode expr) {
         SyntaxKind kind = expr.kind();
-
-        // Direct field access, optional field access, simple name reference, or qualified name reference
         return kind == SyntaxKind.FIELD_ACCESS || kind == SyntaxKind.OPTIONAL_FIELD_ACCESS
-                || kind == SyntaxKind.SIMPLE_NAME_REFERENCE || kind == SyntaxKind.QUALIFIED_NAME_REFERENCE;
+                || kind == SyntaxKind.SIMPLE_NAME_REFERENCE || kind == SyntaxKind.QUALIFIED_NAME_REFERENCE
+                || kind == SyntaxKind.NUMERIC_LITERAL || kind == SyntaxKind.STRING_LITERAL
+                || kind == SyntaxKind.BOOLEAN_LITERAL;
     }
 
     private record Model(List<MappingPort> inputs, MappingPort output, List<MappingPort> subMappings,
@@ -3192,23 +3360,7 @@ public class DataMapManager {
             super(name, displayName, typeName, kind);
         }
 
-        MappingJsonPort(String name, String displayName, String typeName, String kind, String reference) {
-            super(name, displayName, typeName, kind, reference);
-        }
-
-        MappingJsonPort(String name, String displayName, String typeName, String kind, Boolean optional) {
-            super(name, displayName, typeName, kind, optional);
-        }
-
-        MappingJsonPort(MappingJsonPort mappingRecordPort) {
-            super(mappingRecordPort.name, mappingRecordPort.displayName, mappingRecordPort.typeName,
-                    mappingRecordPort.kind, mappingRecordPort.ref, mappingRecordPort.typeInfo);
-        }
-
-        MappingJsonPort(MappingJsonPort mappingRecordPort, boolean isReferenceType) {
-            super(mappingRecordPort.typeName, mappingRecordPort.kind);
-            this.fields = mappingRecordPort.fields;
-        }
+        List<MappingPort> getFields() { return this.fields; }
 
     }
 
