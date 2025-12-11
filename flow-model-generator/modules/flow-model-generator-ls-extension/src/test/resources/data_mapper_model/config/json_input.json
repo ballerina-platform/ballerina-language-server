@@ -1,0 +1,136 @@
+{
+  "source": "json_input.bal",
+  "description": "JSON input type inference test",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "json_input.bal",
+      "startLine": {
+        "line": 12,
+        "offset": 0
+      },
+      "endLine": {
+        "line": 16,
+        "offset": 2
+      }
+    },
+    "sourceCode": ""
+  },
+  "position": {
+    "line": 12,
+    "offset": 46
+  },
+  "targetField": "transformFromJson",
+  "model": {
+    "inputs": [
+      {
+        "fields": [
+          {
+            "name": "\"id\"",
+            "displayName": "\"id\"",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "\"name\"",
+            "displayName": "\"name\"",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "\"email\"",
+            "displayName": "\"email\"",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "name": "inputData",
+        "displayName": "inputData",
+        "typeName": "json",
+        "kind": "json",
+        "category": "module-variable"
+      }
+    ],
+    "output": {
+      "fields": [],
+      "name": "transformFromJson",
+      "displayName": "transformFromJson",
+      "typeName": "Output",
+      "kind": "record",
+      "ref": "873824749"
+    },
+    "mappings": [
+      {
+        "output": "transformFromJson.id",
+        "inputs": [
+          "inputData.id"
+        ],
+        "expression": "inputData.id",
+        "diagnostics": [
+          "incompatible types: expected 'string', found '(json|error)'"
+        ],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false
+      },
+      {
+        "output": "transformFromJson.name",
+        "inputs": [
+          "inputData.name"
+        ],
+        "expression": "inputData.name",
+        "diagnostics": [
+          "incompatible types: expected 'string', found '(json|error)'"
+        ],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false
+      },
+      {
+        "output": "transformFromJson.email",
+        "inputs": [
+          "inputData.email"
+        ],
+        "expression": "inputData.email\n",
+        "diagnostics": [
+          "incompatible types: expected 'string', found '(json|error)'"
+        ],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false
+      }
+    ],
+    "refs": {
+      "873824749": {
+        "fields": [
+          {
+            "name": "id",
+            "displayName": "id",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "name",
+            "displayName": "name",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "email",
+            "displayName": "email",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "Output",
+        "kind": "record"
+      }
+    }
+  }
+}
