@@ -1181,13 +1181,6 @@ public class DataMapManager {
         recordPort.typeInfo = (typeName != null && isExternalType(type)) ? createTypeInfo(type) : null;
 
         processRecordFields(recordPort, recordType, visitedTypes, references);
-
-        // For inferred JSON types (key is null), don't add to references and return fields directly
-        if (recordType.key == null) {
-            processDependentTypes(id, recordType.dependentTypes, visitedTypes, references);
-            return recordPort;
-        }
-
         addToReferences(references, recordType.key, recordPort);
         processDependentTypes(id, recordType.dependentTypes, visitedTypes, references);
 
