@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Reference-based record type model.
+ * Reference-based json type model.
  */
 public class RefJsonType extends RefType {
     @Expose
