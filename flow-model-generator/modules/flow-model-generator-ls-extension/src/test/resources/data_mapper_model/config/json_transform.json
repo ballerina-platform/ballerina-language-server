@@ -55,6 +55,29 @@
           "typeName": "string",
           "kind": "string",
           "optional": false
+        },
+        {
+          "fields": [
+            {
+              "name": "line1",
+              "displayName": "line1",
+              "typeName": "string",
+              "kind": "string",
+              "optional": false
+            },
+            {
+              "name": "line2",
+              "displayName": "line2",
+              "typeName": "json",
+              "kind": "json",
+              "optional": false
+            }
+          ],
+          "name": "address",
+          "displayName": "address",
+          "typeName": "json",
+          "kind": "json",
+          "optional": false
         }
       ],
       "name": "transformToJson",
@@ -90,11 +113,33 @@
         "inputs": [
           "payload.email"
         ],
-        "expression": "payload.email\n",
+        "expression": "payload.email",
         "diagnostics": [],
         "elements": [],
         "isQueryExpression": false,
         "isFunctionCall": false
+      },
+      {
+        "output": "transformToJson.address.line1",
+        "inputs": [
+          "payload.id"
+        ],
+        "expression": "payload.id",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false
+      },
+      {
+        "output": "transformToJson.address.line2",
+        "inputs": [
+          "payload.id"
+        ],
+        "expression": "foo(payload.id)\n",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": true
       }
     ],
     "refs": {

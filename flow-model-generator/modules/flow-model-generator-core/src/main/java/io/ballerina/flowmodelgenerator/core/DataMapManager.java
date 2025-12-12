@@ -2871,7 +2871,7 @@ public class DataMapManager {
      * @param mappingExpr The mapping constructor expression node
      * @param semanticModel The semantic model for type inference
      * @param typeDefSymbols List of type definition symbols
-     * @return RefRecordType representing the inferred JSON structure, or null if inference fails
+     * @return RefType representing the inferred JSON structure, or null if inference fails
      */
     private RefType inferJsonStructure(MappingConstructorExpressionNode mappingExpr,
                                        SemanticModel semanticModel,
@@ -2913,6 +2913,10 @@ public class DataMapManager {
      */
     private RefType inferFieldType(ExpressionNode expr, SemanticModel semanticModel,
                                     List<Symbol> typeDefSymbols) {
+        if (expr.kind() == SyntaxKind.MAPPING_CONSTRUCTOR) {
+            return inferJsonStructure((MappingConstructorExpressionNode) expr, semanticModel, typeDefSymbols);
+        }
+
         if (isApplicableInference(expr)) {
             Optional<TypeSymbol> optTypeSymbol = semanticModel.typeOf(expr);
             if (optTypeSymbol.isPresent()) {
@@ -3075,7 +3079,7 @@ public class DataMapManager {
         }
     }
 
-    private boolean isBeforePosition(io.ballerina.tools.text.LinePosition pos1, LinePosition pos2) {
+    private boolean isBeforePosition(LinePosition pos1, LinePosition pos2) {
         if (pos1.line() < pos2.line()) {
             return true;
         }
@@ -3106,7 +3110,7 @@ public class DataMapManager {
         return kind == SyntaxKind.FIELD_ACCESS || kind == SyntaxKind.OPTIONAL_FIELD_ACCESS
                 || kind == SyntaxKind.SIMPLE_NAME_REFERENCE || kind == SyntaxKind.QUALIFIED_NAME_REFERENCE
                 || kind == SyntaxKind.NUMERIC_LITERAL || kind == SyntaxKind.STRING_LITERAL
-                || kind == SyntaxKind.BOOLEAN_LITERAL;
+                || kind == SyntaxKind.BOOLEAN_LITERAL || kind == SyntaxKind.FUNCTION_CALL;
     }
 
     private record Model(List<MappingPort> inputs, MappingPort output, List<MappingPort> subMappings,

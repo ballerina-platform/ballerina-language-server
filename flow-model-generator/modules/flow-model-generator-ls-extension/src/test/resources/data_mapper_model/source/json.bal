@@ -13,5 +13,13 @@ type Output record {
 function transformToJson(Input payload) returns json => {
     id: payload.id,
     name: payload.name,
-    email: payload.email
+    email: payload.email,
+    address: {
+        line1 : payload.id,
+        line2: foo(payload.id)
+    }
 };
+
+function foo(string input) returns string {
+    return input;
+}
