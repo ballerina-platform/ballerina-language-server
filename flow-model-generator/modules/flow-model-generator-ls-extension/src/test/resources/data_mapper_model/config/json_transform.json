@@ -68,8 +68,8 @@
             {
               "name": "line2",
               "displayName": "line2",
-              "typeName": "json",
-              "kind": "json",
+              "typeName": "string",
+              "kind": "string",
               "optional": false
             }
           ],
