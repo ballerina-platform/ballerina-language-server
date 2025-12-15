@@ -3353,7 +3353,9 @@ public class DataMapManager {
             super(name, displayName, typeName, kind);
         }
 
-        List<MappingPort> getFields() { return this.fields; }
+        List<MappingPort> getFields() {
+            return this.fields;
+        }
 
     }
 
