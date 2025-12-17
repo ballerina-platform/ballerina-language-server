@@ -24,8 +24,12 @@
         "codedata": {
           "type": "DOCUMENTATION"
         },
-        "valueType": "STRING",
-        "valueTypeConstraint": "string",
+        "types": [
+          {
+            "fieldType": "TEXT",
+            "selected": true
+          }
+        ],
         "enabled": true,
         "editable": true,
         "optional": true,
@@ -41,12 +45,16 @@
             "type": "LISTENER"
           },
           "placeholder": "",
-          "valueType": "SINGLE_SELECT_LISTENER",
-          "valueTypeConstraint": "kafka:Listener",
           "value": "",
           "values": [],
-          "items": [
-            "kafkaListener"
+          "types": [
+            {
+              "fieldType": "SINGLE_SELECT_LISTENER",
+              "options": [
+                "kafkaListener"
+              ],
+              "selected": true
+            }
           ],
           "enabled": true,
           "editable": true,
@@ -62,12 +70,16 @@
             "type": "SERVICE_TYPE"
           },
           "placeholder": "Service",
-          "valueType": "SINGLE_SELECT",
-          "valueTypeConstraint": "string",
           "value": "Service",
-          "items": [
-            "",
-            "Service"
+          "types": [
+            {
+              "fieldType": "SINGLE_SELECT",
+              "options": [
+                "",
+                "Service"
+              ],
+              "selected": true
+            }
           ],
           "enabled": false,
           "editable": true,
@@ -79,10 +91,15 @@
             "type": "READONLY"
           },
           "placeholder": "false",
-          "valueType": "SINGLE_SELECT",
           "value": {
             "Topic(s)": []
           },
+          "types": [
+            {
+              "fieldType": "SINGLE_SELECT",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": false,

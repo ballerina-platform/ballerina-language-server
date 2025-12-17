@@ -23,8 +23,12 @@
         "codedata": {
           "type": "DOCUMENTATION"
         },
-        "valueType": "STRING",
-        "valueTypeConstraint": "string",
+        "types": [
+          {
+            "fieldType": "TEXT",
+            "selected": true
+          }
+        ],
         "enabled": true,
         "editable": true,
         "optional": true,
@@ -40,11 +44,15 @@
             "type": "LISTENER"
           },
           "placeholder": "",
-          "valueType": "MULTIPLE_SELECT_LISTENER",
-          "valueTypeConstraint": "ai:Listener",
           "value": "",
           "values": [],
-          "items": [],
+          "types": [
+            {
+              "fieldType": "MULTIPLE_SELECT_LISTENER",
+              "options": [],
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -59,12 +67,16 @@
             "type": "SERVICE_TYPE"
           },
           "placeholder": "",
-          "valueType": "SINGLE_SELECT",
-          "valueTypeConstraint": "string",
           "value": "ChatService",
-          "items": [
-            "",
-            "ChatService"
+          "types": [
+            {
+              "fieldType": "SINGLE_SELECT",
+              "options": [
+                "",
+                "ChatService"
+              ],
+              "selected": true
+            }
           ],
           "enabled": false,
           "editable": true,
@@ -80,10 +92,14 @@
             "type": "SERVICE_BASE_PATH"
           },
           "placeholder": "/agentChat",
-          "valueType": "SERVICE_PATH",
-          "valueTypeConstraint": "string",
           "value": "/agentChat",
           "values": [],
+          "types": [
+            {
+              "fieldType": "SERVICE_PATH",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -94,8 +110,13 @@
             "type": "READONLY"
           },
           "placeholder": "false",
-          "valueType": "SINGLE_SELECT",
           "value": {},
+          "types": [
+            {
+              "fieldType": "SINGLE_SELECT",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": false,
