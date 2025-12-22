@@ -34,4 +34,3 @@ type Person record {|
 enum ColorX {
 	RED
 }
-

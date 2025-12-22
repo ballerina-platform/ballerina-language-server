@@ -84,7 +84,7 @@ public class JsonToTypeTest extends AbstractLSTest {
                     testConfig.prefix(), testConfig.isNullAsOptional(), testConfig.allowAdditionalFields(),
                     testConfig.asInline(), sb.toString()
             );
-            updateConfig(configJsonPath, updatedConfig);
+//            updateConfig(configJsonPath, updatedConfig);
             Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.filePath(), configJsonPath));
         }
     }
