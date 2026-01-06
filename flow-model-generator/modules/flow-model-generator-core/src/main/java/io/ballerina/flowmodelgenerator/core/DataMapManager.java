@@ -2877,7 +2877,6 @@ public class DataMapManager {
                                        SemanticModel semanticModel,
                                        List<Symbol> typeDefSymbols) {
         RefJsonType jsonType = new RefJsonType("json");
-        jsonType.typeName = "json";
 
         for (MappingFieldNode fieldNode : mappingExpr.fields()) {
             if (fieldNode.kind() != SyntaxKind.SPECIFIC_FIELD) {
