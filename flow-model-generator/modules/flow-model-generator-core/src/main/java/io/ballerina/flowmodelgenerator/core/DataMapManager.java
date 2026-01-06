@@ -295,6 +295,8 @@ public class DataMapManager {
                             Objects.requireNonNull(ReferenceType.fromSemanticSymbol(memberTypeSymbol, typeDefSymbols)),
                             new HashMap<>(), references);
                     mappingPort.setFocusExpression(expression.toString().trim());
+                    mappingPort.setIsIterationVariable(true);
+                    mappingPort.category = "local-variable";
                     NonTerminalNode parent = matchingNode.queryExpr().parent();
                     SyntaxKind parentKind = parent.kind();
                     while (parentKind != SyntaxKind.LOCAL_VAR_DECL && parentKind != SyntaxKind.MODULE_VAR_DECL
@@ -398,7 +400,7 @@ public class DataMapManager {
                     String varName = letVarDecl.typedBindingPattern().bindingPattern().toSourceCode().trim();
                     String expression = letVarDecl.expression().toSourceCode().trim();
                     addClauseVariable(varName, expression, letVarDecl, clauseDefinedVars, inputPorts,
-                            semanticModel, typeDefSymbols, references);
+                            semanticModel, typeDefSymbols, references, false);
                 }
             } else if (clauseKind == SyntaxKind.GROUP_BY_CLAUSE) {
                 hasGroupBy = true;
@@ -413,7 +415,7 @@ public class DataMapManager {
                         String expression = groupVarDecl.expression().toSourceCode().trim();
                         groupingKeyNames.add(varName);
                         addClauseVariable(varName, expression, bindingPattern, clauseDefinedVars, inputPorts,
-                                semanticModel, typeDefSymbols, references);
+                                semanticModel, typeDefSymbols, references, true);
                     }
                 }
             }
@@ -431,7 +433,8 @@ public class DataMapManager {
 
     private void addClauseVariable(String varName, String expression, Node node, Set<String> clauseDefinedVars,
                                    List<MappingPort> inputPorts, SemanticModel semanticModel,
-                                   List<Symbol> typeDefSymbols, Map<String, MappingPort> references) {
+                                   List<Symbol> typeDefSymbols, Map<String, MappingPort> references,
+                                   boolean isGroupingKey) {
         clauseDefinedVars.add(varName);
         Optional<Symbol> varSymbol = semanticModel.symbol(node);
         if (varSymbol.isPresent()) {
@@ -439,6 +442,10 @@ public class DataMapManager {
                     Objects.requireNonNull(ReferenceType.fromSemanticSymbol(varSymbol.get(),
                             typeDefSymbols)), new HashMap<>(), references);
             mappingPort.focusExpression = expression;
+            mappingPort.category = "local-variable";
+            if (isGroupingKey) {
+                mappingPort.isGroupingKey = true;
+            }
             inputPorts.add(mappingPort);
         }
     }
@@ -514,6 +521,8 @@ public class DataMapManager {
                     Objects.requireNonNull(ReferenceType.fromSemanticSymbol(memberTypeSymbol,
                             typeDefSymbols)), new HashMap<>(), references);
             mappingPort.setFocusExpression(clauseExpr);
+            mappingPort.setIsIterationVariable(true);
+            mappingPort.category = "local-variable";
             inputPorts.add(mappingPort);
         }
     }
@@ -1307,7 +1316,8 @@ public class DataMapManager {
 
     private MappingPort createSimpleMappingPort(String id, String name, String typeName, RefType type) {
         String portTypeName = resolveTypeName(typeName, type, true);
-        MappingPort mappingPort = new MappingPort(id, name, portTypeName, portTypeName);
+        MappingPort mappingPort = new MappingPort(id, name, portTypeName,
+                portTypeName.replaceAll("\\?", ""));
         mappingPort.typeInfo = isExternalType(type) ? createTypeInfo(type) : null;
         return mappingPort;
     }
@@ -1608,11 +1618,15 @@ public class DataMapManager {
             Map<String, SpecificFieldNode> mappingFields = convertMappingFieldsToMap(mappingCtrExpr);
             SpecificFieldNode mappingFieldNode = mappingFields.get(name);
             if (mappingFieldNode == null) {
+                LinePosition insertPosition;
                 if (!mappingFields.isEmpty()) {
                     stringBuilder.append(", ");
+                    MappingFieldNode lastField = mappingCtrExpr.fields().get(mappingCtrExpr.fields().size() - 1);
+                    insertPosition = lastField.lineRange().endLine();
+                } else {
+                    insertPosition = mappingCtrExpr.closeBrace().lineRange().startLine();
                 }
-                genSource(null, names, idx, stringBuilder, mappingExpr,
-                        mappingCtrExpr.closeBrace().lineRange().startLine(), textEdits);
+                genSource(null, names, idx, stringBuilder, mappingExpr, insertPosition, textEdits);
             } else {
                 genSource(mappingFieldNode.valueExpr().orElseThrow(), names, idx + 1, stringBuilder, mappingExpr,
                         null, textEdits);
@@ -1626,8 +1640,14 @@ public class DataMapManager {
                     if (idx > 0) {
                         stringBuilder.append(", ");
                     }
-                    genSource(null, names, idx, stringBuilder, mappingExpr,
-                            listCtrExpr.closeBracket().lineRange().startLine(), textEdits);
+                    LinePosition insertPosition;
+                    if (!listCtrExpr.expressions().isEmpty()) {
+                        Node lastElement = listCtrExpr.expressions().get(listCtrExpr.expressions().size() - 1);
+                        insertPosition = lastElement.lineRange().endLine();
+                    } else {
+                        insertPosition = listCtrExpr.closeBracket().lineRange().startLine();
+                    }
+                    genSource(null, names, idx, stringBuilder, mappingExpr, insertPosition, textEdits);
                 } else {
                     genSource((ExpressionNode) listCtrExpr.expressions().get(index), names, idx + 1, stringBuilder,
                             mappingExpr, null, textEdits);
@@ -1799,8 +1819,11 @@ public class DataMapManager {
                         }
                     }
                 } else if (parentKind == SyntaxKind.COLLECT_CLAUSE) {
-                    genDeleteMappingSource(semanticModel, (ExpressionNode) parent.parent(), names, idx,
-                            textEdits, targetSymbol);
+                    if (targetSymbol != null) {
+                        String defaultVal = getDefaultValue(
+                                CommonUtil.getRawType(targetSymbol).typeKind().getName());
+                        textEdits.add(new TextEdit(CommonUtils.toRange(expr.lineRange()), defaultVal));
+                    }
                 }
             }
         } else if (expr.kind() == SyntaxKind.MAPPING_CONSTRUCTOR) {
@@ -3208,6 +3231,8 @@ public class DataMapManager {
         String ref;
         TypeInfo typeInfo;
         Boolean isSeq;
+        Boolean isIterationVariable;
+        Boolean isGroupingKey;
 
         MappingPort(String typeName, String kind) {
             this.typeName = typeName;
@@ -3298,6 +3323,18 @@ public class DataMapManager {
 
         Boolean getIsSeq() {
             return this.isSeq;
+        }
+
+        void setIsIterationVariable(Boolean isIterationVariable) {
+            this.isIterationVariable = isIterationVariable;
+        }
+
+        Boolean getIsIterationVariable() {
+            return this.isIterationVariable;
+        }
+
+        Boolean getIsGroupingKey() {
+            return this.isGroupingKey;
         }
 
         public String getFocusExpression() {
@@ -3523,11 +3560,18 @@ public class DataMapManager {
 
         @Override
         public void visit(IndexedExpressionNode node) {
-            String source = node.toSourceCode().trim();
-            String openBraceRemoved = source.replace("[", ".");
-            String middleBracesRemoved = openBraceRemoved.replace("][", ".");
-            String closedBraceRemoved = middleBracesRemoved.replace("]", "");
-            addInput(closedBraceRemoved);
+            ExpressionNode containerExpr = node.containerExpression();
+            SyntaxKind containerKind = containerExpr.kind();
+
+            if (containerKind == SyntaxKind.FIELD_ACCESS || containerKind == SyntaxKind.INDEXED_EXPRESSION) {
+                String source = node.toSourceCode().trim();
+                String openBraceRemoved = source.replace("[", ".");
+                String middleBracesRemoved = openBraceRemoved.replace("][", ".");
+                String closedBraceRemoved = middleBracesRemoved.replace("]", "");
+                addInput(closedBraceRemoved);
+            } else {
+                containerExpr.accept(this);
+            }
 
             SeparatedNodeList<ExpressionNode> keyExpressions = node.keyExpression();
             for (ExpressionNode keyExpr : keyExpressions) {
@@ -3632,5 +3676,115 @@ public class DataMapManager {
         public void visit(CheckExpressionNode node) {
             node.expression().accept(this);
         }
+    }
+
+    /**
+     * Converts an expression from one type to another for incompatible primitive types.
+     * This method is used by the convertExpression API.
+     *
+     * @param expression     the source expression
+     * @param expressionType the source type as a string (e.g., "int", "string")
+     * @param outputType     the target type as a string (e.g., "string", "int")
+     * @return a map containing the converted expression
+     */
+    public Map<String, Object> convertExpression(String expression, String expressionType, String outputType) {
+        Map<String, Object> result = new HashMap<>();
+
+        if (expression == null || expressionType == null || outputType == null) {
+            result.put("convertedExpression", expression);
+            return result;
+        }
+
+        TypeDescKind sourceKind = getTypeDescKindFromString(expressionType);
+        TypeDescKind targetKind = getTypeDescKindFromString(outputType);
+
+        if (sourceKind == null || targetKind == null) {
+            result.put("convertedExpression", expression);
+            return result;
+        }
+
+        String convertedExpression = getTypeConversionExpression(expression, sourceKind, targetKind);
+        result.put("convertedExpression", convertedExpression);
+        return result;
+    }
+
+    /**
+     * Converts a type string to TypeDescKind.
+     *
+     * @param typeString the type as a string (e.g., "int", "string")
+     * @return the corresponding TypeDescKind, or null if not a primitive type
+     */
+    private TypeDescKind getTypeDescKindFromString(String typeString) {
+        if (typeString == null) {
+            return null;
+        }
+
+        return switch (typeString.toLowerCase(java.util.Locale.ROOT).trim()) {
+            case "int" -> TypeDescKind.INT;
+            case "byte" -> TypeDescKind.BYTE;
+            case "float" -> TypeDescKind.FLOAT;
+            case "decimal" -> TypeDescKind.DECIMAL;
+            case "string" -> TypeDescKind.STRING;
+            case "boolean" -> TypeDescKind.BOOLEAN;
+            default -> null;
+        };
+    }
+
+    /**
+     * Generates the type conversion expression for converting between primitive types.
+     * @param expression the original expression
+     * @param sourceKind the source type kind
+     * @param targetKind the target type kind
+     * @return the converted expression
+     */
+    private String getTypeConversionExpression(String expression, TypeDescKind sourceKind, TypeDescKind targetKind) {
+        // Convert any type to string using toString()
+        if (targetKind == TypeDescKind.STRING) {
+            return expression + ".toString()";
+        }
+
+        // Convert from string to other primitive types
+        if (sourceKind == TypeDescKind.STRING) {
+            return switch (targetKind) {
+                case INT -> String.format
+                        ("(let int|error tmp = int:fromString(%s) in (tmp is error ? 0 : tmp))", expression);
+                case FLOAT -> String.format
+                        ("(let float|error tmp = float:fromString(%s) in (tmp is error ? 0.0f : tmp))", expression);
+                case DECIMAL -> String.format
+                        ("(let decimal|error tmp = decimal:fromString(%s) in (tmp is error ? 0.0d : tmp))", expression);
+                case BOOLEAN -> String.format
+                        ("((%s == \"\") ? false : true)", expression);
+                default -> expression;
+            };
+        }
+
+        // Convert from boolean to numeric types
+        if (sourceKind == TypeDescKind.BOOLEAN) {
+            return switch (targetKind) {
+                case INT, BYTE -> String.format("(%s ? 1 : 0)", expression);
+                case FLOAT -> String.format("(%s ? 1.0f : 0.0f)", expression);
+                case DECIMAL -> String.format("(%s ? 1.0d : 0.0d)", expression);
+                default -> expression;
+            };
+        }
+
+        // Convert numeric types to boolean
+        if (targetKind == TypeDescKind.BOOLEAN) {
+            return switch (sourceKind) {
+                case INT, BYTE -> String.format("(%s != 0)", expression);
+                case FLOAT -> String.format("(%s != 0.0f)", expression);
+                case DECIMAL -> String.format("(%s != 0.0d)", expression);
+                default -> expression;
+            };
+        }
+
+        // Numeric type casting (int, byte, float, decimal)
+        return switch (targetKind) {
+            case INT -> "<int>" + expression;
+            case BYTE -> "<byte>" + expression;
+            case FLOAT -> "<float>" + expression;
+            case DECIMAL -> "<decimal>" + expression;
+            default -> expression;
+        };
     }
 }

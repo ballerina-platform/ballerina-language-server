@@ -53,8 +53,10 @@
         "displayName": "user",
         "typeName": "UserInfo",
         "kind": "record",
+        "category": "local-variable",
         "focusExpression": "userInfo",
-        "ref": "1889977605"
+        "ref": "1889977605",
+        "isIterationVariable": true
       }
     ],
     "output": {

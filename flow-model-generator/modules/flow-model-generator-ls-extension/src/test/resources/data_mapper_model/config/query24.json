@@ -39,9 +39,11 @@
         "displayName": "{code, number}",
         "typeName": "SecondaryPhones",
         "kind": "record",
+        "category": "local-variable",
         "focusExpression": "u.info.secondaryPhones",
         "ref": "-782972947",
-        "isSeq": true
+        "isSeq": true,
+        "isIterationVariable": true
       }
     ],
     "output": {

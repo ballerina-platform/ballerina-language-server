@@ -107,8 +107,10 @@
         "displayName": "person",
         "typeName": "Person",
         "kind": "record",
+        "category": "local-variable",
         "focusExpression": "personList",
-        "ref": "887620673"
+        "ref": "887620673",
+        "isIterationVariable": true
       },
       {
         "fields": [],
@@ -116,8 +118,10 @@
         "displayName": "dept",
         "typeName": "Department",
         "kind": "record",
+        "category": "local-variable",
         "focusExpression": "deptList",
-        "ref": "-954444226"
+        "ref": "-954444226",
+        "isIterationVariable": true
       }
     ],
     "output": {
@@ -255,7 +259,7 @@
           {
             "name": "dept",
             "displayName": "dept",
-            "typeName": "string",
+            "typeName": "string?",
             "kind": "string",
             "optional": false
           }

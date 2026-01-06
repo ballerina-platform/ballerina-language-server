@@ -70,8 +70,10 @@
         "displayName": "arr3ItemItem",
         "typeName": "RecType",
         "kind": "record",
+        "category": "local-variable",
         "focusExpression": "arr3Item",
-        "ref": "-788289410"
+        "ref": "-788289410",
+        "isIterationVariable": true
       }
     ],
     "output": {

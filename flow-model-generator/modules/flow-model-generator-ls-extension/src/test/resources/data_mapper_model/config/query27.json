@@ -101,8 +101,10 @@
         "displayName": "bbb",
         "typeName": "Elephant",
         "kind": "record",
+        "category": "local-variable",
         "focusExpression": "BBB",
-        "ref": "-2143678211"
+        "ref": "-2143678211",
+        "isIterationVariable": true
       },
       {
         "fields": [],
@@ -110,8 +112,10 @@
         "displayName": "ccc",
         "typeName": "Elephant",
         "kind": "record",
+        "category": "local-variable",
         "focusExpression": "CCC",
-        "ref": "-2143678211"
+        "ref": "-2143678211",
+        "isIterationVariable": true
       }
     ],
     "output": {

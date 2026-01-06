@@ -111,8 +111,10 @@
         "displayName": "y",
         "typeName": "MyType",
         "kind": "record",
+        "category": "local-variable",
         "focusExpression": "myType3",
-        "ref": "819315698"
+        "ref": "819315698",
+        "isIterationVariable": true
       }
     ],
     "output": {

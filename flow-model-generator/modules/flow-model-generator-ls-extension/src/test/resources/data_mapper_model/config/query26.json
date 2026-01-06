@@ -45,15 +45,18 @@
         "displayName": "salesItem",
         "typeName": "Sale",
         "kind": "record",
+        "category": "local-variable",
         "focusExpression": "sales",
         "ref": "1120091376",
-        "isSeq": true
+        "isSeq": true,
+        "isIterationVariable": true
       },
       {
         "name": "quantity",
         "displayName": "quantity",
         "typeName": "int",
         "kind": "int",
+        "category": "local-variable",
         "focusExpression": "salesItem.quantity",
         "isSeq": true
       },
@@ -62,7 +65,9 @@
         "displayName": "item",
         "typeName": "string",
         "kind": "string",
-        "focusExpression": "salesItem.item"
+        "category": "local-variable",
+        "focusExpression": "salesItem.item",
+        "isGroupingKey": true
       }
     ],
     "output": {

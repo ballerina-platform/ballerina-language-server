@@ -65,7 +65,8 @@ public final class PathUtil {
         URI uri = URI.create(fileUri);
         String scheme = uri.getScheme();
         try {
-            if (CommonUtil.EXPR_SCHEME.equals(uri.getScheme()) || CommonUtil.URI_SCHEME_BALA.equals(uri.getScheme())) {
+            if (CommonUtil.AI_SCHEME.equals(uri.getScheme()) || CommonUtil.EXPR_SCHEME.equals(uri.getScheme())
+                    || CommonUtil.URI_SCHEME_BALA.equals(uri.getScheme())) {
                 scheme = CommonUtil.URI_SCHEME_FILE;
             }
             URI converted = new URI(scheme, uri.getUserInfo(), uri.getHost(), uri.getPort(),
@@ -74,6 +75,46 @@ public final class PathUtil {
         } catch (URISyntaxException e) {
             return Optional.empty();
         }
+    }
+
+    /**
+     * Get the encoded URI path by encoding spaces.
+     * This is needed since URI.create() fails if there are spaces in the path.
+     *
+     * @param input file uri
+     * @return encoded URI
+     */
+    public static URI getEncodedURIPath(String input) {
+        String encodedPath = input.replaceAll(" ", "%20");
+
+        try {
+            URI uri = URI.create(encodedPath);
+            if (uri.getScheme() != null) {
+                return uri;
+            }
+        } catch (IllegalArgumentException ignored) {
+        }
+
+        return Path.of(encodedPath).toUri();
+    }
+
+    /**
+     * Convert the given URI string to Path. This method handles URIs with no scheme as well.
+     *
+     * @param fileUri file uri
+     * @return Path from the URI
+     */
+    public static Path convertUriStringToPath(String fileUri) {
+        URI uri = getEncodedURIPath(fileUri);
+
+        if (uri.getScheme() == null) {
+            String path = Path.of(uri).toString().replaceAll("%20", " ");
+            return Path.of(path);
+        }
+
+        Path uriPath = Path.of(URI.create("file://" + uri.getPath()));
+        String convertedUri = uriPath.toString().replaceAll("%20", " ");
+        return Path.of(convertedUri);
     }
 
     /**

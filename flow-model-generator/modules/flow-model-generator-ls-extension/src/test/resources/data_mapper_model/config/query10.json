@@ -46,8 +46,10 @@
         "displayName": "x",
         "typeName": "MyType",
         "kind": "record",
+        "category": "local-variable",
         "focusExpression": "myTypes1",
-        "ref": "819315698"
+        "ref": "819315698",
+        "isIterationVariable": true
       }
     ],
     "output": {

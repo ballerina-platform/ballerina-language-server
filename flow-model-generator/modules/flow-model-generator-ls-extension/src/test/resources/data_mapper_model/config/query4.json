@@ -39,15 +39,19 @@
         "displayName": "secondaryPhonesItem",
         "typeName": "SecondaryPhones",
         "kind": "record",
+        "category": "local-variable",
         "focusExpression": "u.info.secondaryPhones",
-        "ref": "-782972947"
+        "ref": "-782972947",
+        "isIterationVariable": true
       },
       {
         "name": "email",
         "displayName": "email",
         "typeName": "string",
         "kind": "string",
-        "focusExpression": "u.info.emails"
+        "category": "local-variable",
+        "focusExpression": "u.info.emails",
+        "isIterationVariable": true
       }
     ],
     "output": {
