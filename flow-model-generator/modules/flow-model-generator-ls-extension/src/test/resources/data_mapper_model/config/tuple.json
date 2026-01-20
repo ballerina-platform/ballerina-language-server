@@ -63,7 +63,7 @@
       {
         "output": "person.age",
         "inputs": [
-          "data"
+          "data[0]"
         ],
         "expression": "data[0]",
         "diagnostics": [],

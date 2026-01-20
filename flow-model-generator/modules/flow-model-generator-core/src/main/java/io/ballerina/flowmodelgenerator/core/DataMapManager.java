@@ -823,7 +823,7 @@ public class DataMapManager {
     private void genMapping(Node expr, String name, List<Mapping> elements, SemanticModel semanticModel,
                             Document functionDocument, Document dataMappingDocument, List<MappingPort> enumPorts) {
         List<String> inputs = new ArrayList<>();
-        expr.accept(new GenInputsVisitor(inputs, enumPorts));
+        expr.accept(new GenInputsVisitor(inputs, enumPorts, semanticModel));
         LineRange customFunctionRange = getCustomFunctionRange(expr, functionDocument, dataMappingDocument);
         List<String> elementAccessIndex = null;
         if (containsArrayAccess(expr)) {
@@ -3207,10 +3207,13 @@ public class DataMapManager {
     private static class GenInputsVisitor extends NodeVisitor {
         private final List<String> inputs;
         private final List<DataMapManager.MappingPort> enumPorts;
+        private final SemanticModel semanticModel;
 
-        GenInputsVisitor(List<String> inputs, List<DataMapManager.MappingPort> enumPorts) {
+        GenInputsVisitor(List<String> inputs, List<DataMapManager.MappingPort> enumPorts,
+                         SemanticModel semanticModel) {
             this.inputs = inputs;
             this.enumPorts = enumPorts;
+            this.semanticModel = semanticModel;
         }
 
         @Override
@@ -3268,6 +3271,12 @@ public class DataMapManager {
             ExpressionNode containerExpr = node.containerExpression();
             SyntaxKind containerKind = containerExpr.kind();
 
+            if (isTupleType(containerExpr)) {
+                // For tuple element access, use the full indexed expression
+                addInput(node.toSourceCode().trim());
+                return;
+            }
+
             if (containerKind == SyntaxKind.FIELD_ACCESS || containerKind == SyntaxKind.INDEXED_EXPRESSION) {
                 String source = node.toSourceCode().trim();
                 String openBraceRemoved = source.replace("[", ".");
@@ -3282,6 +3291,15 @@ public class DataMapManager {
             for (ExpressionNode keyExpr : keyExpressions) {
                 keyExpr.accept(this);
             }
+        }
+
+        private boolean isTupleType(ExpressionNode expr) {
+            if (semanticModel == null) {
+                return false;
+            }
+            return semanticModel.typeOf(expr)
+                    .map(typeSymbol -> CommonUtils.getRawType(typeSymbol).typeKind() == TypeDescKind.TUPLE)
+                    .orElse(false);
         }
 
         @Override
