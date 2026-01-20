@@ -27,16 +27,16 @@
         "members": [
           {
             "fields": [],
-            "name": "a",
-            "displayName": "a",
+            "name": "[0]",
+            "displayName": "a[0]",
             "typeName": "Student",
             "kind": "record",
             "ref": "545732303"
           },
           {
             "fields": [],
-            "name": "a",
-            "displayName": "a",
+            "name": "[1]",
+            "displayName": "a[1]",
             "typeName": "Person",
             "kind": "record",
             "ref": "887620673"

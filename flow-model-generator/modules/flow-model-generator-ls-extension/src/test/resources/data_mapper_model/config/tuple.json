@@ -1,0 +1,128 @@
+{
+  "source": "variable50.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable50.bal",
+      "startLine": {
+        "line": 17,
+        "offset": 8
+      },
+      "endLine": {
+        "line": 17,
+        "offset": 39
+      }
+    },
+    "sourceCode": "Bar[] bars = [\n            {a: 1, b: 3},\n            (from var baz in bazs\n                select {a: baz.x, b: baz.y})[0]\n        ];"
+  },
+  "position": {
+    "line": 17,
+    "offset": 8
+  },
+  "targetField": "person",
+  "model": {
+    "inputs": [
+      {
+        "members": [
+          {
+            "name": "[0]",
+            "displayName": "data[0]",
+            "typeName": "int",
+            "kind": "int"
+          },
+          {
+            "name": "[1]",
+            "displayName": "data[1]",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "name": "[2]",
+            "displayName": "data[2]",
+            "typeName": "float",
+            "kind": "float"
+          }
+        ],
+        "name": "data",
+        "displayName": "data",
+        "typeName": "[int, string, float]",
+        "kind": "tuple",
+        "category": "local-variable"
+      }
+    ],
+    "output": {
+      "fields": [],
+      "name": "person",
+      "displayName": "person",
+      "typeName": "Person",
+      "kind": "record",
+      "ref": "887620673"
+    },
+    "mappings": [
+      {
+        "output": "person.age",
+        "inputs": [
+          "data"
+        ],
+        "expression": "data[0]",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false,
+        "elementAccessIndex": [
+          "0"
+        ]
+      }
+    ],
+    "refs": {
+      "887620673": {
+        "fields": [
+          {
+            "name": "name",
+            "displayName": "name",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "age",
+            "displayName": "age",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          },
+          {
+            "members": [
+              {
+                "name": "[0]",
+                "displayName": "data[0]",
+                "typeName": "int",
+                "kind": "int"
+              },
+              {
+                "name": "[1]",
+                "displayName": "data[1]",
+                "typeName": "string",
+                "kind": "string"
+              },
+              {
+                "name": "[2]",
+                "displayName": "data[2]",
+                "typeName": "float",
+                "kind": "float"
+              }
+            ],
+            "name": "data",
+            "displayName": "data",
+            "typeName": "",
+            "kind": "tuple",
+            "optional": false
+          }
+        ],
+        "typeName": "Person",
+        "kind": "record"
+      }
+    }
+  }
+}

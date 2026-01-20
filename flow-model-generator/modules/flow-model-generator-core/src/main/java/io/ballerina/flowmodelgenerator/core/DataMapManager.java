@@ -1267,8 +1267,14 @@ public class DataMapManager {
         MappingTuplePort tuplePort = new MappingTuplePort(id, name, typeName, "tuple", type.key);
         tuplePort.typeInfo = isExternalType(type) ? createTypeInfo(type) : null;
 
-        for (RefType member : ((RefTupleType) type).memberTypes) {
-            MappingPort memberPort = getRefMappingPort(id, name, member, visitedTypes, references);
+        List<RefType> memberTypes = ((RefTupleType) type).memberTypes;
+        for (int i = 0; i < memberTypes.size(); i++) {
+            RefType member = memberTypes.get(i);
+            String memberName = "[" + i + "]";
+            MappingPort memberPort = getRefMappingPort(memberName, name + memberName, member, visitedTypes, references);
+            if (memberPort.displayName == null) {
+                memberPort.displayName = name + "[" + i + "]";
+            }
             tuplePort.members.add(memberPort);
         }
 
