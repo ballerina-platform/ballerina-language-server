@@ -18,7 +18,7 @@
   },
   "mapping": {
     "output": "transform1[2].id",
-    "expression": "person.id"
+    "expression": "course.id"
   },
   "targetField": "transform1",
   "output": {
@@ -34,7 +34,7 @@
             "character": 93
           }
         },
-        "newText": "[0, \"\", person.id]"
+        "newText": "[0, \"\", {id: course.id}]"
       }
     ]
   }
