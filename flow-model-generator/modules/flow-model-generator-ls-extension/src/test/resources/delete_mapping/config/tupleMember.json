@@ -31,6 +31,20 @@
   },
   "targetField": "person2",
   "output": {
-    "tupleMember.bal": []
+    "tupleMember.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 15,
+            "character": 33
+          },
+          "end": {
+            "line": 15,
+            "character": 42
+          }
+        },
+        "newText": "0"
+      }
+    ]
   }
 }

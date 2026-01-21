@@ -1564,7 +1564,9 @@ public class DataMapManager {
         List<TextEdit> textEdits = new ArrayList<>();
         textEditsMap.put(filePath, textEdits);
         String output = mapping.output();
-        String[] splits = output.split(DOT);
+        // Normalize bracket notation to dot notation (e.g., data[0] -> data.0)
+        String normalizedOutput = output.replaceAll("\\[(\\d+)]", ".$1");
+        String[] splits = normalizedOutput.split(DOT);
         if (targetNode != null && targetNode.matchingNode != null && targetNode.matchingNode.expr() != null) {
             ExpressionNode expr = targetNode.matchingNode.expr();
             genDeleteMappingSource(semanticModel, expr, splits, 1, textEdits, targetNode.typeSymbol);
@@ -1869,7 +1871,38 @@ public class DataMapManager {
                         }
                     }
 
-                    if (expressions.size() == 1) {
+                    // Check if this is a tuple type - if so, replace with default value instead of deleting
+                    // First try semantic model, then fall back to targetSymbol
+                    boolean isTuple = false;
+                    TypeSymbol tupleTypeSymbol = null;
+
+                    // Try semantic model first
+                    Optional<TypeSymbol> semanticType = semanticModel.typeOf(listCtrExpr);
+                    if (semanticType.isPresent()) {
+                        TypeSymbol rawType = CommonUtils.getRawType(semanticType.get());
+                        if (rawType.typeKind() == TypeDescKind.TUPLE) {
+                            isTuple = true;
+                            tupleTypeSymbol = rawType;
+                        }
+                    }
+
+                    // Fall back to targetSymbol if semantic model didn't work
+                    if (!isTuple && targetSymbol != null) {
+                        TypeSymbol rawType = CommonUtils.getRawType(targetSymbol);
+                        if (rawType.typeKind() == TypeDescKind.TUPLE) {
+                            isTuple = true;
+                            tupleTypeSymbol = rawType;
+                        }
+                    }
+
+                    if (isTuple && tupleTypeSymbol != null) {
+                        // For tuples, replace with default value for the member type
+                        List<TypeSymbol> memberTypes = ((TupleTypeSymbol) tupleTypeSymbol).memberTypeDescriptors();
+                        if (memberIdx < memberTypes.size()) {
+                            String defaultVal = getDefaultValue(memberTypes.get(memberIdx));
+                            textEdits.add(new TextEdit(CommonUtils.toRange(expr.lineRange()), defaultVal));
+                        }
+                    } else if (expressions.size() == 1) {
                         textEdits.add(new TextEdit(CommonUtils.toRange(expr.lineRange()), ""));
                     } else {
                         if (memberIdx + 1 == expressions.size()) {
@@ -1936,8 +1969,10 @@ public class DataMapManager {
             Map<String, SpecificFieldNode> mappingFields = convertMappingFieldsToMap(mappingCtrExpr);
             SpecificFieldNode mappingFieldNode = mappingFields.get(name);
             if (mappingFieldNode != null) {
+                // Get the field type for the next level
+                TypeSymbol fieldType = getFieldType(targetSymbol, name);
                 genDeleteMappingSource(semanticModel, mappingFieldNode.valueExpr().orElseThrow(), names, idx + 1,
-                        textEdits, targetSymbol);
+                        textEdits, fieldType);
             }
         } else if (expr.kind() == SyntaxKind.LIST_CONSTRUCTOR) {
             ListConstructorExpressionNode listCtrExpr = (ListConstructorExpressionNode) expr;
@@ -1945,6 +1980,8 @@ public class DataMapManager {
             if (name.matches("\\d+")) {
                 int index = Integer.parseInt(name);
                 if (index < listCtrExpr.expressions().size()) {
+                    // For tuples, pass the tuple type (not member type) so the base case can determine
+                    // if it needs to replace with default value
                     genDeleteMappingSource(semanticModel, (ExpressionNode) listCtrExpr.expressions().get(index),
                             names, idx + 1, textEdits, targetSymbol);
                 }
