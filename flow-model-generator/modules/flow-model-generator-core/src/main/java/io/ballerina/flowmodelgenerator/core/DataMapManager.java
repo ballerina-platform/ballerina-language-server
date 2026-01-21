@@ -36,6 +36,7 @@ import io.ballerina.compiler.api.symbols.SymbolKind;
 import io.ballerina.compiler.api.symbols.TypeDefinitionSymbol;
 import io.ballerina.compiler.api.symbols.TypeDescKind;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
+import io.ballerina.compiler.api.symbols.TupleTypeSymbol;
 import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
 import io.ballerina.compiler.api.symbols.VariableSymbol;
 import io.ballerina.compiler.syntax.tree.BinaryExpressionNode;
@@ -799,18 +800,24 @@ public class DataMapManager {
             }
         }
 
+        // Use bracket notation for tuples, dot notation for arrays
+        boolean isTuple = semanticModel.typeOf(listCtrExpr)
+                .map(t -> CommonUtils.getRawType(t).typeKind() == TypeDescKind.TUPLE)
+                .orElse(false);
+
         List<MappingElements> mappingElements = new ArrayList<>();
         for (int i = 0; i < size; i++) {
             List<Mapping> elements = new ArrayList<>();
             Node expr = expressions.get(i);
+            String elementPath = isTuple ? name + "[" + i + "]" : name + "." + i;
             if (expr.kind() == SyntaxKind.MAPPING_CONSTRUCTOR) {
-                genMapping((MappingConstructorExpressionNode) expr, elements, name + "." + i, semanticModel,
+                genMapping((MappingConstructorExpressionNode) expr, elements, elementPath, semanticModel,
                         functionDocument, dataMappingDocument, enumPorts, inputPorts);
             } else if (expr.kind() == SyntaxKind.LIST_CONSTRUCTOR) {
-                genMapping((ListConstructorExpressionNode) expr, elements, name + "." + i, semanticModel,
+                genMapping((ListConstructorExpressionNode) expr, elements, elementPath, semanticModel,
                         functionDocument, dataMappingDocument, enumPorts, inputPorts);
             } else {
-                genMapping(expr, name + "." + i, elements, semanticModel, functionDocument, dataMappingDocument,
+                genMapping(expr, elementPath, elements, semanticModel, functionDocument, dataMappingDocument,
                         enumPorts);
             }
             mappingElements.add(new MappingElements(elements));
@@ -1457,7 +1464,8 @@ public class DataMapManager {
                !refType.moduleInfo.packageName.equals(currentModuleInfo.packageName());
     }
 
-    public JsonElement getSource(Path filePath, JsonElement cd, JsonElement mp, String targetField) {
+    public JsonElement getSource(SemanticModel semanticModel, Path filePath, JsonElement cd, JsonElement mp,
+                                  String targetField) {
         Codedata codedata = gson.fromJson(cd, Codedata.class);
         Mapping mapping = gson.fromJson(mp, Mapping.class);
         NonTerminalNode node = getNode(codedata.lineRange());
@@ -1467,15 +1475,28 @@ public class DataMapManager {
         textEditsMap.put(filePath, textEdits);
 
         ExpressionNode expr = null;
+        TypeSymbol targetTypeSymbol = null;
         if (node.kind() == SyntaxKind.LOCAL_VAR_DECL) {
             VariableDeclarationNode varDecl = (VariableDeclarationNode) node;
             expr = varDecl.initializer().orElseThrow();
+            targetTypeSymbol = semanticModel.symbol(varDecl)
+                    .filter(s -> s.kind() == SymbolKind.VARIABLE)
+                    .map(s -> ((VariableSymbol) s).typeDescriptor())
+                    .orElse(null);
         } else if (node.kind() == SyntaxKind.MODULE_VAR_DECL) {
             ModuleVariableDeclarationNode moduleVarDecl = (ModuleVariableDeclarationNode) node;
             expr = moduleVarDecl.initializer().orElseThrow();
+            targetTypeSymbol = semanticModel.symbol(moduleVarDecl)
+                    .filter(s -> s.kind() == SymbolKind.VARIABLE)
+                    .map(s -> ((VariableSymbol) s).typeDescriptor())
+                    .orElse(null);
         } else if (node.kind() == SyntaxKind.LET_VAR_DECL) {
             LetVariableDeclarationNode varDecl = (LetVariableDeclarationNode) node;
             expr = varDecl.expression();
+            targetTypeSymbol = semanticModel.symbol(varDecl)
+                    .filter(s -> s.kind() == SymbolKind.VARIABLE)
+                    .map(s -> ((VariableSymbol) s).typeDescriptor())
+                    .orElse(null);
         } else if (node.kind() == SyntaxKind.FUNCTION_DEFINITION) {
             FunctionDefinitionNode funcDefNode = (FunctionDefinitionNode) node;
             FunctionBodyNode funcBodyNode = funcDefNode.functionBody();
@@ -1483,6 +1504,15 @@ public class DataMapManager {
                 ExpressionFunctionBodyNode exprFuncBodyNode = (ExpressionFunctionBodyNode) funcBodyNode;
                 expr = exprFuncBodyNode.expression();
             }
+            Optional<TypeSymbol> returnTypeSymbol = semanticModel.symbol(node)
+                    .filter(s -> s.kind() == SymbolKind.FUNCTION)
+                    .map(s -> ((FunctionSymbol) s).typeDescriptor().returnTypeDescriptor())
+                    .orElse(null);
+            if (Objects.requireNonNull(returnTypeSymbol).isPresent() &&
+                    returnTypeSymbol.get().typeKind() == TypeDescKind.TUPLE) {
+                targetTypeSymbol = returnTypeSymbol.get();
+            }
+
         }
 
         if (expr != null) {
@@ -1490,13 +1520,15 @@ public class DataMapManager {
                 expr = ((LetExpressionNode) expr).expression();
             }
             String output = mapping.output();
-            String[] splits = output.split(DOT);
+            // Normalize bracket notation to dot notation (e.g., result[0] -> result.0)
+            String normalizedOutput = output.replaceAll("\\[(\\d+)]", ".$1");
+            String[] splits = normalizedOutput.split(DOT);
             StringBuilder sb = new StringBuilder();
             MatchingNode targetMappingExpr = getTargetMappingExpr(expr, targetField);
             if (targetMappingExpr != null) {
                 expr = targetMappingExpr.expr();
             }
-            genSource(expr, splits, 1, sb, mapping.expression(), null, textEdits);
+            genSource(expr, splits, 1, sb, mapping.expression(), null, textEdits, targetTypeSymbol);
         }
 
         setImportStatements(mapping.imports(), textEdits);
@@ -1545,22 +1577,26 @@ public class DataMapManager {
 
 
     private void genSource(ExpressionNode expr, String[] names, int idx, StringBuilder stringBuilder,
-                           String mappingExpr, LinePosition position, List<TextEdit> textEdits) {
+                           String mappingExpr, LinePosition position, List<TextEdit> textEdits,
+                           TypeSymbol targetTypeSymbol) {
         if (idx == names.length) {
             textEdits.add(new TextEdit(CommonUtils.toRange(expr.lineRange()), mappingExpr));
         } else if (expr == null) {
             String name = names[idx];
             if (name.matches("\\d+")) {
-                stringBuilder.append(mappingExpr);
+                // Check if we're creating a tuple literal
+                TypeSymbol rawType = targetTypeSymbol != null ? CommonUtils.getRawType(targetTypeSymbol) : null;
+                if (rawType != null && rawType.typeKind() == TypeDescKind.TUPLE) {
+                    int index = Integer.parseInt(name);
+                    stringBuilder.append(generateTupleExpression((TupleTypeSymbol) rawType, index, mappingExpr));
+                } else {
+                    stringBuilder.append(mappingExpr);
+                }
             } else {
                 stringBuilder.append(name).append(": ");
-                for (int i = idx + 1; i < names.length; i++) {
-                    stringBuilder.append("{").append(names[i]).append(": ");
-                }
-                stringBuilder.append(mappingExpr);
-                for (int i = idx + 1; i < names.length; i++) {
-                    stringBuilder.append("}");
-                }
+                // targetTypeSymbol is already the type for this field
+                String nestedExpr = generateNestedExpression(names, idx + 1, mappingExpr, targetTypeSymbol);
+                stringBuilder.append(nestedExpr);
             }
             textEdits.add(new TextEdit(CommonUtils.toRange(position), stringBuilder.toString()));
         } else if (expr.kind() == SyntaxKind.MAPPING_CONSTRUCTOR) {
@@ -1568,6 +1604,7 @@ public class DataMapManager {
             MappingConstructorExpressionNode mappingCtrExpr = (MappingConstructorExpressionNode) expr;
             Map<String, SpecificFieldNode> mappingFields = convertMappingFieldsToMap(mappingCtrExpr);
             SpecificFieldNode mappingFieldNode = mappingFields.get(name);
+            TypeSymbol fieldType = getFieldType(targetTypeSymbol, name);
             if (mappingFieldNode == null) {
                 LinePosition insertPosition;
                 if (!mappingFields.isEmpty()) {
@@ -1577,17 +1614,24 @@ public class DataMapManager {
                 } else {
                     insertPosition = mappingCtrExpr.closeBrace().lineRange().startLine();
                 }
-                genSource(null, names, idx, stringBuilder, mappingExpr, insertPosition, textEdits);
+                genSource(null, names, idx, stringBuilder, mappingExpr, insertPosition, textEdits, fieldType);
             } else {
                 genSource(mappingFieldNode.valueExpr().orElseThrow(), names, idx + 1, stringBuilder, mappingExpr,
-                        null, textEdits);
+                        null, textEdits, fieldType);
             }
         } else if (expr.kind() == SyntaxKind.LIST_CONSTRUCTOR) {
             ListConstructorExpressionNode listCtrExpr = (ListConstructorExpressionNode) expr;
             String name = names[idx];
             if (name.matches("\\d+")) {
                 int index = Integer.parseInt(name);
-                if (index >= listCtrExpr.expressions().size()) {
+                TypeSymbol rawType = targetTypeSymbol != null ? CommonUtils.getRawType(targetTypeSymbol) : null;
+
+                // Handle tuple types with empty constructor
+                if (rawType != null && rawType.typeKind() == TypeDescKind.TUPLE
+                        && listCtrExpr.expressions().isEmpty()) {
+                    String tupleExpr = generateTupleExpression((TupleTypeSymbol) rawType, index, mappingExpr);
+                    textEdits.add(new TextEdit(CommonUtils.toRange(listCtrExpr.lineRange()), tupleExpr));
+                } else if (index >= listCtrExpr.expressions().size()) {
                     if (idx > 0) {
                         stringBuilder.append(", ");
                     }
@@ -1598,10 +1642,10 @@ public class DataMapManager {
                     } else {
                         insertPosition = listCtrExpr.closeBracket().lineRange().startLine();
                     }
-                    genSource(null, names, idx, stringBuilder, mappingExpr, insertPosition, textEdits);
+                    genSource(null, names, idx, stringBuilder, mappingExpr, insertPosition, textEdits, null);
                 } else {
                     genSource((ExpressionNode) listCtrExpr.expressions().get(index), names, idx + 1, stringBuilder,
-                            mappingExpr, null, textEdits);
+                            mappingExpr, null, textEdits, null);
                 }
             }
         } else if (expr.kind() == SyntaxKind.QUERY_EXPRESSION) {
@@ -1611,8 +1655,88 @@ public class DataMapManager {
             } else {
                 expr = ((CollectClauseNode) clauseNode).expression();
             }
-            genSource(expr, names, idx, stringBuilder, mappingExpr, position, textEdits);
+            genSource(expr, names, idx, stringBuilder, mappingExpr, position, textEdits, targetTypeSymbol);
         }
+    }
+
+    private String generateTupleExpression(TupleTypeSymbol tupleType, int mappedIndex, String mappingExpr) {
+        List<TypeSymbol> memberTypes = tupleType.memberTypeDescriptors();
+        StringBuilder sb = new StringBuilder("[");
+        for (int i = 0; i < memberTypes.size(); i++) {
+            if (i > 0) {
+                sb.append(", ");
+            }
+            if (i == mappedIndex) {
+                sb.append(mappingExpr);
+            } else {
+                sb.append(getDefaultValue(memberTypes.get(i)));
+            }
+        }
+        sb.append("]");
+        return sb.toString();
+    }
+
+    private String getDefaultValue(TypeSymbol typeSymbol) {
+        TypeSymbol rawType = CommonUtils.getRawType(typeSymbol);
+        TypeDescKind kind = rawType.typeKind();
+        return switch (kind) {
+            case INT, BYTE -> "0";
+            case FLOAT -> "0.0";
+            case DECIMAL -> "0d";
+            case STRING, STRING_CHAR -> "\"\"";
+            case BOOLEAN -> "false";
+            case NIL -> "()";
+            case ARRAY -> "[]";
+            case MAP, RECORD -> "{}";
+            default -> "()";
+        };
+    }
+
+    private TypeSymbol getFieldType(TypeSymbol parentType, String fieldName) {
+        if (parentType == null) {
+            return null;
+        }
+        TypeSymbol rawType = CommonUtils.getRawType(parentType);
+        if (rawType.typeKind() == TypeDescKind.RECORD) {
+            RecordFieldSymbol fieldSymbol = ((RecordTypeSymbol) rawType).fieldDescriptors().get(fieldName);
+            return fieldSymbol != null ? fieldSymbol.typeDescriptor() : null;
+        }
+        return null;
+    }
+
+    private String generateNestedExpression(String[] names, int startIdx, String mappingExpr, TypeSymbol typeSymbol) {
+        StringBuilder sb = new StringBuilder();
+        TypeSymbol currentType = typeSymbol;
+
+        for (int i = startIdx; i < names.length; i++) {
+            String name = names[i];
+            if (name.matches("\\d+")) {
+                // This is a tuple/array index
+                TypeSymbol rawType = currentType != null ? CommonUtils.getRawType(currentType) : null;
+                if (rawType != null && rawType.typeKind() == TypeDescKind.TUPLE) {
+                    int index = Integer.parseInt(name);
+                    sb.append(generateTupleExpression((TupleTypeSymbol) rawType, index, mappingExpr));
+                    return sb.toString();
+                } else {
+                    // Regular array - just append the expression
+                    sb.append(mappingExpr);
+                    return sb.toString();
+                }
+            } else {
+                // This is a record field
+                sb.append("{").append(name).append(": ");
+                currentType = getFieldType(currentType, name);
+            }
+        }
+
+        // If we get here, append the mapping expression and close braces
+        sb.append(mappingExpr);
+        for (int i = startIdx; i < names.length; i++) {
+            if (!names[i].matches("\\d+")) {
+                sb.append("}");
+            }
+        }
+        return sb.toString();
     }
 
     private void genDeleteMappingSource(SemanticModel semanticModel, ExpressionNode expr, String[] names, int idx,
@@ -1992,13 +2116,13 @@ public class DataMapManager {
 
         if (clauseType.equals("collect")) {
             String query = getQuerySource(mapping.expression(), "collect", targetTypeSymbol);
-            genSource(expr, mapping.output().split(DOT), 1, new StringBuilder(), query, null, textEdits);
+            genSource(expr, mapping.output().split(DOT), 1, new StringBuilder(), query, null, textEdits, null);
         } else {
             if (targetTypeSymbol.typeKind() == TypeDescKind.ARRAY) {
                 TypeSymbol typeSymbol =
                         CommonUtils.getRawType(((ArrayTypeSymbol) targetTypeSymbol).memberTypeDescriptor());
                 String query = getQuerySource(mapping.expression(), "select", typeSymbol);
-                genSource(expr, mapping.output().split(DOT), 1, new StringBuilder(), query, null, textEdits);
+                genSource(expr, mapping.output().split(DOT), 1, new StringBuilder(), query, null, textEdits, null);
             }
         }
         return gson.toJsonTree(textEditsMap);
@@ -2623,7 +2747,7 @@ public class DataMapManager {
                 filePath, functionMetadata, textEditsMap, semanticModel, isCustomFunction);
         List<TextEdit> textEdits = new ArrayList<>();
         genSource(targetNode.matchingNode().expr(), mapping.output().split(DOT), 1, new StringBuilder(),
-                functionName + "(" + mapping.expression() + ")", null, textEdits);
+                functionName + "(" + mapping.expression() + ")", null, textEdits, null);
         textEditsMap.computeIfAbsent(filePath, k -> new ArrayList<>())
                 .addAll(textEdits);
         return gson.toJsonTree(textEditsMap);

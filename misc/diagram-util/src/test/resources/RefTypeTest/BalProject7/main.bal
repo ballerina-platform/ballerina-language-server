@@ -11,3 +11,8 @@ public type RecordWithStream record {|
     string id;
     SimpleStream data;
 |};
+
+public type PersonWithTuple record {|
+    string name;
+    [int, Person] info;
+|};

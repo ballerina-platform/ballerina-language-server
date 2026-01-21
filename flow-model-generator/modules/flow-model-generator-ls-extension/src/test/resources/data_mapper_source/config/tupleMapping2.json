@@ -1,0 +1,41 @@
+{
+  "source": "tupleMapping.bal",
+  "description": "Tuple mapping",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "tupleMapping.bal",
+      "startLine": {
+        "line": 15,
+        "offset": 8
+      },
+      "endLine": {
+        "line": 15,
+        "offset": 63
+      }
+    },
+    "sourceCode": "[int, string, float] result = [];"
+  },
+  "mapping": {
+    "output": "person2.data[0]",
+    "expression": "result[0]"
+  },
+  "targetField": "person2",
+  "output": {
+    "tupleMapping.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 15,
+            "character": 61
+          },
+          "end": {
+            "line": 15,
+            "character": 61
+          }
+        },
+        "newText": ", data: [result[0], \"\", 0.0]"
+      }
+    ]
+  }
+}
