@@ -3408,6 +3408,16 @@ public class DataMapManager {
 
         @Override
         public void visit(FieldAccessExpressionNode node) {
+            ExpressionNode baseExpr = node.expression();
+            // Check if the base expression involves a tuple indexed access
+            if (baseExpr.kind() == SyntaxKind.INDEXED_EXPRESSION) {
+                IndexedExpressionNode indexedExpr = (IndexedExpressionNode) baseExpr;
+                if (isTupleType(indexedExpr.containerExpression())) {
+                    // For tuple field access like input[2].id, preserve the full path
+                    addInput(node.toSourceCode().trim());
+                    return;
+                }
+            }
             String source = node.toSourceCode().trim();
             String[] split = source.split("\\[");
             if (split.length > 1) {

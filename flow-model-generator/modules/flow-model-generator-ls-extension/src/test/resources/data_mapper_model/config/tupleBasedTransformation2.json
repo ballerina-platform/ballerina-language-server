@@ -1,0 +1,177 @@
+{
+  "source": "tupleBasedTransformation2.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "tupleBasedTransformation2.bal",
+      "startLine": {
+        "line": 28,
+        "offset": 0
+      },
+      "endLine": {
+        "line": 28,
+        "offset": 109
+      }
+    },
+    "sourceCode": "Bar[] bars = [\n            {a: 1, b: 3},\n            (from var baz in bazs\n                select {a: baz.x, b: baz.y})[0]\n        ];"
+  },
+  "position": {
+    "line": 28,
+    "offset": 82
+  },
+  "targetField": "transform1",
+  "model": {
+    "inputs": [
+      {
+        "members": [
+          {
+            "name": "[0]",
+            "displayName": "input[0]",
+            "typeName": "int",
+            "kind": "int"
+          },
+          {
+            "name": "[1]",
+            "displayName": "input[1]",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "fields": [],
+            "name": "[2]",
+            "displayName": "input[2]",
+            "typeName": "Course",
+            "kind": "record",
+            "ref": "524765447"
+          }
+        ],
+        "name": "input",
+        "displayName": "input",
+        "typeName": "[int, string, Course]",
+        "kind": "tuple",
+        "category": "parameter"
+      }
+    ],
+    "output": {
+      "members": [
+        {
+          "name": "[0]",
+          "displayName": "transform1[0]",
+          "typeName": "int",
+          "kind": "int"
+        },
+        {
+          "name": "[1]",
+          "displayName": "transform1[1]",
+          "typeName": "string",
+          "kind": "string"
+        },
+        {
+          "fields": [],
+          "name": "[2]",
+          "displayName": "transform1[2]",
+          "typeName": "Course",
+          "kind": "record",
+          "ref": "524765447"
+        }
+      ],
+      "name": "transform1",
+      "displayName": "transform1",
+      "typeName": "[int, string, Course]",
+      "kind": "tuple"
+    },
+    "mappings": [
+      {
+        "output": "transform1",
+        "inputs": [],
+        "expression": "[0, \"\", {id: input[2].id}]",
+        "diagnostics": [
+          {
+            "message": "missing non-defaultable required record field 'credits'",
+            "code": "BCE2520"
+          },
+          {
+            "message": "missing non-defaultable required record field 'name'",
+            "code": "BCE2520"
+          }
+        ],
+        "elements": [
+          {
+            "mappings": [
+              {
+                "output": "transform1[0]",
+                "inputs": [],
+                "expression": "0",
+                "diagnostics": [],
+                "elements": [],
+                "isQueryExpression": false,
+                "isFunctionCall": false
+              }
+            ]
+          },
+          {
+            "mappings": [
+              {
+                "output": "transform1[1]",
+                "inputs": [],
+                "expression": "\"\"",
+                "diagnostics": [],
+                "elements": [],
+                "isQueryExpression": false,
+                "isFunctionCall": false
+              }
+            ]
+          },
+          {
+            "mappings": [
+              {
+                "output": "transform1[2].id",
+                "inputs": [
+                  "input[2].id"
+                ],
+                "expression": "input[2].id",
+                "diagnostics": [],
+                "elements": [],
+                "isQueryExpression": false,
+                "isFunctionCall": false,
+                "elementAccessIndex": [
+                  "2"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "refs": {
+      "524765447": {
+        "fields": [
+          {
+            "name": "id",
+            "displayName": "id",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "name",
+            "displayName": "name",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "credits",
+            "displayName": "credits",
+            "typeName": "float",
+            "kind": "float",
+            "optional": false
+          }
+        ],
+        "typeName": "Course",
+        "kind": "record"
+      }
+    }
+  }
+}
