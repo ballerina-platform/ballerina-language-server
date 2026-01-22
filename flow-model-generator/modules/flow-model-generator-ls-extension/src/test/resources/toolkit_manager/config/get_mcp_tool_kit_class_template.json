@@ -9,7 +9,7 @@
       "metadata": {
         "label": "ai",
         "description": "",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.8.0.png"
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.9.0.png"
       },
       "codedata": {
         "node": "MCP_TOOL_KIT",
@@ -17,7 +17,7 @@
         "module": "ai",
         "packageName": "ai",
         "object": "McpToolKit",
-        "version": "1.8.0",
+        "version": "1.9.0",
         "isNew": true
       },
       "returning": false,
@@ -104,9 +104,18 @@
             {
               "fieldType": "SINGLE_SELECT",
               "options": [
-                "2.0",
-                "1.1",
-                "1.0"
+                {
+                  "label": "2.0",
+                  "value": "\"2.0\""
+                },
+                {
+                  "label": "1.1",
+                  "value": "\"1.1\""
+                },
+                {
+                  "label": "1.0",
+                  "value": "\"1.0\""
+                }
               ],
               "selected": false
             },
@@ -377,9 +386,18 @@
             {
               "fieldType": "SINGLE_SELECT",
               "options": [
-                "AUTO",
-                "ALWAYS",
-                "NEVER"
+                {
+                  "label": "AUTO",
+                  "value": "\"AUTO\""
+                },
+                {
+                  "label": "ALWAYS",
+                  "value": "\"ALWAYS\""
+                },
+                {
+                  "label": "NEVER",
+                  "value": "\"NEVER\""
+                }
               ],
               "selected": false
             },

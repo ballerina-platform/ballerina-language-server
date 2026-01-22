@@ -106,7 +106,6 @@ import io.ballerina.modelgenerator.commons.ModuleInfo;
 import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.ModuleDescriptor;
-import io.ballerina.tools.diagnostics.Diagnostic;
 import io.ballerina.tools.diagnostics.Location;
 import io.ballerina.tools.text.LinePosition;
 import io.ballerina.tools.text.LineRange;
@@ -907,12 +906,13 @@ public class DataMapManager {
         return null;
     }
 
-    private List<String> getDiagnostics(LineRange lineRange, SemanticModel semanticModel) {
-        List<String> diagnosticMsgs = new ArrayList<>();
-        for (Diagnostic diagnostic : semanticModel.diagnostics(lineRange)) {
-            diagnosticMsgs.add(diagnostic.message());
-        }
-        return diagnosticMsgs;
+    private List<Map<String, String>> getDiagnostics(LineRange lineRange, SemanticModel semanticModel) {
+        return semanticModel.diagnostics(lineRange).stream()
+                .map(diagnostic -> Map.of(
+                        "code", Objects.requireNonNullElse(diagnostic.diagnosticInfo().code(), ""),
+                        "message", Objects.requireNonNullElse(diagnostic.message(), "")
+                ))
+                .toList();
     }
 
     private List<String> extractArrayIndices(Node expr) {
@@ -2284,6 +2284,23 @@ public class DataMapManager {
         }
 
         TypeSymbol targetType = typeSymbol;
+        if (targetType.typeKind() == TypeDescKind.UNION) {
+            UnionTypeSymbol unionType = (UnionTypeSymbol) targetType;
+            List<TypeSymbol> members = unionType.memberTypeDescriptors();
+
+            List<TypeSymbol> nonErrorOrNilMembers = members.stream()
+                    .map(CommonUtils::getRawType)
+                    .filter(member -> {
+                        TypeDescKind kind = member.typeKind();
+                        return kind != TypeDescKind.ERROR && kind != TypeDescKind.NIL;
+                    })
+                    .toList();
+            if (nonErrorOrNilMembers.size() == 1) {
+                targetType = nonErrorOrNilMembers.getFirst();
+            } else {
+                return null;
+            }
+        }
         for (int i = 1; i < splits.length; i++) {
             targetType = CommonUtils.getRawType(targetType);
             String split = splits[i];
@@ -3162,23 +3179,23 @@ public class DataMapManager {
         }
     }
 
-    private record Mapping(String output, List<String> inputs, String expression, List<String> diagnostics,
+    private record Mapping(String output, List<String> inputs, String expression, List<Map<String, String>> diagnostics,
                            List<MappingElements> elements, Boolean isQueryExpression, Boolean isFunctionCall,
                            Map<String, String> imports, LineRange functionRange, List<String> elementAccessIndex) {
 
-        private Mapping(String output, List<String> inputs, String expression, List<String> diagnostics,
+        private Mapping(String output, List<String> inputs, String expression, List<Map<String, String>> diagnostics,
                         List<MappingElements> elements) {
             this(output, inputs, expression, diagnostics, elements, null,
                     null, null, null, null);
         }
 
-        private Mapping(String output, List<String> inputs, String expression, List<String> diagnostics,
+        private Mapping(String output, List<String> inputs, String expression, List<Map<String, String>> diagnostics,
                         List<MappingElements> elements, Boolean isQueryExpression) {
             this(output, inputs, expression, diagnostics, elements, isQueryExpression,
                     null, null, null, null);
         }
 
-        private Mapping(String output, List<String> inputs, String expression, List<String> diagnostics,
+        private Mapping(String output, List<String> inputs, String expression, List<Map<String, String>> diagnostics,
                         List<MappingElements> elements, Boolean isQueryExpression, Boolean isFunctionCall,
                         LineRange customFunctionRange) {
             this(output, inputs, expression, diagnostics, elements, isQueryExpression, isFunctionCall, null,

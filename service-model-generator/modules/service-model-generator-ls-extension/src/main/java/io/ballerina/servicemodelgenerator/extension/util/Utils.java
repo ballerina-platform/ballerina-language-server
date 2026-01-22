@@ -1006,16 +1006,9 @@ public final class Utils {
         if (!value.isEnabledWithValue()) {
             return "";
         }
-        if (!value.getValue().trim().isEmpty()) {
-            List<PropertyType> types = value.getTypes();
-            if (Objects.nonNull(types) && !types.isEmpty()) {
-                for (PropertyType type : types) {
-                    if (type.fieldType() == Value.FieldType.TEXT) {
-                        return String.format("\"%s\"", value.getValue());
-                    }
-                }
-            }
-            return value.getValue();
+        String valueResult = value.getValue();
+        if (!valueResult.trim().isEmpty()) {
+            return valueResult;
         }
         Map<String, Value> properties = value.getProperties();
         if (Objects.isNull(properties)) {
@@ -1251,13 +1244,6 @@ public final class Utils {
 
     public static String upperCaseFirstLetter(String value) {
         return value.substring(0, 1).toUpperCase(Locale.ROOT) + value.substring(1).toLowerCase(Locale.ROOT);
-    }
-
-    public static String removeLeadingSingleQuote(String input) {
-        if (input != null && input.startsWith("'")) {
-            return input.substring(1);
-        }
-        return input;
     }
 
     /**

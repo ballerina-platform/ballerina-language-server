@@ -26,6 +26,7 @@ import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.TypeDescKind;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
+import io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.flowmodelgenerator.core.DiagnosticHandler;
 import io.ballerina.modelgenerator.commons.CommonUtils;
@@ -250,6 +251,9 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
         if (value == null || value.toString().isEmpty()) {
             return placeholder == null ? "" : placeholder;
         }
+        if (value instanceof Map<?, ?> valueMap) {
+            return CommonUtils.convertMapToString(valueMap);
+        }
         return CommonUtils.extractLiteralFromStringTemplate(value.toString());
     }
 
@@ -265,6 +269,8 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
         RAW_TEMPLATE,
         MAPPING_EXPRESSION_SET,
         EXPRESSION_SET,
+        MAPPING_EXPRESSION,
+        TEXT_SET,
         LV_EXPRESSION,
         ACTION_PATH,
         ACTION_OR_EXPRESSION,
@@ -277,7 +283,8 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
         NUMBER,
         ACTION_TYPE,
         DATA_MAPPING_EXPRESSION,
-        RECORD_MAP_EXPRESSION
+        RECORD_MAP_EXPRESSION,
+        PROMPT
     }
 
     public static class Builder<T> extends FacetedBuilder<T> implements DiagnosticHandler.DiagnosticCapable {
@@ -431,7 +438,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
             private Property.ValueType fieldType;
             private String ballerinaType;
             private String scope;
-            private List<String> options;
+            private List<Option> options;
             private Property template;
             private List<PropertyTypeMemberInfo> typeMembers;
             private boolean selected = false;
@@ -459,12 +466,12 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                 return this;
             }
 
-            public TypeBuilder options(List<String> options) {
+            public TypeBuilder options(List<Option> options) {
                 this.options = options;
                 return this;
             }
 
-            public TypeBuilder options(String... options) {
+            public TypeBuilder options(Option... options) {
                 this.options = List.of(options);
                 return this;
             }
@@ -530,7 +537,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
             return this;
         }
 
-        public Builder<T> typeWithOptions(Property.ValueType valueType, List<String> options) {
+        public Builder<T> typeWithOptions(Property.ValueType valueType, List<Option> options) {
             type().fieldType(valueType).options(options).stepOut();
             return this;
         }
@@ -558,11 +565,13 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
             // Handle union of singleton types as single-select options
             if (!success && rawType instanceof UnionTypeSymbol unionTypeSymbol) {
                 List<TypeSymbol> typeSymbols = unionTypeSymbol.memberTypeDescriptors();
-                List<String> options = new ArrayList<>();
+                List<Option> options = new ArrayList<>();
                 boolean allSingletons = true;
                 for (TypeSymbol symbol : typeSymbols) {
                     if (CommonUtil.getRawType(symbol).typeKind() == TypeDescKind.SINGLETON) {
-                        options.add(CommonUtils.removeQuotes(symbol.signature()));
+                        String label = CommonUtils.removeQuotes(symbol.signature());
+                        Option option = new Option(label, symbol.signature());
+                        options.add(option);
                     } else {
                         allSingletons = false;
                         break;
@@ -623,8 +632,16 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                 // need to check if it's a map or a record if its a map then need to set the matching type
                 if (matchingValueType == ValueType.MAPPING_EXPRESSION_SET) {
                     Optional<TypeSymbol> paramType = semanticModel.typeOf(value);
-                    if (paramType.isPresent() && paramType.get().typeKind() == TypeDescKind.RECORD) {
-                        matchingValueType = ValueType.RECORD_MAP_EXPRESSION;
+                    if (paramType.isPresent()) {
+                        if (paramType.get().typeKind() == TypeDescKind.MAP) {
+                            matchingValueType = ValueType.MAPPING_EXPRESSION;
+                            // convert string to a Map<String, Object>
+                            Map<String, Object> mapValue = CommonUtils.convertMappingExprToMap(
+                                    (MappingConstructorExpressionNode) value);
+                            value(mapValue);
+                        } else if (paramType.get().typeKind() == TypeDescKind.RECORD) {
+                            matchingValueType = ValueType.RECORD_MAP_EXPRESSION;
+                        }
                     }
                     ValueType finalMatchingValueType = matchingValueType;
                     this.types.stream()
@@ -646,8 +663,8 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                     for (PropertyType propType : this.types) {
                         if (propType.fieldType() == ValueType.SINGLE_SELECT) {
                             String valueStr = value.toSourceCode().trim();
-                            for (String option : propType.options()) {
-                                if (option.equals(valueStr)) {
+                            for (Option option : propType.options()) {
+                                if (option.value().equals(valueStr)) {
                                     propType.selected(true);
                                     foundMatch = true;
                                     break;
@@ -664,9 +681,9 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                 } else {
                     ValueType finalMatchingValueType = matchingValueType;
                     this.types.stream()
-                       .filter(propType -> propType.fieldType() == finalMatchingValueType)
-                       .findFirst()
-                       .ifPresent(propType -> propType.selected(true));
+                            .filter(propType -> propType.fieldType() == finalMatchingValueType)
+                            .findFirst()
+                            .ifPresent(propType -> propType.selected(true));
                 }
             }
             return this;
@@ -696,7 +713,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                 case STRING, STRING_CHAR -> type(ValueType.TEXT, ballerinaType);
                 case BOOLEAN -> type(ValueType.FLAG, ballerinaType);
                 case ARRAY -> type(ValueType.EXPRESSION_SET, ballerinaType);
-                case MAP -> type(ValueType.MAPPING_EXPRESSION_SET, ballerinaType);
+                case MAP -> type(ValueType.MAPPING_EXPRESSION, ballerinaType);
                 case RECORD -> {
                     if (typeSymbol.typeKind() != TypeDescKind.RECORD && typeSymbol.getModule().isPresent()) {
                         // not an anonymous record

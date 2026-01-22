@@ -412,7 +412,7 @@ public class CodeAnalyzer extends NodeVisitor {
     }
 
     private void populateAgentMetaData(ExpressionNode expressionNode, ClassSymbol classSymbol) {
-        Map<String, String> agentData = new HashMap<>();
+        Map<String, AiUtils.AgentPropertyValue> agentData = new HashMap<>();
         if (isClassField(expressionNode)) {
             FieldAccessExpressionNode fieldAccess = (FieldAccessExpressionNode) expressionNode;
             Optional<Symbol> fieldSymbol = semanticModel.symbol(fieldAccess.fieldName());
@@ -425,7 +425,8 @@ public class CodeAnalyzer extends NodeVisitor {
             if (initExpr.isPresent()) {
                 Optional<ImplicitNewExpressionNode> newExprOpt = getNewExpr(initExpr.get());
                 if (newExprOpt.isPresent()) {
-                    agentData.put(Property.SCOPE_KEY, Property.SERVICE_INIT_SCOPE);
+                    agentData.put(Property.SCOPE_KEY,
+                            new AiUtils.AgentPropertyValue(Property.SERVICE_INIT_SCOPE, Property.ValueType.EXPRESSION));
                     genAgentData(newExprOpt.get(), classSymbol, agentData);
                 }
             }
@@ -454,10 +455,12 @@ public class CodeAnalyzer extends NodeVisitor {
                 NonTerminalNode scopeNode = varNode;
                 while (scopeNode != null) {
                     if (scopeNode.kind() == SyntaxKind.MODULE_VAR_DECL) {
-                        agentData.put(Property.SCOPE_KEY, Property.GLOBAL_SCOPE);
+                        agentData.put(Property.SCOPE_KEY,
+                                new AiUtils.AgentPropertyValue(Property.GLOBAL_SCOPE, Property.ValueType.EXPRESSION));
                         break;
                     } else if (scopeNode.kind() == SyntaxKind.LOCAL_VAR_DECL) {
-                        agentData.put(Property.SCOPE_KEY, Property.LOCAL_SCOPE);
+                        agentData.put(Property.SCOPE_KEY,
+                                new AiUtils.AgentPropertyValue(Property.LOCAL_SCOPE, Property.ValueType.EXPRESSION));
                         break;
                     }
                     scopeNode = scopeNode.parent();
@@ -517,7 +520,7 @@ public class CodeAnalyzer extends NodeVisitor {
     }
 
     private void genAgentData(ImplicitNewExpressionNode newExpressionNode, ClassSymbol classSymbol,
-                              Map<String, String> agentData) {
+                              Map<String, AiUtils.AgentPropertyValue> agentData) {
         Optional<ParenthesizedArgList> argList = newExpressionNode.parenthesizedArgList();
         if (argList.isEmpty()) {
             return;
@@ -538,7 +541,9 @@ public class CodeAnalyzer extends NodeVisitor {
                     default -> {
                     }
                 }
-                agentData.put(argumentName, namedArgumentNode.expression().toString().trim());
+                agentData.put(argumentName,
+                        new AiUtils.AgentPropertyValue(namedArgumentNode.expression().toString().trim(),
+                                Property.ValueType.EXPRESSION));
             } else if (arg instanceof PositionalArgumentNode positionalArg) {
                 ExpressionNode expression = positionalArg.expression();
                 if (expression instanceof MappingConstructorExpressionNode mappingCtr) {
@@ -561,7 +566,9 @@ public class CodeAnalyzer extends NodeVisitor {
                             default -> {
                             }
                         }
-                        agentData.put(fieldName, valueExpr.toString().trim());
+                        agentData.put(fieldName,
+                                new AiUtils.AgentPropertyValue(valueExpr.toString().trim(),
+                                        Property.ValueType.EXPRESSION));
                     }
                 }
             }
@@ -615,18 +622,29 @@ public class CodeAnalyzer extends NodeVisitor {
                 }
                 ExpressionNode valueExpr = valueExprOpt.get();
                 String value;
+                Property.ValueType selectedType;
                 if (valueExpr.kind() == SyntaxKind.STRING_TEMPLATE_EXPRESSION) {
                     TemplateExpressionNode templateExpr = (TemplateExpressionNode) valueExpr;
                     value = templateExpr.content().stream()
                             .map(Node::toString)
                             .collect(Collectors.joining());
                     value = AiUtils.restoreBackticksFromStringTemplate(value);
+                    selectedType = Property.ValueType.PROMPT;
                 } else {
                     value = valueExpr.toString().trim();
+                    selectedType = Property.ValueType.EXPRESSION;
                 }
-                agentData.put(specificFieldNode.fieldName().toString().trim(), value);
+                agentData.put(specificFieldNode.fieldName().toString().trim(),
+                        new AiUtils.AgentPropertyValue(value, selectedType));
             }
-            nodeBuilder.metadata().addData("agent", agentData);
+
+            Map<String, String> simpleAgentData = agentData.entrySet().stream()
+                    .collect(Collectors.toMap(
+                            Map.Entry::getKey,
+                            e -> e.getValue().value()
+                    ));
+
+            nodeBuilder.metadata().addData("agent", simpleAgentData);
         }
 
         if (memory == null) {
@@ -681,7 +699,7 @@ public class CodeAnalyzer extends NodeVisitor {
                         newExpressionNode.toSourceCode().strip())
                 .version(moduleId.map(ModuleID::version).orElse(""))
                 .isNew(false)
-                .data(Property.SCOPE_KEY, agentData.get(Property.SCOPE_KEY))
+                .data(Property.SCOPE_KEY, agentData.get(Property.SCOPE_KEY).value())
                 .build();
 
         Path agentFilePath =
@@ -837,7 +855,7 @@ public class CodeAnalyzer extends NodeVisitor {
                     nodeBuilder.properties()
                             .custom()
                                 .metadata()
-                                .label(unescapedParamName)
+                                .label(paramResult.label())
                                 .description(paramResult.description())
                                 .stepOut()
                             .codedata()
@@ -906,11 +924,10 @@ public class CodeAnalyzer extends NodeVisitor {
             }
 
             String unescapedParamName = ParamUtils.removeLeadingSingleQuote(paramResult.name());
-            String label = paramResult.label();
             Property.Builder<FormBuilder<NodeBuilder>> customPropBuilder = nodeBuilder.properties().custom();
             customPropBuilder
                     .metadata()
-                        .label(label == null || label.isEmpty() ? unescapedParamName : label)
+                        .label(paramResult.label())
                         .description(paramResult.description())
                         .stepOut()
                     .codedata()
@@ -981,11 +998,10 @@ public class CodeAnalyzer extends NodeVisitor {
                 }
 
                 String unescapedParamName = ParamUtils.removeLeadingSingleQuote(paramResult.name());
-                String label = paramResult.label();
                 Property.Builder<FormBuilder<NodeBuilder>> customPropBuilder = nodeBuilder.properties().custom();
                 customPropBuilder
                         .metadata()
-                            .label(label == null || label.isEmpty() ? unescapedParamName : label)
+                            .label(paramResult.label())
                             .description(paramResult.description())
                             .stepOut()
                         .codedata()
@@ -1045,25 +1061,26 @@ public class CodeAnalyzer extends NodeVisitor {
                             nodeBuilder.properties().custom();
                     String unescapedParamName = ParamUtils.removeLeadingSingleQuote(paramResult.name());
                     String value = paramValue != null ? paramValue.toSourceCode().strip() : null;
-                    String label = paramResult.label();
-                    buildPropertyType(customPropBuilder, paramResult, paramValue);
-                    customPropBuilder
+
+                    FormBuilder<NodeBuilder> nodeBuilderFormBuilder = customPropBuilder
                             .metadata()
-                                .label(label == null || label.isEmpty() ? unescapedParamName : label)
+                                .label(paramResult.label())
                                 .description(paramResult.description())
                                 .stepOut()
-                               .imports(paramResult.importStatements())
-                               .value(value)
-                               .placeholder(paramResult.placeholder())
-                               .defaultValue(paramResult.defaultValue())
-                               .editable()
-                               .defaultable(paramResult.optional())
-                               .codedata()
-                                   .kind(paramResult.kind().name())
-                                   .originalName(paramResult.name())
-                                   .stepOut()
-                               .stepOut()
-                               .addProperty(FlowNodeUtil.getPropertyKey(unescapedParamName));
+                            .imports(paramResult.importStatements())
+                            .value(value)
+                            .placeholder(paramResult.placeholder())
+                            .defaultValue(paramResult.defaultValue())
+                            .editable()
+                            .defaultable(paramResult.optional())
+                            .codedata()
+                                .kind(paramResult.kind().name())
+                                .originalName(paramResult.name())
+                                .stepOut()
+                            .stepOut();
+
+                    buildPropertyType(customPropBuilder, paramResult, paramValue);
+                    nodeBuilderFormBuilder.addProperty(FlowNodeUtil.getPropertyKey(unescapedParamName));
                 }
 
                 for (int i = paramCount; i < argCount; i++) {
@@ -1138,11 +1155,10 @@ public class CodeAnalyzer extends NodeVisitor {
                                     nodeBuilder.properties().custom();
                             String value = paramValue != null ? paramValue.toSourceCode().strip() : null;
                             String unescapedParamName = ParamUtils.removeLeadingSingleQuote(paramResult.name());
-                            String label = paramResult.label();
-                            buildPropertyType(customPropBuilder, paramResult, paramValue);
-                            customPropBuilder
+
+                            FormBuilder<NodeBuilder> nodeBuilderFormBuilder = customPropBuilder
                                     .metadata()
-                                        .label(label == null || label.isEmpty() ? unescapedParamName : label)
+                                        .label(paramResult.label())
                                         .description(paramResult.description())
                                         .stepOut()
                                     .imports(paramResult.importStatements())
@@ -1155,8 +1171,10 @@ public class CodeAnalyzer extends NodeVisitor {
                                         .kind(paramResult.kind().name())
                                         .originalName(paramResult.name())
                                         .stepOut()
-                                    .stepOut()
-                                    .addProperty(FlowNodeUtil.getPropertyKey(unescapedParamName), paramValue);
+                                    .stepOut();
+
+                            buildPropertyType(customPropBuilder, paramResult, paramValue);
+                            nodeBuilderFormBuilder.addProperty(FlowNodeUtil.getPropertyKey(unescapedParamName));
                             hasIncludedParamAsNamedArg = true;
                         } else {
                             if (funcParamMap.containsKey(argName)) { // included record attribute
@@ -1170,13 +1188,12 @@ public class CodeAnalyzer extends NodeVisitor {
                                 }
                                 String value = paramValue != null ? paramValue.toSourceCode().strip() : null;
                                 String unescapedParamName = ParamUtils.removeLeadingSingleQuote(paramResult.name());
-                                String label = paramResult.label();
-                                buildPropertyType(customPropBuilder, paramResult, paramValue);
-                                customPropBuilder
-                                         .metadata()
-                                             .label(label == null || label.isEmpty() ? unescapedParamName : label)
-                                             .description(paramResult.description())
-                                             .stepOut()
+
+                                FormBuilder<NodeBuilder> nodeBuilderFormBuilder = customPropBuilder
+                                        .metadata()
+                                            .label(paramResult.label())
+                                            .description(paramResult.description())
+                                            .stepOut()
                                         .imports(paramResult.importStatements())
                                         .value(value)
                                         .placeholder(paramResult.placeholder())
@@ -1187,8 +1204,11 @@ public class CodeAnalyzer extends NodeVisitor {
                                             .kind(paramResult.kind().name())
                                             .originalName(paramResult.name())
                                             .stepOut()
-                                        .stepOut()
-                                        .addProperty(FlowNodeUtil.getPropertyKey(unescapedParamName), paramValue);
+                                        .stepOut();
+
+                                buildPropertyType(customPropBuilder, paramResult, paramValue);
+                                nodeBuilderFormBuilder.addProperty(FlowNodeUtil.getPropertyKey(unescapedParamName),
+                                        paramValue);
                             }
                         }
                         funcParamMap.remove(escapedParamName);
@@ -1200,11 +1220,10 @@ public class CodeAnalyzer extends NodeVisitor {
                             String unescapedParamName = ParamUtils.removeLeadingSingleQuote(paramResult.name());
                             funcParamMap.remove(escapedParamName);
                             String value = paramValue.toSourceCode().strip();
-                            String label = paramResult.label();
-                            buildPropertyType(customPropBuilder, paramResult, paramValue);
-                            customPropBuilder
+
+                            FormBuilder<NodeBuilder> nodeBuilderFormBuilder = customPropBuilder
                                     .metadata()
-                                        .label(label == null || label.isEmpty() ? unescapedParamName : label)
+                                        .label(paramResult.label())
                                         .description(paramResult.description())
                                         .stepOut()
                                     .imports(paramResult.importStatements())
@@ -1217,8 +1236,11 @@ public class CodeAnalyzer extends NodeVisitor {
                                         .kind(paramResult.kind().name())
                                         .originalName(paramResult.name())
                                         .stepOut()
-                                    .stepOut()
-                                    .addProperty(FlowNodeUtil.getPropertyKey(unescapedParamName), paramValue);
+                                    .stepOut();
+
+                            buildPropertyType(customPropBuilder, paramResult, paramValue);
+                            nodeBuilderFormBuilder.addProperty(FlowNodeUtil.getPropertyKey(unescapedParamName),
+                                    paramValue);
                             return;
                         }
                     }
@@ -1233,13 +1255,12 @@ public class CodeAnalyzer extends NodeVisitor {
                 funcParamMap.remove(escapedParamName);
                 String unescapedParamName = ParamUtils.removeLeadingSingleQuote(paramResult.name());
                 String value = paramValue != null ? paramValue.toSourceCode().strip() : null;
-                String label = paramResult.label();
-                buildPropertyType(customPropBuilder, paramResult, paramValue);
-                customPropBuilder
-                         .metadata()
-                             .label(label == null || label.isEmpty() ? unescapedParamName : label)
-                             .description(paramResult.description())
-                             .stepOut()
+
+                FormBuilder<NodeBuilder> nodeBuilderFormBuilder = customPropBuilder
+                        .metadata()
+                            .label(paramResult.label())
+                            .description(paramResult.description())
+                            .stepOut()
                         .imports(paramResult.importStatements())
                         .value(value)
                         .placeholder(paramResult.placeholder())
@@ -1250,8 +1271,10 @@ public class CodeAnalyzer extends NodeVisitor {
                             .kind(paramResult.kind().name())
                             .originalName(paramResult.name())
                             .stepOut()
-                        .stepOut()
-                        .addProperty(FlowNodeUtil.getPropertyKey(unescapedParamName), paramValue);
+                        .stepOut();
+
+                buildPropertyType(customPropBuilder, paramResult, paramValue);
+                nodeBuilderFormBuilder.addProperty(FlowNodeUtil.getPropertyKey(unescapedParamName), paramValue);
             }
 
             for (Map.Entry<String, Node> entry : namedArgValueMap.entrySet()) { // handle remaining named args
@@ -1268,13 +1291,12 @@ public class CodeAnalyzer extends NodeVisitor {
                 String unescapedParamName = ParamUtils.removeLeadingSingleQuote(paramResult.name());
                 Node paramValue = entry.getValue();
                 String value = paramValue != null ? paramValue.toSourceCode().strip() : null;
-                String label = paramResult.label();
-                buildPropertyType(customPropBuilder, paramResult, paramValue);
-                customPropBuilder
-                         .metadata()
-                             .label(label == null || label.isEmpty() ? unescapedParamName : label)
-                             .description(paramResult.description())
-                             .stepOut()
+
+                FormBuilder<NodeBuilder> nodeBuilderFormBuilder = customPropBuilder
+                        .metadata()
+                            .label(paramResult.label())
+                            .description(paramResult.description())
+                            .stepOut()
                         .imports(paramResult.importStatements())
                         .value(value)
                         .placeholder(paramResult.placeholder())
@@ -1282,22 +1304,23 @@ public class CodeAnalyzer extends NodeVisitor {
                         .editable()
                         .defaultable(paramResult.optional())
                         .codedata()
-                        .kind(paramResult.kind().name())
-                        .originalName(paramResult.name())
-                        .stepOut()
-                        .stepOut()
-                        .addProperty(FlowNodeUtil.getPropertyKey(unescapedParamName), paramValue);
+                            .kind(paramResult.kind().name())
+                            .originalName(paramResult.name())
+                            .stepOut()
+                        .stepOut();
+
+                buildPropertyType(customPropBuilder, paramResult, paramValue);
+                nodeBuilderFormBuilder.addProperty(FlowNodeUtil.getPropertyKey(unescapedParamName), paramValue);
             }
             ParameterData includedRecordRest = funcParamMap.get("Additional Values");
             if (includedRecordRest != null) {
                 funcParamMap.remove("Additional Values");
                 Property.Builder<FormBuilder<NodeBuilder>> customPropBuilder =
                         nodeBuilder.properties().custom();
-                String unescapedParamName = ParamUtils.removeLeadingSingleQuote(includedRecordRest.name());
                 buildPropertyType(customPropBuilder, includedRecordRest);
                 customPropBuilder
                         .metadata()
-                            .label(unescapedParamName)
+                            .label(includedRecordRest.label())
                             .description(includedRecordRest.description())
                             .stepOut()
                         .imports(includedRecordRest.importStatements())
@@ -1346,7 +1369,22 @@ public class CodeAnalyzer extends NodeVisitor {
         } else if (kind == ParameterData.Kind.INCLUDED_RECORD_REST) {
             builder.type(Property.ValueType.MAPPING_EXPRESSION_SET);
         } else if (isSubTypeOfRawTemplate(paramData.typeSymbol())) {
-            builder.type(Property.ValueType.RAW_TEMPLATE);
+            String typeSignature = CommonUtils.getTypeSignature(paramData.typeSymbol(), moduleInfo);
+            if (AiUtils.AI_PROMPT_TYPE.equals(typeSignature)) {
+                boolean isPromptSelected = value != null && value.kind() == SyntaxKind.RAW_TEMPLATE_EXPRESSION;
+                builder.type()
+                        .fieldType(Property.ValueType.PROMPT)
+                        .ballerinaType(AiUtils.AI_PROMPT_TYPE)
+                        .selected(isPromptSelected)
+                        .stepOut();
+                builder.type()
+                        .fieldType(Property.ValueType.EXPRESSION)
+                        .ballerinaType(typeSignature)
+                        .selected(!isPromptSelected)
+                        .stepOut();
+            } else {
+                builder.type(Property.ValueType.RAW_TEMPLATE);
+            }
         } else {
             builder.typeWithExpression(paramData.typeSymbol(), moduleInfo, value, semanticModel);
         }

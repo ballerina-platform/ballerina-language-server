@@ -32,6 +32,7 @@ import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.TypeDescKind;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
+import io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
@@ -53,24 +54,33 @@ public class PropertyType {
     @JsonAdapter(FieldTypeSerializer.class)
     private final Value.FieldType fieldType;
     private final String ballerinaType;
-    private final List<Object> options;
+    private final List<Option> options;
     private final List<PropertyTypeMemberInfo> typeMembers;
     private boolean selected;
+    private final Integer minItems;
+    private final Integer defaultItems;
+    private final String pattern;
+    private final String patternErrorMessage;
 
-    public PropertyType(Value.FieldType fieldType, String ballerinaType, List<Object> options,
-                        List<PropertyTypeMemberInfo> typeMembers, boolean selected) {
+    public PropertyType(Value.FieldType fieldType, String ballerinaType, List<Option> options,
+                        List<PropertyTypeMemberInfo> typeMembers, boolean selected, Integer minItems,
+                        Integer defaultItems, String pattern, String patternErrorMessage) {
         this.fieldType = fieldType;
         this.ballerinaType = ballerinaType;
         this.options = options;
         this.typeMembers = typeMembers;
         this.selected = selected;
+        this.minItems = minItems;
+        this.defaultItems = defaultItems;
+        this.pattern = pattern;
+        this.patternErrorMessage = patternErrorMessage;
     }
 
     public static PropertyType types(Value.FieldType fieldType) {
         return new Builder().fieldType(fieldType).build();
     }
 
-    public static PropertyType types(Value.FieldType fieldType, List<Object> options) {
+    public static PropertyType types(Value.FieldType fieldType, List<Option> options) {
         return new Builder().fieldType(fieldType).options(options).build();
     }
 
@@ -78,14 +88,12 @@ public class PropertyType {
         return new Builder().fieldType(fieldType).ballerinaType(ballerinaType).build();
     }
 
-    public List<PropertyType> typeWithExpression(TypeSymbol typeSymbol, ModuleInfo moduleInfo) {
-        return typeWithExpression(typeSymbol, moduleInfo, null, null);
-    }
-
-    public static List<PropertyType> typeWithExpression(TypeSymbol typeSymbol, ModuleInfo moduleInfo,
-                                         Node value, SemanticModel semanticModel) {
+    public static void typeWithExpression(Value.ValueBuilder valueBuilder, TypeSymbol typeSymbol,
+                                                        ModuleInfo moduleInfo, Node value,
+                                                        SemanticModel semanticModel) {
         if (typeSymbol == null) {
-            return List.of();
+            valueBuilder.types(List.of());
+            return;
         }
         String ballerinaType = CommonUtils.getTypeSignature(typeSymbol, moduleInfo);
 
@@ -97,11 +105,13 @@ public class PropertyType {
         // Handle union of singleton types as single-select options
         if (propertyType.isEmpty() && rawType instanceof UnionTypeSymbol unionTypeSymbol) {
             List<TypeSymbol> typeSymbols = unionTypeSymbol.memberTypeDescriptors();
-            List<Object> options = new ArrayList<>();
+            List<Option> options = new ArrayList<>();
             boolean allSingletons = true;
             for (TypeSymbol symbol : typeSymbols) {
                 if (CommonUtil.getRawType(symbol).typeKind() == TypeDescKind.SINGLETON) {
-                    options.add(CommonUtils.removeQuotes(symbol.signature()));
+                    String label = CommonUtils.removeQuotes(symbol.signature());
+                    Option option = new Option(label, symbol.signature());
+                    options.add(option);
                 } else {
                     allSingletons = false;
                     break;
@@ -148,7 +158,7 @@ public class PropertyType {
 
                                 // add the merged type
                                 propertyTypes.add(new PropertyType(fieldType, mergedBallerinaType, null,
-                                        distinctMembers, false));
+                                        distinctMembers, false, null, null, null, null));
                             }
                         });
             }
@@ -172,8 +182,14 @@ public class PropertyType {
             // need to check if it's a map or a record if its a map then need to set the matching type
             if (matchingValueType == Value.FieldType.MAPPING_EXPRESSION_SET) {
                 Optional<TypeSymbol> paramType = semanticModel.typeOf(value);
-                if (paramType.isPresent() && paramType.get().typeKind() == TypeDescKind.RECORD) {
-                    matchingValueType = Value.FieldType.RECORD_MAP_EXPRESSION;
+                if (paramType.isPresent()) {
+                    if (paramType.get().typeKind() == TypeDescKind.MAP) {
+                        valueBuilder.value(CommonUtils.convertMappingExprToMap(
+                                (MappingConstructorExpressionNode) value));
+                        matchingValueType = Value.FieldType.MAPPING_EXPRESSION;
+                    } else if (paramType.get().typeKind() == TypeDescKind.RECORD) {
+                        matchingValueType = Value.FieldType.RECORD_MAP_EXPRESSION;
+                    }
                 }
                 Value.FieldType finalMatchingValueType = matchingValueType;
                 propertyTypes.stream()
@@ -195,9 +211,8 @@ public class PropertyType {
                 for (PropertyType propType : propertyTypes) {
                     if (propType.fieldType() == Value.FieldType.SINGLE_SELECT) {
                         String valueStr = value.toSourceCode().trim();
-                        for (Object option : propType.options()) {
-                            // need to check option is not an instance of structure
-                            if (option.equals(valueStr)) {
+                        for (Option option : propType.options()) {
+                            if (option.value().equals(valueStr)) {
                                 propType.selected(true);
                                 foundMatch = true;
                                 break;
@@ -219,7 +234,7 @@ public class PropertyType {
                         .ifPresent(propType -> propType.selected(true));
             }
         }
-        return propertyTypes;
+        valueBuilder.types(propertyTypes);
     }
 
     private static Optional<PropertyType> handlePrimitiveType(TypeSymbol typeSymbol, String ballerinaType) {
@@ -231,7 +246,7 @@ public class PropertyType {
             case STRING, STRING_CHAR -> Optional.of(PropertyType.types(Value.FieldType.TEXT, ballerinaType));
             case BOOLEAN -> Optional.of(PropertyType.types(Value.FieldType.FLAG, ballerinaType));
             case ARRAY -> Optional.of(PropertyType.types(Value.FieldType.EXPRESSION_SET, ballerinaType));
-            case MAP -> Optional.of(PropertyType.types(Value.FieldType.MAPPING_EXPRESSION_SET, ballerinaType));
+            case MAP -> Optional.of(PropertyType.types(Value.FieldType.MAPPING_EXPRESSION, ballerinaType));
             case RECORD -> {
                 if (typeSymbol.typeKind() != TypeDescKind.RECORD && typeSymbol.getModule().isPresent()) {
                     // not an anonymous record
@@ -290,7 +305,7 @@ public class PropertyType {
         return ballerinaType;
     }
 
-    public List<Object> options() {
+    public List<Option> options() {
         return options;
     }
 
@@ -306,12 +321,32 @@ public class PropertyType {
         this.selected = selected;
     }
 
+    public Integer minItems() {
+        return minItems;
+    }
+
+    public Integer defaultItems() {
+        return defaultItems;
+    }
+
+    public String pattern() {
+        return pattern;
+    }
+
+    public String patternErrorMessage() {
+        return patternErrorMessage;
+    }
+
     public static class Builder {
         private Value.FieldType fieldType;
         private String ballerinaType;
-        private List<Object> options;
+        private List<Option> options;
         private List<PropertyTypeMemberInfo> typeMembers;
         private boolean selected = false;
+        private Integer minItems;
+        private Integer defaultItems;
+        private String pattern;
+        private String patternErrorMessage;
 
         public Builder() {
         }
@@ -326,7 +361,7 @@ public class PropertyType {
             return this;
         }
 
-        public Builder options(List<Object> options) {
+        public Builder options(List<Option> options) {
             this.options = options;
             return this;
         }
@@ -347,8 +382,29 @@ public class PropertyType {
             return this;
         }
 
+        public Builder minItems(Integer minItems) {
+            this.minItems = minItems;
+            return this;
+        }
+
+        public Builder defaultItems(Integer defaultItems) {
+            this.defaultItems = defaultItems;
+            return this;
+        }
+
+        public Builder pattern(String pattern) {
+            this.pattern = pattern;
+            return this;
+        }
+
+        public Builder patternErrorMessage(String patternErrorMessage) {
+            this.patternErrorMessage = patternErrorMessage;
+            return this;
+        }
+
         public PropertyType build() {
-            return new PropertyType(fieldType, ballerinaType, options, typeMembers, selected);
+            return new PropertyType(fieldType, ballerinaType, options, typeMembers, selected, minItems,
+                    defaultItems, pattern, patternErrorMessage);
         }
     }
 
