@@ -1,0 +1,41 @@
+{
+  "source": "tupleBasedQuery.bal",
+  "description": "Tuple mapping",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "tupleBasedQuery.bal",
+      "startLine": {
+        "line": 14,
+        "offset": 8
+      },
+      "endLine": {
+        "line": 15,
+        "offset": 22
+      }
+    },
+    "sourceCode": "[int, string, float] result = [];"
+  },
+  "mapping": {
+    "output": "persons2.data[0]",
+    "expression": "personsItem.data[0]"
+  },
+  "targetField": "persons2.0",
+  "output": {
+    "tupleBasedQuery.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 15,
+            "character": 20
+          },
+          "end": {
+            "line": 15,
+            "character": 20
+          }
+        },
+        "newText": "data: [personsItem.data[0], \"\", 0.0]"
+      }
+    ]
+  }
+}

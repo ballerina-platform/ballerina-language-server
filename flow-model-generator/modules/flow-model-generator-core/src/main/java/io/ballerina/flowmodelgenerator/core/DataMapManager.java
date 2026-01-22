@@ -1542,9 +1542,14 @@ public class DataMapManager {
             String normalizedOutput = output.replaceAll("\\[(\\d+)]", ".$1");
             String[] splits = normalizedOutput.split(DOT);
             StringBuilder sb = new StringBuilder();
-            MatchingNode targetMappingExpr = getTargetMappingExpr(expr, targetField);
-            if (targetMappingExpr != null) {
-                expr = targetMappingExpr.expr();
+            TargetNode targetNode = getTargetNode(node, targetField, semanticModel);
+            if (targetNode != null && targetNode.matchingNode != null) {
+                expr = targetNode.matchingNode.expr();
+                targetTypeSymbol = targetNode.typeSymbol;
+                TypeSymbol rawType = CommonUtils.getRawType(targetTypeSymbol);
+                if (rawType.typeKind() == TypeDescKind.ARRAY) {
+                    targetTypeSymbol = CommonUtils.getRawType(((ArrayTypeSymbol) rawType).memberTypeDescriptor());
+                }
             }
             genSource(expr, splits, 1, sb, mapping.expression(), null, textEdits, targetTypeSymbol);
         }
@@ -1622,7 +1627,6 @@ public class DataMapManager {
                 }
             } else {
                 stringBuilder.append(name).append(": ");
-                // targetTypeSymbol is already the type for this field
                 String nestedExpr = generateNestedExpression(names, idx + 1, mappingExpr, targetTypeSymbol);
                 stringBuilder.append(nestedExpr);
             }
