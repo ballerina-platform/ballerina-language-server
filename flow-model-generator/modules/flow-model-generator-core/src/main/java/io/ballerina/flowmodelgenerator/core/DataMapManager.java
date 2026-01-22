@@ -1525,9 +1525,8 @@ public class DataMapManager {
             }
             Optional<TypeSymbol> returnTypeSymbol = semanticModel.symbol(node)
                     .filter(s -> s.kind() == SymbolKind.FUNCTION)
-                    .map(s -> ((FunctionSymbol) s).typeDescriptor().returnTypeDescriptor())
-                    .orElse(null);
-            if (Objects.requireNonNull(returnTypeSymbol).isPresent() &&
+                    .flatMap(s -> ((FunctionSymbol) s).typeDescriptor().returnTypeDescriptor());
+            if (returnTypeSymbol.isPresent() &&
                     returnTypeSymbol.get().typeKind() == TypeDescKind.TUPLE) {
                 targetTypeSymbol = returnTypeSymbol.get();
             }
@@ -1608,7 +1607,14 @@ public class DataMapManager {
                 // Check if we're creating a tuple literal
                 TypeSymbol rawType = targetTypeSymbol != null ? CommonUtils.getRawType(targetTypeSymbol) : null;
                 if (rawType != null && rawType.typeKind() == TypeDescKind.TUPLE) {
-                    int index = Integer.parseInt(name);
+                    int index;
+                    try {
+                        index = Integer.parseInt(name);
+                    } catch (NumberFormatException e) {
+                        stringBuilder.append(mappingExpr);
+                        textEdits.add(new TextEdit(CommonUtils.toRange(position), stringBuilder.toString()));
+                        return;
+                    }
                     stringBuilder.append(generateTupleExpression((TupleTypeSymbol) rawType, index, mappingExpr,
                             names, idx));
                 } else {
@@ -1745,9 +1751,15 @@ public class DataMapManager {
                 // This is a tuple/array index
                 TypeSymbol rawType = currentType != null ? CommonUtils.getRawType(currentType) : null;
                 if (rawType != null && rawType.typeKind() == TypeDescKind.TUPLE) {
-                    int index = Integer.parseInt(name);
-                    sb.append(generateTupleExpression((TupleTypeSymbol) rawType, index, mappingExpr, names, i));
-                    return sb.toString();
+                    try {
+                        int index = Integer.parseInt(name);
+                        sb.append(generateTupleExpression((TupleTypeSymbol) rawType, index, mappingExpr, names, i));
+                        return sb.toString();
+                    } catch (NumberFormatException e) {
+                        // Fallback: treat as a regular array access and just append the expression
+                        sb.append(mappingExpr);
+                        return sb.toString();
+                    }
                 } else {
                     // Regular array - just append the expression
                     sb.append(mappingExpr);

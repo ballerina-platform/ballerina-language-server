@@ -286,7 +286,7 @@ public class ReferenceType {
                 }
                 tupleType.memberTypes.add(refType);
             }
-            tupleType.name = tupleNameBuilder + "]";
+            tupleType.name = tupleNameBuilder.append("]").toString();
             return tupleType;
         } else if (kind == TypeDescKind.REGEXP) {
             return new RefType("regexp:RegExp");
