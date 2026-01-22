@@ -1542,13 +1542,19 @@ public class DataMapManager {
             String normalizedOutput = output.replaceAll("\\[(\\d+)]", ".$1");
             String[] splits = normalizedOutput.split(DOT);
             StringBuilder sb = new StringBuilder();
-            TargetNode targetNode = getTargetNode(node, targetField, semanticModel);
-            if (targetNode != null && targetNode.matchingNode != null) {
-                expr = targetNode.matchingNode.expr();
-                targetTypeSymbol = targetNode.typeSymbol;
-                TypeSymbol rawType = CommonUtils.getRawType(targetTypeSymbol);
-                if (rawType.typeKind() == TypeDescKind.ARRAY) {
-                    targetTypeSymbol = CommonUtils.getRawType(((ArrayTypeSymbol) rawType).memberTypeDescriptor());
+            MatchingNode targetMappingExpr = getTargetMappingExpr(expr, targetField);
+            if (targetMappingExpr != null) {
+                expr = targetMappingExpr.expr();
+            }
+            // Get resolved type for targetField navigation (needed for tuple field mappings)
+            if (targetField != null) {
+                TargetNode targetNode = getTargetNode(node, targetField, semanticModel);
+                if (targetNode != null) {
+                    targetTypeSymbol = targetNode.typeSymbol;
+                    TypeSymbol rawType = CommonUtils.getRawType(targetTypeSymbol);
+                    if (rawType.typeKind() == TypeDescKind.ARRAY) {
+                        targetTypeSymbol = CommonUtils.getRawType(((ArrayTypeSymbol) rawType).memberTypeDescriptor());
+                    }
                 }
             }
             genSource(expr, splits, 1, sb, mapping.expression(), null, textEdits, targetTypeSymbol);
