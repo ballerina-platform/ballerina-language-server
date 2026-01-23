@@ -1,0 +1,94 @@
+{
+  "source": "json_local_input.bal",
+  "description": "JSON local variable input type inference test",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "json_local_input.bal",
+      "startLine": {
+        "line": 14,
+        "offset": 8
+      },
+      "endLine": {
+        "line": 14,
+        "offset": 31
+      }
+    },
+    "sourceCode": ""
+  },
+  "position": {
+    "line": 14,
+    "offset": 8
+  },
+  "targetField": "b",
+  "model": {
+    "inputs": [
+      {
+        "fields": [
+          {
+            "name": "\"hello\"",
+            "displayName": "\"hello\"",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          }
+        ],
+        "name": "result",
+        "displayName": "result",
+        "typeName": "json",
+        "kind": "json",
+        "category": "local-variable"
+      }
+    ],
+    "output": {
+      "fields": [],
+      "name": "b",
+      "displayName": "b",
+      "typeName": "Baz",
+      "kind": "record",
+      "ref": "44276399"
+    },
+    "mappings": [
+      {
+        "output": "b.x",
+        "inputs": [],
+        "expression": "10",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false
+      },
+      {
+        "output": "b.y",
+        "inputs": [],
+        "expression": "20",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false
+      }
+    ],
+    "refs": {
+      "44276399": {
+        "fields": [
+          {
+            "name": "x",
+            "displayName": "x",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          },
+          {
+            "name": "y",
+            "displayName": "y",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          }
+        ],
+        "typeName": "Baz",
+        "kind": "record"
+      }
+    }
+  }
+}
