@@ -853,7 +853,7 @@ public class DataMapManager {
         LineRange customFunctionRange = getCustomFunctionRange(expr, functionDocument, dataMappingDocument);
         List<String> elementAccessIndex = null;
         if (containsArrayAccess(expr)) {
-            elementAccessIndex = extractArrayIndices(expr);
+            elementAccessIndex = extractArrayIndices(expr, semanticModel);
         }
         Mapping mapping = new Mapping(name, inputs, expr.toSourceCode(),
                 getDiagnostics(expr.lineRange(), semanticModel), new ArrayList<>(),
@@ -931,9 +931,9 @@ public class DataMapManager {
                 .toList();
     }
 
-    private List<String> extractArrayIndices(Node expr) {
+    private List<String> extractArrayIndices(Node expr, SemanticModel semanticModel) {
         List<String> indices = new ArrayList<>();
-        ArrayIndexExtractorVisitor visitor = new ArrayIndexExtractorVisitor(indices);
+        ArrayIndexExtractorVisitor visitor = new ArrayIndexExtractorVisitor(indices, semanticModel);
         expr.accept(visitor);
         return indices.isEmpty() ? null : indices;
     }
@@ -3582,14 +3582,25 @@ public class DataMapManager {
 
     private static class ArrayIndexExtractorVisitor extends NodeVisitor {
         private final List<String> indices;
+        private final SemanticModel semanticModel;
 
-        ArrayIndexExtractorVisitor(List<String> indices) {
+        ArrayIndexExtractorVisitor(List<String> indices, SemanticModel semanticModel) {
             this.indices = indices;
+            this.semanticModel = semanticModel;
         }
 
         @Override
         public void visit(IndexedExpressionNode node) {
             node.containerExpression().accept(this);
+
+            // Skip tuple member access - only include array indices
+            Optional<TypeSymbol> containerType = semanticModel.typeOf(node.containerExpression());
+            if (containerType.isPresent()) {
+                TypeSymbol rawType = CommonUtils.getRawType(containerType.get());
+                if (rawType.typeKind() == TypeDescKind.TUPLE) {
+                    return;
+                }
+            }
 
             SeparatedNodeList<ExpressionNode> keyExpressions = node.keyExpression();
             for (ExpressionNode keyExpr : keyExpressions) {

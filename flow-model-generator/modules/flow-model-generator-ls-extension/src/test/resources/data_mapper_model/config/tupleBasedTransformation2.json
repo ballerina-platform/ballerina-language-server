@@ -134,10 +134,7 @@
                 "diagnostics": [],
                 "elements": [],
                 "isQueryExpression": false,
-                "isFunctionCall": false,
-                "elementAccessIndex": [
-                  "2"
-                ]
+                "isFunctionCall": false
               }
             ]
           }
