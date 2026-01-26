@@ -19,6 +19,7 @@
 package io.ballerina.flowmodelgenerator.core.expressioneditor;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import io.ballerina.compiler.syntax.tree.ImportDeclarationNode;
@@ -379,7 +380,20 @@ public class ExpressionEditorContext {
             if (property == null) {
                 value = "";
             } else {
-                value = property.has(VALUE_KEY) ? property.get(VALUE_KEY).getAsString() : "";
+                if (property.has(VALUE_KEY)) {
+                    JsonElement valueElement = property.get(VALUE_KEY);
+                    if (valueElement.isJsonArray()) {
+                        List<String> values = new ArrayList<>();
+                        for (JsonElement elem : valueElement.getAsJsonArray()) {
+                            values.add(elem.getAsString());
+                        }
+                        value = String.join(", ", values);
+                    } else {
+                        value = valueElement.getAsString();
+                    }
+                } else {
+                    value = "";
+                }
 
                 // Determine the property type
                 List<PropertyType> types = null;
