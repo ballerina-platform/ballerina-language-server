@@ -109,6 +109,8 @@ under the License.
 
             <class name="io.ballerina.flowmodelgenerator.extension.CopilotLibraryListTest"/>
             <class name="io.ballerina.flowmodelgenerator.extension.CopilotLibraryFilterTest"/>
+            <class name="io.ballerina.flowmodelgenerator.extension.InstructionLoaderTest"/>
+            <class name="io.ballerina.flowmodelgenerator.extension.CopilotInstructionAugmentationTest"/>
         </classes>
 
         <packages>

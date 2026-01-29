@@ -60,6 +60,11 @@ public class CopilotLibraryService implements ExtendedLanguageServerService {
     // JSON field names
     private static final String FIELD_NAME = "name";
     private static final String FIELD_DESCRIPTION = "description";
+    private static final String FIELD_INSTRUCTIONS = "instructions";
+    private static final String FIELD_SERVICES = "services";
+    private static final String FIELD_TYPE = "type";
+    private static final String FIELD_TEST_GENERATION_INSTRUCTION = "testGenerationInstruction";
+    private static final String TYPE_GENERIC = "generic";
 
     @Override
     public void init(LanguageServer langServer, WorkspaceManager workspaceManager) {
@@ -101,6 +106,10 @@ public class CopilotLibraryService implements ExtendedLanguageServerService {
                 // Convert to Set for efficient lookup during streaming
                 Set<String> requestedLibraries = new HashSet<>(Arrays.asList(libraryNames));
                 JsonArray filteredLibraries = loadLibrariesFromContext(requestedLibraries, false, mode);
+
+                // Augment libraries with custom instructions from resource files
+                augmentLibrariesWithInstructions(filteredLibraries);
+
                 return createResponse(filteredLibraries);
             } catch (Exception e) {
                 throw new RuntimeException("Failed to load filtered libraries: " + e.getMessage(), e);
@@ -267,6 +276,80 @@ public class CopilotLibraryService implements ExtendedLanguageServerService {
 
         String libraryName = libraryInfo.get(FIELD_NAME).getAsString();
         return requestedLibraries.contains(libraryName);
+    }
+
+    /**
+     * Augments libraries with custom instructions loaded from resource files.
+     * This method modifies the libraries in place by adding:
+     * - library.md content to Library.instructions
+     * - service.md content to GenericService.instructions (within services array)
+     * - test.md content to Service.testGenerationInstruction (within services array)
+     *
+     * @param libraries the libraries to augment
+     */
+    private void augmentLibrariesWithInstructions(JsonArray libraries) {
+        for (JsonElement element : libraries) {
+            if (!element.isJsonObject()) {
+                continue;
+            }
+            JsonObject library = element.getAsJsonObject();
+            String libraryName = library.has(FIELD_NAME) ? library.get(FIELD_NAME).getAsString() : null;
+            if (libraryName == null || libraryName.isEmpty()) {
+                continue;
+            }
+
+            // Add library-level instructions
+            InstructionLoader.loadLibraryInstruction(libraryName)
+                    .ifPresent(instruction -> library.addProperty(FIELD_INSTRUCTIONS, instruction));
+
+            // Process services array for service and test instructions
+            if (library.has(FIELD_SERVICES) && library.get(FIELD_SERVICES).isJsonArray()) {
+                JsonArray services = library.getAsJsonArray(FIELD_SERVICES);
+                augmentServicesWithInstructions(services, libraryName);
+            }
+        }
+    }
+
+    /**
+     * Augments services with custom instructions.
+     * - For generic services: adds service.md content to instructions field
+     * - For all services: adds test.md content to testGenerationInstruction field
+     *
+     * @param services    the services array to augment
+     * @param libraryName the parent library name for loading instructions
+     */
+    private void augmentServicesWithInstructions(JsonArray services, String libraryName) {
+        for (JsonElement serviceElement : services) {
+            if (!serviceElement.isJsonObject()) {
+                continue;
+            }
+            JsonObject service = serviceElement.getAsJsonObject();
+
+            // Add test generation instruction to all services
+            InstructionLoader.loadTestInstruction(libraryName)
+                    .ifPresent(instruction ->
+                            service.addProperty(FIELD_TEST_GENERATION_INSTRUCTION, instruction));
+
+            // Add service instruction only to generic services
+            if (isGenericService(service)) {
+                InstructionLoader.loadServiceInstruction(libraryName)
+                        .ifPresent(instruction -> service.addProperty(FIELD_INSTRUCTIONS, instruction));
+            }
+        }
+    }
+
+    /**
+     * Checks if a service is a generic service.
+     *
+     * @param service the service object to check
+     * @return true if the service type is "generic"
+     */
+    private boolean isGenericService(JsonObject service) {
+        if (!service.has(FIELD_TYPE)) {
+            return false;
+        }
+        JsonElement typeElement = service.get(FIELD_TYPE);
+        return typeElement.isJsonPrimitive() && TYPE_GENERIC.equals(typeElement.getAsString());
     }
 
     /**
