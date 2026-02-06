@@ -1,0 +1,41 @@
+{
+  "source": "tupleMapping.bal",
+  "description": "Tuple mapping",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "tupleMapping.bal",
+      "startLine": {
+        "line": 13,
+        "offset": 8
+      },
+      "endLine": {
+        "line": 13,
+        "offset": 41
+      }
+    },
+    "sourceCode": "[int, string, float] result = [];"
+  },
+  "mapping": {
+    "output": "result[0]",
+    "expression": "data[0]"
+  },
+  "targetField": "result",
+  "output": {
+    "tupleMapping.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 13,
+            "character": 38
+          },
+          "end": {
+            "line": 13,
+            "character": 40
+          }
+        },
+        "newText": "[data[0], \"\", 0.0]"
+      }
+    ]
+  }
+}

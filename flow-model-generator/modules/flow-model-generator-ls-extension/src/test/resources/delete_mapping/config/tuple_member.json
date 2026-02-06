@@ -1,0 +1,50 @@
+{
+  "source": "tupleMember.bal",
+  "description": "",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "tupleMember.bal",
+      "startLine": {
+        "line": 15,
+        "offset": 8
+      },
+      "endLine": {
+        "line": 15,
+        "offset": 54
+      }
+    }
+  },
+  "mapping": {
+    "output": "person2.data[0]",
+    "inputs": [
+      "result[0]"
+    ],
+    "expression": "result[0]",
+    "diagnostics": [],
+    "elements": [],
+    "isQueryExpression": false,
+    "isFunctionCall": false,
+    "elementAccessIndex": [
+      "0"
+    ]
+  },
+  "targetField": "person2",
+  "output": {
+    "tupleMember.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 15,
+            "character": 33
+          },
+          "end": {
+            "line": 15,
+            "character": 42
+          }
+        },
+        "newText": "0"
+      }
+    ]
+  }
+}

@@ -273,12 +273,20 @@ public class ReferenceType {
         } else if (kind == TypeDescKind.TUPLE) {
             TupleTypeSymbol typeSymbol = (TupleTypeSymbol) symbol;
             RefTupleType tupleType = new RefTupleType(name);
+            StringBuilder tupleNameBuilder = new StringBuilder();
+            tupleNameBuilder.append("[");
             for (TypeSymbol memberTypeSymbol : typeSymbol.memberTypeDescriptors()) {
-                String memberTypeName = memberTypeSymbol.getName().orElse("");
+                String memberTypeName = memberTypeSymbol.getName().orElse(memberTypeSymbol.signature());
                 ModuleID memberModuleId = getModuleID(memberTypeSymbol, moduleID);
                 RefType refType = fromSemanticSymbol(memberTypeSymbol, memberTypeName, memberModuleId, typeDefSymbols);
+                if (tupleNameBuilder.length() > 1) {
+                    tupleNameBuilder.append(", ").append(memberTypeName);
+                } else {
+                    tupleNameBuilder.append(memberTypeName);
+                }
                 tupleType.memberTypes.add(refType);
             }
+            tupleType.name = tupleNameBuilder.append("]").toString();
             return tupleType;
         } else if (kind == TypeDescKind.REGEXP) {
             return new RefType("regexp:RegExp");
