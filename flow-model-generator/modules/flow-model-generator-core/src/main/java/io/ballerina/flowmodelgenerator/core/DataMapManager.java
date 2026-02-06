@@ -231,7 +231,7 @@ public class DataMapManager {
         TypeSymbol targetTypeSymbol;
         try {
             targetTypeSymbol = targetNode.typeSymbol();
-            TypeSymbol rawtargetTypeSymbol = CommonUtils.getRawType(targetNode.typeSymbol());
+            TypeSymbol rawtargetTypeSymbol = CommonUtils.getRawType(targetTypeSymbol);
             if (rawtargetTypeSymbol.typeKind() == TypeDescKind.UNION) {
                 targetTypeSymbol =
                         filterErrorOrNil(semanticModel, (UnionTypeSymbol) rawtargetTypeSymbol, new ArrayList<>());

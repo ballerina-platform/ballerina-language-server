@@ -105,10 +105,10 @@ public class DataMappingSourceTest extends AbstractLSTest {
                 {Path.of("query7.json")},
                 {Path.of("query8.json")},
                 {Path.of("variable20.json")},
-                {Path.of("tupleMapping.json")},
-                {Path.of("tupleMapping2.json")},
-                {Path.of("tupleTransformation.json")},
-                {Path.of("tupleBasedQuery.json")}
+                {Path.of("tuple_mapping.json")},
+                {Path.of("tuple_mapping2.json")},
+                {Path.of("tuple_transformation.json")},
+                {Path.of("tuple_based_query.json")}
         };
     }
 
@@ -153,7 +153,7 @@ public class DataMappingSourceTest extends AbstractLSTest {
             TestConfig updatedConfig = new TestConfig(testConfig.source(), testConfig.description(),
                     testConfig.codedata(), testConfig.propertyKey(), testConfig.position(), testConfig.mapping(),
                     testConfig.targetField(), newMap);
-            updateConfig(configJsonPath, updatedConfig);
+//            updateConfig(configJsonPath, updatedConfig);
             Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.description(), configJsonPath));
         }
     }
