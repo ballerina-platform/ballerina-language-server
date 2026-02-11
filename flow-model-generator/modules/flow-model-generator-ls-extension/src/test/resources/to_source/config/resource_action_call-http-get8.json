@@ -167,7 +167,7 @@
             "character": 70
           }
         },
-        "newText": "json res8 = check foodClient->/apples/[varRef]/[12 + 3].get(param1 = \"value1\", param2 = 12);"
+        "newText": "json res8 = check foodClient->/apples/[varRef]/[12 + 3].get((), param1 = \"value1\", param2 = 12);"
       }
     ]
   }

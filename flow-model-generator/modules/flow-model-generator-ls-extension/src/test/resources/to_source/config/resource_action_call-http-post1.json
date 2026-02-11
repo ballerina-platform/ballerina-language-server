@@ -199,7 +199,7 @@
             "character": 80
           }
         },
-        "newText": "json res1 = check foodClient->/western/apples.post(\"western red apple\", param1 = \"value1\", param2 = 12);"
+        "newText": "json res1 = check foodClient->/western/apples.post(\"western red apple\", (), (), param1 = \"value1\", param2 = 12);"
       }
     ]
   }

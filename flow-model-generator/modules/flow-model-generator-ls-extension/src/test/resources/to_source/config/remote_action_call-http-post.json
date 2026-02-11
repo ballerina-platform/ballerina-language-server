@@ -172,7 +172,7 @@
             "character": 0
           }
         },
-        "newText": "json|http:ClientError item = check httpClient->post(\"/path\", json);"
+        "newText": "json|http:ClientError item = check httpClient->post(\"/path\", \"\", (), json);"
       }
     ]
   }

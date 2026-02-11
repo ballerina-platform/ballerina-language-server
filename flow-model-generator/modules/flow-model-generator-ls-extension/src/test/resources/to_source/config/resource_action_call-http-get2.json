@@ -167,7 +167,7 @@
             "character": 52
           }
         },
-        "newText": "json res2 = check foodClient->/apples.get(param1 = \"value1\", param2 = 12);"
+        "newText": "json res2 = check foodClient->/apples.get((), param1 = \"value1\", param2 = 12);"
       }
     ]
   }

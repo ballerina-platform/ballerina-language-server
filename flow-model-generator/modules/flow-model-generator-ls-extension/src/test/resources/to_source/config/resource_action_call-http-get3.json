@@ -167,7 +167,7 @@
             "character": 46
           }
         },
-        "newText": "json res3 = check foodClient->/.get(param1 = \"value1\", param2 = 12);"
+        "newText": "json res3 = check foodClient->/.get((), param1 = \"value1\", param2 = 12);"
       }
     ]
   }

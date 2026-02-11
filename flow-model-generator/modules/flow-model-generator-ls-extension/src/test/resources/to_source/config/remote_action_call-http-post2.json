@@ -178,7 +178,7 @@
             "character": 87
           }
         },
-        "newText": "json res1 = check foodClient->post(\"/bananas\", \"red banana\");"
+        "newText": "json res1 = check foodClient->post(\"/bananas\", \"red banana\", (), ());"
       }
     ]
   }

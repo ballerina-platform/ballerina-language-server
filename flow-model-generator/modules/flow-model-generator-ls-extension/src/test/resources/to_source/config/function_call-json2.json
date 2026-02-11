@@ -125,7 +125,7 @@
             "character": 61
           }
         },
-        "newText": "Apple apple = check jsondata:parseAsType(jsonResult);"
+        "newText": "Apple apple = check jsondata:parseAsType(jsonResult, {});"
       }
     ]
   }

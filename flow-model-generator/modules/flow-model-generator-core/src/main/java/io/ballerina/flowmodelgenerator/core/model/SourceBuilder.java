@@ -520,9 +520,6 @@ public class SourceBuilder {
                     missedDefaultValue = true;
                     continue;
                 }
-                if (prop.placeholder().equals(prop.value())) {
-                    continue;
-                }
                 if (firstParamAdded) {
                     tokenBuilder.keyword(SyntaxKind.COMMA_TOKEN);
                 }
