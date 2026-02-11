@@ -1,0 +1,178 @@
+{
+  "description": "",
+  "source": "github.bal",
+  "packageName": ".",
+  "output": {
+    "Listeners": {
+      "githubListener": {
+        "id": "githubListener",
+        "location": {
+          "fileName": "github.bal",
+          "startLine": {
+            "line": 2,
+            "offset": 0
+          },
+          "endLine": {
+            "line": 2,
+            "offset": 49
+          }
+        },
+        "type": "LISTENER",
+        "name": "githubListener",
+        "scope": "Global",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_trigger.github_0.10.0.png",
+        "module": "trigger.github",
+        "children": {}
+      }
+    },
+    "Entry Points": {
+      "628752842": {
+        "id": "628752842",
+        "location": {
+          "fileName": "github.bal",
+          "startLine": {
+            "line": 4,
+            "offset": 0
+          },
+          "endLine": {
+            "line": 60,
+            "offset": 1
+          }
+        },
+        "type": "SERVICE",
+        "name": "GitHub Event Integration - github:IssuesService",
+        "scope": "Global",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_trigger.github_0.10.0.png",
+        "module": "trigger.github",
+        "children": {
+          "onOpened": {
+            "id": "onOpened",
+            "location": {
+              "fileName": "github.bal",
+              "startLine": {
+                "line": 5,
+                "offset": 4
+              },
+              "endLine": {
+                "line": 11,
+                "offset": 5
+              }
+            },
+            "type": "REMOTE",
+            "name": "onOpened",
+            "scope": "Global",
+            "children": {}
+          },
+          "onClosed": {
+            "id": "onClosed",
+            "location": {
+              "fileName": "github.bal",
+              "startLine": {
+                "line": 13,
+                "offset": 4
+              },
+              "endLine": {
+                "line": 19,
+                "offset": 5
+              }
+            },
+            "type": "REMOTE",
+            "name": "onClosed",
+            "scope": "Global",
+            "children": {}
+          },
+          "onReopened": {
+            "id": "onReopened",
+            "location": {
+              "fileName": "github.bal",
+              "startLine": {
+                "line": 21,
+                "offset": 4
+              },
+              "endLine": {
+                "line": 27,
+                "offset": 5
+              }
+            },
+            "type": "REMOTE",
+            "name": "onReopened",
+            "scope": "Global",
+            "children": {}
+          },
+          "onAssigned": {
+            "id": "onAssigned",
+            "location": {
+              "fileName": "github.bal",
+              "startLine": {
+                "line": 29,
+                "offset": 4
+              },
+              "endLine": {
+                "line": 35,
+                "offset": 5
+              }
+            },
+            "type": "REMOTE",
+            "name": "onAssigned",
+            "scope": "Global",
+            "children": {}
+          },
+          "onLabeled": {
+            "id": "onLabeled",
+            "location": {
+              "fileName": "github.bal",
+              "startLine": {
+                "line": 45,
+                "offset": 4
+              },
+              "endLine": {
+                "line": 51,
+                "offset": 5
+              }
+            },
+            "type": "REMOTE",
+            "name": "onLabeled",
+            "scope": "Global",
+            "children": {}
+          },
+          "onUnlabeled": {
+            "id": "onUnlabeled",
+            "location": {
+              "fileName": "github.bal",
+              "startLine": {
+                "line": 53,
+                "offset": 4
+              },
+              "endLine": {
+                "line": 59,
+                "offset": 5
+              }
+            },
+            "type": "REMOTE",
+            "name": "onUnlabeled",
+            "scope": "Global",
+            "children": {}
+          },
+          "onUnassigned": {
+            "id": "onUnassigned",
+            "location": {
+              "fileName": "github.bal",
+              "startLine": {
+                "line": 37,
+                "offset": 4
+              },
+              "endLine": {
+                "line": 43,
+                "offset": 5
+              }
+            },
+            "type": "REMOTE",
+            "name": "onUnassigned",
+            "scope": "Global",
+            "children": {}
+          }
+        }
+      }
+    }
+  }
+}
