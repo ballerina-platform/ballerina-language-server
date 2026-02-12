@@ -1,0 +1,33 @@
+{
+  "range": {
+    "start": {
+      "line": 0,
+      "character": 32
+    },
+    "end": {
+      "line": 0,
+      "character": 33
+    }
+  },
+  "expectedActions": [
+    {
+      "title": "Remove unused parameter",
+      "kind": "quickfix",
+      "edits": [
+        {
+          "newText": "",
+          "range": {
+            "start": {
+              "line": 0,
+              "character": 26
+            },
+            "end": {
+              "line": 0,
+              "character": 33
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

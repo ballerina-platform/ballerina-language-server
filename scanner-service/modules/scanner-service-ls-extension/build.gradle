@@ -1,0 +1,122 @@
+/*
+ * Copyright (c) 2026, WSO2 LLC. (http://www.wso2.com)
+ *
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+apply from: "$rootDir/gradle/javaProject.gradle"
+apply plugin: "com.github.johnrengelman.shadow"
+apply plugin: "java"
+
+description = 'Ballerina - Scanner LS Extension'
+
+configurations.all {
+    resolutionStrategy.preferProjectModules()
+}
+
+
+// Define 'dist' configuration for dependencies to be bundled
+configurations {
+    dist {
+        transitive = true
+    }
+}
+
+dependencies {
+    // Standard Dependencies
+    implementation "com.google.code.gson:gson:${gsonVersion}"
+
+    compileOnly "org.ballerinalang:ballerina-lang:${ballerinaLangVersion}"
+    compileOnly "org.ballerinalang:ballerina-parser:${ballerinaLangVersion}"
+    compileOnly "org.ballerinalang:ballerina-tools-api:${ballerinaLangVersion}"
+    compileOnly "org.ballerinalang:language-server-commons:${ballerinaLangVersion}"
+    compileOnly "org.ballerinalang:language-server-core:${ballerinaLangVersion}"
+    compileOnly "org.ballerinalang:ballerina-cli:${ballerinaLangVersion}"
+    compileOnly "org.eclipse.lsp4j:org.eclipse.lsp4j:${eclipseLsp4jVersion}"
+
+    testImplementation "org.testng:testng:${testngVersion}"
+    testImplementation "org.ballerinalang:ballerina-lang:${ballerinaLangVersion}"
+    testImplementation "org.ballerinalang:ballerina-parser:${ballerinaLangVersion}"
+    testImplementation "org.ballerinalang:ballerina-tools-api:${ballerinaLangVersion}"
+    testImplementation "org.eclipse.lsp4j:org.eclipse.lsp4j:${eclipseLsp4jVersion}"
+    testRuntimeOnly "org.slf4j:slf4j-jdk14:${slf4jJdk14Version}"
+}
+
+
+// Build Configuration (Updated to Bundle Dependencies)
+jar {
+    archiveBaseName.set('scanner-ls-extension')
+    archiveVersion.set('0.1.0-SNAPSHOT')
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+    // Bundle the 'dist' dependencies (The Scanner Engine) into this JAR
+    // This logic mimics the openapi-service build file
+    dependsOn configurations.dist
+    from { 
+        configurations.dist.collect { it.isDirectory() ? it : zipTree(it) } 
+    } {
+        // Security: Exclude signature files from bundled JARs
+        exclude 'META-INF/*.RSA', 'META-INF/*.SF', 'META-INF/*.DSA'
+    }
+}
+
+
+// Test Configuration
+tasks.test {
+    useTestNG() {
+        suites 'src/test/resources/testng.xml'
+    }
+    maxParallelForks = 1
+    maxHeapSize = '384m'
+    jvmArgs '-XX:MaxMetaspaceSize=256m'
+}
+
+tasks.withType(Checkstyle).configureEach {
+    minHeapSize = '64m'
+    maxHeapSize = '256m'
+}
+
+tasks.named('checkstyleTest') {
+    mustRunAfter(tasks.named('checkstyleMain'))
+}
+
+tasks.named('test') {
+    mustRunAfter(tasks.named('checkstyleMain'))
+    mustRunAfter(tasks.named('checkstyleTest'))
+}
+
+
+// Publishing (GitHub Packages)
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            groupId group
+            artifactId project.name
+            version version
+        }
+    }
+
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/ballerina-platform/static-code-analysis-tool")
+            credentials {
+                username = System.getenv("publishUser")
+                password = System.getenv("publishPAT")
+            }
+        }
+    }
+}

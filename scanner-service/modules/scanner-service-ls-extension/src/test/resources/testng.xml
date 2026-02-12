@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+<suite name="Scanner LS Extension Test Suite" parallel="none">
+    <test name="Scanner Code Action Tests">
+        <classes>
+            <class name="io.ballerina.scanner.extension.codeaction.CheckpanicCodeActionTest"/>
+            <class name="io.ballerina.scanner.extension.codeaction.UnusedParamCodeActionTest"/>
+            <class name="io.ballerina.scanner.extension.codeaction.IsolatedPublicFunctionCodeActionTest"/>
+        </classes>
+    </test>
+</suite>

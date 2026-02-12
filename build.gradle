@@ -384,6 +384,10 @@ task buildCommons {
     dependsOn(":model-generator-commons:build")
 }
 
+task buildScanner {
+    dependsOn(":scanner-service:modules:scanner-service-ls-extension:build")
+}
+
 publishing {
     publications {
         mavenJava(MavenPublication) { publication ->

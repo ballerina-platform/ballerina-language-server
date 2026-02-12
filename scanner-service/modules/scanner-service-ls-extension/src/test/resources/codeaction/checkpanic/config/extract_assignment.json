@@ -1,0 +1,78 @@
+{
+  "range": {
+    "start": {
+      "line": 4,
+      "character": 13
+    },
+    "end": {
+      "line": 4,
+      "character": 23
+    }
+  },
+  "expectedActions": [
+    {
+      "title": "Replace \u0027checkpanic\u0027 with \u0027check\u0027",
+      "kind": "quickfix",
+      "edits": [
+        {
+          "newText": "check",
+          "range": {
+            "start": {
+              "line": 4,
+              "character": 13
+            },
+            "end": {
+              "line": 4,
+              "character": 23
+            }
+          }
+        },
+        {
+          "newText": " returns error?",
+          "range": {
+            "start": {
+              "line": 2,
+              "character": 22
+            },
+            "end": {
+              "line": 2,
+              "character": 22
+            }
+          }
+        }
+      ]
+    },
+    {
+      "title": "Extract to type guard",
+      "kind": "quickfix",
+      "edits": [
+        {
+          "newText": "",
+          "range": {
+            "start": {
+              "line": 4,
+              "character": 13
+            },
+            "end": {
+              "line": 4,
+              "character": 24
+            }
+          }
+        },
+        {
+          "newText": "\n\n    if result is error {\n        // handle error\n    }",
+          "range": {
+            "start": {
+              "line": 4,
+              "character": 36
+            },
+            "end": {
+              "line": 4,
+              "character": 36
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
