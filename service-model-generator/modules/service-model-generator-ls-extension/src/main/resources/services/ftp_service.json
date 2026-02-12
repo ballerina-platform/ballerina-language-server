@@ -944,6 +944,117 @@
         "optional": true,
         "advanced": false
       }
+    },
+    {
+      "metadata": {
+        "label": "onError",
+        "description": "Handle file processing errors"
+      },
+      "kind": "REMOTE",
+      "enabled": false,
+      "optional": true,
+      "editable": true,
+      "codedata": {
+        "moduleName": "ftp"
+      },
+      "name": {
+        "metadata": {
+          "label": "onError",
+          "description": "Error handling function"
+        },
+        "enabled": true,
+        "editable": false,
+        "value": "onError",
+        "valueType": "IDENTIFIER",
+        "valueTypeConstraint": "",
+        "isType": false,
+        "placeholder": "",
+        "optional": false,
+        "advanced": false
+      },
+      "parameters": [
+        {
+          "metadata": {
+            "label": "Error",
+            "description": "The error that occurred during file processing"
+          },
+          "kind": "REQUIRED",
+          "type": {
+            "enabled": true,
+            "editable": false,
+            "value": "ftp:Error",
+            "valueType": "TYPE",
+            "valueTypeConstraint": "ftp:Error",
+            "isType": true,
+            "placeholder": "ftp:Error",
+            "optional": false,
+            "advanced": false
+          },
+          "name": {
+            "enabled": true,
+            "editable": true,
+            "value": "err",
+            "valueType": "IDENTIFIER",
+            "valueTypeConstraint": "string",
+            "isType": false,
+            "placeholder": "err",
+            "optional": false,
+            "advanced": false
+          },
+          "enabled": true,
+          "editable": false,
+          "optional": false,
+          "advanced": false
+        },
+        {
+          "metadata": {
+            "label": "FTP Connection (caller)",
+            "description": "FTP connection for further operations"
+          },
+          "kind": "REQUIRED",
+          "type": {
+            "enabled": true,
+            "editable": false,
+            "value": "ftp:Caller",
+            "valueType": "CHECKBOX",
+            "valueTypeConstraint": "ftp:Caller",
+            "isType": true,
+            "placeholder": "ftp:Caller",
+            "optional": false,
+            "advanced": false
+          },
+          "name": {
+            "enabled": true,
+            "editable": true,
+            "value": "caller",
+            "valueType": "IDENTIFIER",
+            "valueTypeConstraint": "string",
+            "isType": false,
+            "placeholder": "caller",
+            "optional": false,
+            "advanced": false
+          },
+          "enabled": false,
+          "editable": true,
+          "optional": true,
+          "advanced": true
+        }
+      ],
+      "returnType": {
+        "metadata": {
+          "label": "Return type",
+          "description": "Return type of the function"
+        },
+        "enabled": true,
+        "editable": true,
+        "value": "error?",
+        "valueType": "TYPE",
+        "valueTypeConstraint": "anydata",
+        "isType": true,
+        "placeholder": "error?",
+        "optional": true,
+        "advanced": false
+      }
     }
   ]
 }
