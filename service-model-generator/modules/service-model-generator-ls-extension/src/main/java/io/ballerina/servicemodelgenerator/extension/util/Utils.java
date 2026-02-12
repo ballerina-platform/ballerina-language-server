@@ -93,6 +93,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -769,6 +770,7 @@ public final class Utils {
     public static List<String> getAnnotationEdits(Service service) {
         Map<String, Value> properties = service.getProperties();
         List<String> annots = new ArrayList<>();
+        Map<String, List<String>> serviceAnnotations = new LinkedHashMap<>();
         for (Map.Entry<String, Value> property : properties.entrySet()) {
             Value value = property.getValue();
             if (Objects.nonNull(value.getCodedata()) && Objects.nonNull(value.getCodedata().getType()) &&
@@ -776,7 +778,30 @@ public final class Utils {
                 String ref = getProtocol(service.getModuleName()) + ":" + value.getCodedata().getOriginalName();
                 String annotTemplate = "@%s%s".formatted(ref, value.getValue());
                 annots.add(annotTemplate);
+            } else if (Objects.nonNull(value.getCodedata()) && Objects.nonNull(value.getCodedata().getType())
+                    && value.getCodedata().getType().equals("SERVICE_ANNOTATION") && value.isEnabledWithValue()) {
+                String annotName = value.getCodedata().getOriginalName();
+                if (annotName == null || annotName.isEmpty()) {
+                    annotName = property.getKey();
+                }
+                String moduleName = value.getCodedata().getModuleName();
+                String ref = "";
+                if (Objects.nonNull(moduleName) && !moduleName.isEmpty()) {
+                    ref = getProtocol(moduleName) + COLON;
+                }
+                ref += annotName;
+                String fieldValue = value.getLiteralValue();
+                if (fieldValue != null) {
+                    serviceAnnotations.computeIfAbsent(ref, key -> new ArrayList<>())
+                            .add(property.getKey() + ": " + fieldValue);
+                }
             }
+        }
+        for (Map.Entry<String, List<String>> entry : serviceAnnotations.entrySet()) {
+            String fields = String.join("," + NEW_LINE + "    ", entry.getValue());
+            String annotTemplate = "@%s {%s%s%s}".formatted(entry.getKey(), NEW_LINE,
+                    "    " + fields, NEW_LINE);
+            annots.add(annotTemplate);
         }
         return annots;
     }

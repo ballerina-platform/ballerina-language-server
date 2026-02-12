@@ -9,10 +9,12 @@ listener ftp:Listener ftpListener = new ({
             password: "defaultPassword"
         }
     },
-    port: 21,
-    path: "/"
+    port: 21
 });
 
+@ftp:ServiceConfig {
+    path: "/"
+}
 service on ftpListener {
     remote function onFileJson(json content, ftp:FileInfo fileInfo) returns error? {
         do {

@@ -56,7 +56,7 @@
         "optional": false,
         "advanced": false
       },
-      "folderPath": {
+      "path": {
         "metadata": {
           "label": "Folder Path",
           "description": "The folder on the server to monitor for new files (e.g., /uploads or /incoming)"

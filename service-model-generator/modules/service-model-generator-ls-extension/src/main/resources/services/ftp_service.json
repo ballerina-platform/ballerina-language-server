@@ -34,6 +34,40 @@
       "optional": false,
       "advanced": false,
       "addNewButton": true
+    },
+    "annotServiceConfig": {
+      "metadata": {
+        "label": "Service Configuration",
+        "description": "Define service-level configuration such as monitoring path"
+      },
+      "enabled": true,
+      "editable": true,
+      "value": "{\n    path: \"/\"\n}",
+      "types": [
+        {
+          "fieldType": "RECORD_MAP_EXPRESSION",
+          "ballerinaType": "ftp:ServiceConfig",
+          "selected": true,
+          "typeMembers": [
+            {
+              "type": "ServiceConfig",
+              "packageInfo": "ballerina:ftp:2.17.0",
+              "packageName": "ftp",
+              "kind": "RECORD_TYPE",
+              "selected": true
+            }
+          ]
+        }
+      ],
+      "isType": false,
+      "placeholder": "{}",
+      "optional": false,
+      "advanced": false,
+      "codedata": {
+        "type": "ANNOTATION_ATTACHMENT",
+        "originalName": "ServiceConfig",
+        "moduleName": "ftp"
+      }
     }
   },
   "functions": [

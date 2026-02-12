@@ -86,7 +86,7 @@
                   "optional": false,
                   "advanced": false
                 },
-                "folderPath": {
+                "path": {
                   "metadata": {
                     "label": "Folder Path",
                     "description": "The folder on the remote server to monitor for file actions (e.g., /uploads or /incoming)"
@@ -275,7 +275,7 @@
                   "optional": false,
                   "advanced": false
                 },
-                "folderPath": {
+                "path": {
                   "metadata": {
                     "label": "Folder Path",
                     "description": "The folder on the remote server to monitor for file actions (e.g., /uploads or /incoming)"
@@ -479,7 +479,7 @@
                   "optional": false,
                   "advanced": false
                 },
-                "folderPath": {
+                "path": {
                   "metadata": {
                     "label": "Folder Path",
                     "description": "The folder on the remote server to monitor for file actions (e.g., /uploads or /incoming)"

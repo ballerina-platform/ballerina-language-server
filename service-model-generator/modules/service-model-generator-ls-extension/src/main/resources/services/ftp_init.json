@@ -100,36 +100,6 @@
                 "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
               }
             },
-            "folderPath": {
-              "metadata": {
-                "label": "Folder Path",
-                "description": "The folder on the remote server to monitor for file actions (e.g., /uploads or /incoming)"
-              },
-              "enabled": true,
-              "editable": true,
-              "value": "\"/\"",
-              "types": [
-                {
-                  "fieldType": "TEXT",
-                  "ballerinaType": "string",
-                  "selected": true
-                },
-                {
-                  "fieldType": "EXPRESSION",
-                  "ballerinaType": "string",
-                  "selected": false
-                }
-              ],
-              "valueType": "EXPRESSION",
-              "valueTypeConstraint": "string",
-              "isType": false,
-              "placeholder": "/",
-              "optional": false,
-              "advanced": false,
-              "codedata": {
-                "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
-              }
-            },
             "authentication": {
               "metadata": {
                 "label": "Authentication",
@@ -304,36 +274,6 @@
               "valueType": "EXPRESSION",
               "valueTypeConstraint": "int",
               "placeholder": "21",
-              "optional": false,
-              "advanced": false,
-              "codedata": {
-                "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
-              }
-            },
-            "folderPath": {
-              "metadata": {
-                "label": "Folder Path",
-                "description": "The folder on the remote server to monitor for file actions (e.g., /uploads or /incoming)"
-              },
-              "enabled": true,
-              "editable": true,
-              "value": "\"/\"",
-              "types": [
-                {
-                  "fieldType": "TEXT",
-                  "ballerinaType": "string",
-                  "selected": true
-                },
-                {
-                  "fieldType": "EXPRESSION",
-                  "ballerinaType": "string",
-                  "selected": false
-                }
-              ],
-              "valueType": "EXPRESSION",
-              "valueTypeConstraint": "string",
-              "isType": false,
-              "placeholder": "/",
               "optional": false,
               "advanced": false,
               "codedata": {
@@ -532,36 +472,6 @@
                 "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
               }
             },
-            "folderPath": {
-              "metadata": {
-                "label": "Folder Path",
-                "description": "The folder on the remote server to monitor for file actions (e.g., /uploads or /incoming)"
-              },
-              "enabled": true,
-              "editable": true,
-              "value": "\"/\"",
-              "types": [
-                {
-                  "fieldType": "TEXT",
-                  "ballerinaType": "string",
-                  "selected": true
-                },
-                {
-                  "fieldType": "EXPRESSION",
-                  "ballerinaType": "string",
-                  "selected": false
-                }
-              ],
-              "valueType": "EXPRESSION",
-              "valueTypeConstraint": "string",
-              "isType": false,
-              "placeholder": "/",
-              "optional": false,
-              "advanced": false,
-              "codedata": {
-                "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
-              }
-            },
             "authentication": {
               "metadata": {
                 "label": "Authentication",
@@ -711,6 +621,38 @@
           }
         }
       ]
+    },
+    "path": {
+      "metadata": {
+        "label": "Monitoring Path",
+        "description": "The folder on the remote server to monitor for file actions (e.g., /uploads or /incoming)"
+      },
+      "enabled": true,
+      "editable": true,
+      "value": "\"/\"",
+      "types": [
+        {
+          "fieldType": "TEXT",
+          "ballerinaType": "string",
+          "selected": true
+        },
+        {
+          "fieldType": "EXPRESSION",
+          "ballerinaType": "string",
+          "selected": false
+        }
+      ],
+      "valueType": "EXPRESSION",
+      "valueTypeConstraint": "string",
+      "isType": false,
+      "placeholder": "/",
+      "optional": false,
+      "advanced": false,
+      "codedata": {
+        "type": "SERVICE_ANNOTATION",
+        "originalName": "ServiceConfig",
+        "moduleName": "ftp"
+      }
     },
     "listenerVarName": {
       "metadata": {
