@@ -70,6 +70,7 @@ import io.ballerina.flowmodelgenerator.core.model.node.ReturnBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.RollbackBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.StartBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.StopBuilder;
+import io.ballerina.flowmodelgenerator.core.model.node.TestFunctionDefinitionBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.TransactionBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.VariableBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.VectorStoreBuilder;
@@ -145,6 +146,7 @@ public abstract class NodeBuilder implements DiagnosticHandler.DiagnosticCapable
         put(NodeKind.DATA_MAPPER, DataMapperBuilder::new);
         put(NodeKind.DATA_MAPPER_DEFINITION, DataMapperDefinitionBuilder::new);
         put(NodeKind.FUNCTION_DEFINITION, FunctionDefinitionBuilder::new);
+        put(NodeKind.TEST_FUNCTION_DEFINITION, TestFunctionDefinitionBuilder::new);
         put(NodeKind.AUTOMATION, AutomationBuilder::new);
         put(NodeKind.VARIABLE, VariableBuilder::new);
         put(NodeKind.ASSIGN, AssignBuilder::new);

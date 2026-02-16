@@ -71,7 +71,8 @@ public class FunctionDefinitionBuilder extends NodeBuilder {
 
     @Override
     public void setConcreteTemplateData(TemplateContext context) {
-        properties().functionNameTemplate("function", context.getAllVisibleSymbolNames());
+        properties().functionNameTemplate("function", context.getAllVisibleSymbolNames(),
+                FUNCTION_NAME_LABEL, FUNCTION_NAME_DOC);
         setMandatoryProperties(this, null, "", "");
         setOptionalProperties(this);
     }
