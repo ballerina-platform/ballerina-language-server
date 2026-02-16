@@ -19,6 +19,14 @@
 package io.ballerina.flowmodelgenerator.core.model.node;
 
 import com.google.gson.Gson;
+import io.ballerina.compiler.syntax.tree.AnnotationNode;
+import io.ballerina.compiler.syntax.tree.ExpressionNode;
+import io.ballerina.compiler.syntax.tree.ListConstructorExpressionNode;
+import io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode;
+import io.ballerina.compiler.syntax.tree.MappingFieldNode;
+import io.ballerina.compiler.syntax.tree.Node;
+import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
+import io.ballerina.compiler.syntax.tree.SpecificFieldNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.Token;
 import io.ballerina.flowmodelgenerator.core.model.FormBuilder;
@@ -26,6 +34,7 @@ import io.ballerina.flowmodelgenerator.core.model.NodeBuilder;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.flowmodelgenerator.core.model.Property;
 import io.ballerina.flowmodelgenerator.core.model.SourceBuilder;
+import io.ballerina.modelgenerator.commons.Annotation;
 import io.ballerina.tools.text.LineRange;
 import org.eclipse.lsp4j.TextEdit;
 
@@ -66,7 +75,7 @@ public class TestFunctionDefinitionBuilder extends FunctionDefinitionBuilder {
                 FUNCTION_NAME_LABEL, FUNCTION_NAME_DOC);
         setMandatoryProperties(this, null, "", "");
         setOptionalProperties(this);
-        addAnnotationsSchema(this);
+        addAnnotationsSchema(this, null);
     }
 
     public static void setMandatoryProperties(NodeBuilder nodeBuilder, String returnType, String description,
@@ -188,7 +197,11 @@ public class TestFunctionDefinitionBuilder extends FunctionDefinitionBuilder {
         return sourceBuilder.build();
     }
 
-    private static void addAnnotationsSchema(NodeBuilder nodeBuilder) {
+    public static void addAnnotationsSchema(NodeBuilder nodeBuilder, AnnotationNode annotationNode) {
+        Optional<MappingConstructorExpressionNode> annotValue = annotationNode.annotValue();
+        Map<String, String> valueMap = new HashMap<>();
+        buildConfigAnnotation(annotValue.orElse(null), valueMap);
+
         nodeBuilder.properties().custom()
                 .metadata()
                 .label("Groups")
@@ -199,6 +212,7 @@ public class TestFunctionDefinitionBuilder extends FunctionDefinitionBuilder {
                 .ballerinaType("string[]")
                 .selected(true)
                 .stepOut()
+                .value(valueMap.getOrDefault("groups", ""))
                 .editable()
                 .stepOut()
                 .addProperty("groups");
@@ -213,8 +227,40 @@ public class TestFunctionDefinitionBuilder extends FunctionDefinitionBuilder {
                 .ballerinaType("boolean")
                 .selected(true)
                 .stepOut()
+                .value(valueMap.getOrDefault("enabled", "true"))
                 .editable()
                 .stepOut()
                 .addProperty("enabled");
     }
+
+    private static void buildConfigAnnotation(MappingConstructorExpressionNode mappingConstructor,
+                                              Map<String, String> valueMap) {
+        if (mappingConstructor == null) {
+            return;
+        }
+        SeparatedNodeList<MappingFieldNode> fields = mappingConstructor.fields();
+        for (MappingFieldNode field: fields) {
+            if (field instanceof SpecificFieldNode specificFieldNode) {
+                String fieldName = specificFieldNode.fieldName().toSourceCode().trim();
+                Optional<ExpressionNode> expressionNode = specificFieldNode.valueExpr();
+
+                switch (fieldName) {
+                    case "enabled" -> {
+                        if (expressionNode.isPresent()) {
+                            String value = expressionNode.get().toSourceCode().trim();
+                            valueMap.put("enabled", value);
+                        }
+                    }
+                    case "groups" -> {
+                        if (expressionNode.isPresent()
+                                && expressionNode.get() instanceof ListConstructorExpressionNode expr) {
+                            valueMap.put("groups", expr.toSourceCode().trim());
+                        }
+                    }
+                    default -> { }
+                }
+            }
+        }
+    }
+
 }

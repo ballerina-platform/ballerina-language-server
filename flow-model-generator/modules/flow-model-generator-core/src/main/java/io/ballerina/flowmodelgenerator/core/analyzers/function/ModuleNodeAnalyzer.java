@@ -22,6 +22,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import io.ballerina.compiler.api.ModuleID;
 import io.ballerina.compiler.api.SemanticModel;
+import io.ballerina.compiler.api.symbols.AnnotationSymbol;
 import io.ballerina.compiler.api.symbols.ParameterSymbol;
 import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
@@ -30,6 +31,7 @@ import io.ballerina.compiler.syntax.tree.DefaultableParameterNode;
 import io.ballerina.compiler.syntax.tree.ExpressionFunctionBodyNode;
 import io.ballerina.compiler.syntax.tree.FunctionArgumentNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
+import io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode;
 import io.ballerina.compiler.syntax.tree.MarkdownDocumentationLineNode;
 import io.ballerina.compiler.syntax.tree.MarkdownDocumentationNode;
 import io.ballerina.compiler.syntax.tree.MarkdownParameterDocumentationLineNode;
@@ -54,13 +56,16 @@ import io.ballerina.flowmodelgenerator.core.model.node.AutomationBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.DataMapperDefinitionBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.FunctionDefinitionBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.NPFunctionDefinitionBuilder;
+import io.ballerina.flowmodelgenerator.core.model.node.TestFunctionDefinitionBuilder;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
 import io.ballerina.modelgenerator.commons.ParameterData;
 import io.ballerina.tools.text.LineRange;
 import org.ballerinalang.langserver.commons.BallerinaCompilerApi;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -111,6 +116,8 @@ public class ModuleNodeAnalyzer extends NodeVisitor {
             nodeKind = NodeKind.DATA_MAPPER_DEFINITION;
         } else if (functionDefinitionNode.functionName().text().equals(AutomationBuilder.MAIN_FUNCTION_NAME)) {
             nodeKind = NodeKind.AUTOMATION;
+        } else if (isTestFunction(functionDefinitionNode)) {
+            nodeKind = NodeKind.TEST_FUNCTION_DEFINITION;
         } else {
             nodeKind = NodeKind.FUNCTION_DEFINITION;
         }
@@ -217,7 +224,12 @@ public class ModuleNodeAnalyzer extends NodeVisitor {
             StringBuilder annot = new StringBuilder();
             NodeList<AnnotationNode> annotations = optMetadata.get().annotations();
             for (AnnotationNode annotation : annotations) {
-                annot.append(annotation.toSourceCode());
+                boolean isTestConfig = annotation.annotReference().toSourceCode().trim().equals("test:Config");
+                if (isTestConfig) {
+                    TestFunctionDefinitionBuilder.addAnnotationsSchema(nodeBuilder, annotation);
+                } else {
+                    annot.append(annotation.toSourceCode());
+                }
             }
             annot.append(System.lineSeparator());
             nodeBuilder.properties().annotations(annot.toString());
@@ -231,6 +243,20 @@ public class ModuleNodeAnalyzer extends NodeVisitor {
 
         // Build the definition node
         this.node = gson.toJsonTree(nodeBuilder.build());
+    }
+
+    private boolean isTestFunction(FunctionDefinitionNode functionDefinitionNode) {
+
+        if (functionDefinitionNode.metadata().isPresent()) {
+            MetadataNode metadata = functionDefinitionNode.metadata().get();
+            for (AnnotationNode annotationNode: metadata.annotations()) {
+                boolean isTestConfig = annotationNode.annotReference().toSourceCode().trim().equals("test:Config");
+                if (isTestConfig) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private void processNaturalFunctionDefProperties(NodeBuilder nodeBuilder, NaturalExpressionNode naturalExpression,
