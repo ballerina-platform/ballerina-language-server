@@ -52,6 +52,8 @@ public class TestFunctionDefinitionBuilder extends FunctionDefinitionBuilder {
     public static final String PARAMETERS_LABEL = "Parameters";
     public static final String PARAMETERS_DOC = "Function parameters";
 
+    private static final Gson gson = new Gson();
+
     @Override
     public void setConcreteConstData() {
         metadata().label(LABEL).description(DESCRIPTION);
@@ -84,6 +86,105 @@ public class TestFunctionDefinitionBuilder extends FunctionDefinitionBuilder {
 
     @Override
     public Map<Path, List<TextEdit>> toSource(SourceBuilder sourceBuilder) {
+        Optional<Property> optDescription = sourceBuilder.getProperty(Property.FUNCTION_NAME_DESCRIPTION_KEY);
+        String description = "";
+        if (optDescription.isPresent()) {
+            description = optDescription.get().value().toString();
+        }
+
+        Map<String, String> paramsDesc = new HashMap<>();
+        String params = getParameters(sourceBuilder, optDescription.isPresent(), paramsDesc);
+
+        Optional<Property> optReturnDescription = sourceBuilder.getProperty(Property.RETURN_DESCRIPTION_KEY);
+        String returnDescription = "";
+        if (optReturnDescription.isPresent()) {
+            returnDescription = optReturnDescription.get().value().toString();
+        }
+
+        Optional<Property> funcNameProperty = sourceBuilder.getProperty(Property.FUNCTION_NAME_KEY);
+        if (funcNameProperty.isEmpty()) {
+            throw new IllegalStateException("Function name is not present");
+        }
+        String funcName = funcNameProperty.get().value().toString();
+
+        if (!description.isEmpty()) {
+            sourceBuilder.token().descriptionDoc(description);
+        }
+        if (!paramsDesc.isEmpty() || !returnDescription.isEmpty()) {
+            if (description.isEmpty()) {
+                sourceBuilder.token().descriptionDoc(funcName + " description");
+            }
+            paramsDesc.forEach((paramName, paramDescription) -> {
+                sourceBuilder.token().parameterDoc(paramName, paramDescription);
+            });
+            if (!returnDescription.isEmpty()) {
+                sourceBuilder.token().returnDoc(returnDescription);
+            }
+        }
+
+        sourceBuilder.token().name("@test:Config{");
+        List<String> annotationFields = new ArrayList<>();
+        sourceBuilder.getProperty("groups").ifPresent(property -> {
+            String groupsValue = property.value().toString();
+            if (!groupsValue.isEmpty()) {
+                annotationFields.add("groups: " + groupsValue);
+            }
+        });
+
+        sourceBuilder.getProperty("enabled").ifPresent(property -> {
+            String enabledValue = property.value().toString();
+            if (!enabledValue.isEmpty()) {
+                annotationFields.add("enabled: " + enabledValue);
+            }
+        });
+
+        sourceBuilder.token().name(String.join(", ", annotationFields));
+        sourceBuilder.token().name("}");
+
+        Optional<Property> isolatedProperty = sourceBuilder.getProperty(Property.IS_ISOLATED_KEY);
+        if (isolatedProperty.isPresent()) {
+            sourceBuilder.token().keyword(SyntaxKind.ISOLATED_KEYWORD);
+        }
+
+        sourceBuilder.token().keyword(SyntaxKind.FUNCTION_KEYWORD);
+
+        // Write the function name
+        sourceBuilder.token()
+                .name(funcName)
+                .keyword(SyntaxKind.OPEN_PAREN_TOKEN);
+
+        // WRite the function parameters
+        if (!params.isEmpty()) {
+            sourceBuilder.token().name(params);
+        }
+        sourceBuilder.token().keyword(SyntaxKind.CLOSE_PAREN_TOKEN);
+
+        // Write the return type
+        Optional<Property> returnType = sourceBuilder.getProperty(Property.TYPE_KEY);
+        if (returnType.isPresent() && !returnType.get().value().toString().isEmpty()) {
+            sourceBuilder.token()
+                    .keyword(SyntaxKind.RETURNS_KEYWORD)
+                    .name(returnType.get().value().toString());
+        }
+
+        // Generate text edits based on the line range. If a line range exists, update the signature of the existing
+        // function. Otherwise, create a new function definition in "functions.bal".
+        LineRange lineRange = sourceBuilder.flowNode.codedata().lineRange();
+        if (lineRange == null) {
+            sourceBuilder
+                    .token()
+                    .openBrace()
+                    .closeBrace()
+                    .stepOut()
+                    .textEdit(SourceBuilder.SourceKind.DECLARATION)
+                    .acceptImport();
+        } else {
+            sourceBuilder
+                    .token().skipFormatting().stepOut()
+                    .textEdit();
+        }
+
+        sourceBuilder.addImport("ballerina/test");
         return sourceBuilder.build();
     }
 

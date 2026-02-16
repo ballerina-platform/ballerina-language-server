@@ -105,34 +105,8 @@ public class FunctionDefinitionBuilder extends NodeBuilder {
             description = optDescription.get().value().toString();
         }
 
-        Optional<Property> parameters = sourceBuilder.getProperty(Property.PARAMETERS_KEY);
-        String params = "";
         Map<String, String> paramsDesc = new HashMap<>();
-        if (parameters.isPresent() && parameters.get().value() instanceof Map<?, ?> paramMap) {
-            List<String> paramList = new ArrayList<>();
-            for (Object obj : paramMap.values()) {
-                Property paramProperty = gson.fromJson(gson.toJsonTree(obj), Property.class);
-                if (!(paramProperty.value() instanceof Map<?, ?> paramData)) {
-                    continue;
-                }
-                Map<String, Property> paramProperties = gson.fromJson(gson.toJsonTree(paramData),
-                        FormBuilder.NODE_PROPERTIES_TYPE);
-
-                String paramType = paramProperties.get(Property.TYPE_KEY).value().toString();
-                String paramName = paramProperties.get(Property.VARIABLE_KEY).value().toString();
-                paramList.add(paramType + " " + paramName);
-                if (optDescription.isPresent()) {
-                    Property property = paramProperties.get(Property.PARAMETER_DESCRIPTION_KEY);
-                    if (property != null) {
-                        String paramDescription = property.value().toString();
-                        if (!paramDescription.isEmpty()) {
-                            paramsDesc.put(paramName, paramDescription);
-                        }
-                    }
-                }
-            }
-            params = String.join(", ", paramList);
-        }
+        String params = getParameters(sourceBuilder, optDescription.isPresent(), paramsDesc);
 
         Optional<Property> optReturnDescription = sourceBuilder.getProperty(Property.RETURN_DESCRIPTION_KEY);
         String returnDescription = "";
@@ -208,6 +182,38 @@ public class FunctionDefinitionBuilder extends NodeBuilder {
                     .textEdit();
         }
         return sourceBuilder.build();
+    }
+
+    protected static String getParameters(SourceBuilder sourceBuilder, boolean hasFunctionDescription,
+                                        Map<String, String> paramsDesc) {
+        Optional<Property> parameters = sourceBuilder.getProperty(Property.PARAMETERS_KEY);
+        String params = "";
+        if (parameters.isPresent() && parameters.get().value() instanceof Map<?, ?> paramMap) {
+            List<String> paramList = new ArrayList<>();
+            for (Object obj : paramMap.values()) {
+                Property paramProperty = gson.fromJson(gson.toJsonTree(obj), Property.class);
+                if (!(paramProperty.value() instanceof Map<?, ?> paramData)) {
+                    continue;
+                }
+                Map<String, Property> paramProperties = gson.fromJson(gson.toJsonTree(paramData),
+                        FormBuilder.NODE_PROPERTIES_TYPE);
+
+                String paramType = paramProperties.get(Property.TYPE_KEY).value().toString();
+                String paramName = paramProperties.get(Property.VARIABLE_KEY).value().toString();
+                paramList.add(paramType + " " + paramName);
+                if (hasFunctionDescription) {
+                    Property property = paramProperties.get(Property.PARAMETER_DESCRIPTION_KEY);
+                    if (property != null) {
+                        String paramDescription = property.value().toString();
+                        if (!paramDescription.isEmpty()) {
+                            paramsDesc.put(paramName, paramDescription);
+                        }
+                    }
+                }
+            }
+            params = String.join(", ", paramList);
+        }
+        return params;
     }
 
     private static class ParameterSchemaHolder {

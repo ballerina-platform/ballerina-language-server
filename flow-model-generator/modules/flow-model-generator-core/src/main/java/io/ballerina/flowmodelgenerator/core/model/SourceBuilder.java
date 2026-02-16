@@ -86,6 +86,7 @@ public class SourceBuilder {
     private static final String AGENTS_BAL = "agents.bal";
     private static final String DATA_MAPPINGS_BAL = "data_mappings.bal";
     private static final String FUNCTIONS_BAL = "functions.bal";
+    private static final String TEST_FUNCTIONS_BAL = "tests/test.bal";
     private static final String BALLERINA_FILE_SUFFIX = ".bal";
 
     public SourceBuilder(FlowNode flowNode, WorkspaceManager workspaceManager, Path filePath,
@@ -126,6 +127,7 @@ public class SourceBuilder {
                 case FUNCTION_DEFINITION, NP_FUNCTION, NP_FUNCTION_DEFINITION -> FUNCTIONS_BAL;
                 case AUTOMATION -> AUTOMATION_BAL;
                 case AGENT, MEMORY, MEMORY_STORE, MCP_TOOL_KIT -> AGENTS_BAL;
+                case TEST_FUNCTION_DEFINITION -> TEST_FUNCTIONS_BAL;
                 default -> null;
             };
             if (defaultFile == null) {
