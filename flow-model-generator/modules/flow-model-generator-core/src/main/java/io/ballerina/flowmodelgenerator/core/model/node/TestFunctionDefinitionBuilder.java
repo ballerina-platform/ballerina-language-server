@@ -64,6 +64,7 @@ public class TestFunctionDefinitionBuilder extends FunctionDefinitionBuilder {
                 FUNCTION_NAME_LABEL, FUNCTION_NAME_DOC);
         setMandatoryProperties(this, null, "", "");
         setOptionalProperties(this);
+        addAnnotationsSchema(this);
     }
 
     public static void setMandatoryProperties(NodeBuilder nodeBuilder, String returnType, String description,
@@ -73,8 +74,6 @@ public class TestFunctionDefinitionBuilder extends FunctionDefinitionBuilder {
                 .returnType(returnType, null, true)
                 .returnDescription(returnDescription)
                 .nestedProperty();
-
-        addAnnotationsSchema(nodeBuilder);
     }
 
     public static void setOptionalProperties(NodeBuilder nodeBuilder) {
