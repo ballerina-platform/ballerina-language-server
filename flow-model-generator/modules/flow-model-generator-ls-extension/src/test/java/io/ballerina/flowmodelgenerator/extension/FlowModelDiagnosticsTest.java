@@ -18,6 +18,7 @@
 
 package io.ballerina.flowmodelgenerator.extension;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.ballerina.flowmodelgenerator.extension.request.FlowModelSourceGeneratorRequest;
@@ -49,11 +50,16 @@ public class FlowModelDiagnosticsTest extends AbstractLSTest {
         JsonElement flowNode = getResponse(request).get("flowNode");
         notifyDidClose(sourcePath);
 
-        if (!flowNode.equals(testConfig.output())) {
+        assertDiagnosticsIncludeRange(flowNode, "flowNode");
+        JsonElement normalizedActualFlowNode = flowNode.deepCopy();
+        stripDiagnosticRanges(normalizedActualFlowNode);
+        JsonElement normalizedExpectedFlowNode = testConfig.output().deepCopy();
+        stripDiagnosticRanges(normalizedExpectedFlowNode);
+        if (!normalizedActualFlowNode.equals(normalizedExpectedFlowNode)) {
             TestConfig updateConfig = new TestConfig(testConfig.source(), testConfig.description(),
                     testConfig.flowNode(), flowNode);
 //            updateConfig(configJsonPath, updateConfig);
-            compareJsonElements(flowNode, testConfig.output());
+            compareJsonElements(normalizedActualFlowNode, normalizedExpectedFlowNode);
             Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.description(), configJsonPath));
         }
     }
@@ -77,7 +83,13 @@ public class FlowModelDiagnosticsTest extends AbstractLSTest {
         FlowModelSourceGeneratorRequest finalReq = new FlowModelSourceGeneratorRequest(sourcePath, flowNode);
         JsonObject response = getResponse(finalReq);
         notifyDidClose(sourcePath);
-        Assert.assertEquals(response.get("flowNode"), testConfig.output());
+        JsonElement actualFlowNode = response.get("flowNode");
+        assertDiagnosticsIncludeRange(actualFlowNode, "flowNode");
+        JsonElement normalizedActualFlowNode = actualFlowNode.deepCopy();
+        stripDiagnosticRanges(normalizedActualFlowNode);
+        JsonElement normalizedExpectedFlowNode = testConfig.output().deepCopy();
+        stripDiagnosticRanges(normalizedExpectedFlowNode);
+        Assert.assertEquals(normalizedActualFlowNode, normalizedExpectedFlowNode);
     }
 
     @Override
@@ -99,6 +111,73 @@ public class FlowModelDiagnosticsTest extends AbstractLSTest {
 
         public String description() {
             return description == null ? "" : description;
+        }
+    }
+
+    private static void stripDiagnosticRanges(JsonElement jsonElement) {
+        if (jsonElement == null || jsonElement.isJsonNull()) {
+            return;
+        }
+        if (jsonElement.isJsonArray()) {
+            JsonArray jsonArray = jsonElement.getAsJsonArray();
+            for (JsonElement element : jsonArray) {
+                stripDiagnosticRanges(element);
+            }
+            return;
+        }
+        if (!jsonElement.isJsonObject()) {
+            return;
+        }
+        JsonObject jsonObject = jsonElement.getAsJsonObject();
+        if (jsonObject.has("diagnostics")) {
+            JsonElement diagnosticsElement = jsonObject.get("diagnostics");
+            if (diagnosticsElement.isJsonObject()) {
+                JsonArray diagnosticsArray = diagnosticsElement.getAsJsonObject().getAsJsonArray("diagnostics");
+                if (diagnosticsArray != null) {
+                    for (JsonElement diagnosticElement : diagnosticsArray) {
+                        if (diagnosticElement.isJsonObject()) {
+                            diagnosticElement.getAsJsonObject().remove("range");
+                        }
+                    }
+                }
+            }
+        }
+        for (String key : jsonObject.keySet()) {
+            stripDiagnosticRanges(jsonObject.get(key));
+        }
+    }
+
+    private static void assertDiagnosticsIncludeRange(JsonElement jsonElement, String path) {
+        if (jsonElement == null || jsonElement.isJsonNull()) {
+            return;
+        }
+        if (jsonElement.isJsonArray()) {
+            JsonArray jsonArray = jsonElement.getAsJsonArray();
+            for (int i = 0; i < jsonArray.size(); i++) {
+                assertDiagnosticsIncludeRange(jsonArray.get(i), path + "[" + i + "]");
+            }
+            return;
+        }
+        if (!jsonElement.isJsonObject()) {
+            return;
+        }
+        JsonObject jsonObject = jsonElement.getAsJsonObject();
+        if (jsonObject.has("diagnostics")) {
+            JsonElement diagnosticsElement = jsonObject.get("diagnostics");
+            if (diagnosticsElement.isJsonObject()) {
+                JsonArray diagnosticsArray = diagnosticsElement.getAsJsonObject().getAsJsonArray("diagnostics");
+                if (diagnosticsArray != null) {
+                    for (int i = 0; i < diagnosticsArray.size(); i++) {
+                        JsonElement diagnosticElement = diagnosticsArray.get(i);
+                        Assert.assertTrue(diagnosticElement.isJsonObject()
+                                        && diagnosticElement.getAsJsonObject().has("range"),
+                                String.format("Expected diagnostic range at %s.diagnostics.diagnostics[%d]", path, i));
+                    }
+                }
+            }
+        }
+        for (String key : jsonObject.keySet()) {
+            assertDiagnosticsIncludeRange(jsonObject.get(key), path + "." + key);
         }
     }
 }

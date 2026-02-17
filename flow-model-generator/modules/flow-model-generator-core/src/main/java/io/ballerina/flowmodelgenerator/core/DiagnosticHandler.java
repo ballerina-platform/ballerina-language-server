@@ -138,7 +138,8 @@ public class DiagnosticHandler {
 
     private void addDiagnostic(DiagnosticCapable builder) {
         builder.diagnostics()
-                .diagnostic(currentDiagnostic.diagnosticInfo().severity(), currentDiagnostic.message());
+                .diagnostic(currentDiagnostic.diagnosticInfo().severity(), currentDiagnostic.message(),
+                        currentDiagnostic.location().lineRange());
     }
 
     private static boolean hasDiagnosticPassed(LinePosition nodeStartLine, LinePosition diagnosticEndLine,

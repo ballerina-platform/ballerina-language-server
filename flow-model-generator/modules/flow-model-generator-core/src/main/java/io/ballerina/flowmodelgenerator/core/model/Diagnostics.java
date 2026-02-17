@@ -19,6 +19,7 @@
 package io.ballerina.flowmodelgenerator.core.model;
 
 import io.ballerina.tools.diagnostics.DiagnosticSeverity;
+import io.ballerina.tools.text.LineRange;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,13 +34,19 @@ import java.util.List;
 public record Diagnostics(boolean hasDiagnostics, List<Info> diagnostics) {
 
     /**
-     * Represents diagnostic information with severity and message.
+     * Represents diagnostic information with severity, message and range.
      *
      * @param severity severity of the diagnostic
      * @param message  message of the diagnostic
+     * @param range    source line range of the diagnostic
      * @since 1.0.0
      */
-    public record Info(DiagnosticSeverity severity, String message) { }
+    public record Info(DiagnosticSeverity severity, String message, LineRange range) {
+
+        public Info(DiagnosticSeverity severity, String message) {
+            this(severity, message, null);
+        }
+    }
 
     public static class Builder<T> extends FacetedBuilder<T> {
 
@@ -64,6 +71,11 @@ public record Diagnostics(boolean hasDiagnostics, List<Info> diagnostics) {
 
         public Builder<T> diagnostic(DiagnosticSeverity severity, String message) {
             this.diagnostics.add(new Info(severity, message));
+            return this;
+        }
+
+        public Builder<T> diagnostic(DiagnosticSeverity severity, String message, LineRange range) {
+            this.diagnostics.add(new Info(severity, message, range));
             return this;
         }
 
