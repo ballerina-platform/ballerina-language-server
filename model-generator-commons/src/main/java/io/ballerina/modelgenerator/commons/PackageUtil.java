@@ -114,8 +114,13 @@ public class PackageUtil {
      * @return An Optional containing the semantic model.
      */
     public static Optional<SemanticModel> getSemanticModel(ModuleInfo moduleInfo) {
-        Optional<Package> modulePackage = getModulePackage(getSampleProject(), moduleInfo.org(),
-                moduleInfo.packageName(), moduleInfo.version());
+        Optional<Package> modulePackage;
+        try {
+            modulePackage = getModulePackage(getSampleProject(), moduleInfo.org(),
+                    moduleInfo.packageName(), moduleInfo.version());
+        } catch (Throwable ignored) {
+            return Optional.empty();
+        }
         if (modulePackage.isEmpty()) {
             return Optional.empty();
         }
@@ -156,8 +161,14 @@ public class PackageUtil {
         if (resolutionResponse.isEmpty()) {
             return Optional.empty();
         }
+        ResolutionResponse response = resolutionResponse.get();
+        if (response.resolutionStatus() == ResolutionResponse.ResolutionStatus.UNRESOLVED
+                || response.resolvedPackage() == null
+                || response.resolvedPackage().project() == null) {
+            return Optional.empty();
+        }
 
-        Path balaPath = resolutionResponse.get().resolvedPackage().project().sourceRoot();
+        Path balaPath = response.resolvedPackage().project().sourceRoot();
         ProjectEnvironmentBuilder defaultBuilder = ProjectEnvironmentBuilder.getDefaultBuilder();
         defaultBuilder.addCompilationCacheFactory(TempDirCompilationCache::from);
         BalaProject balaProject = BalaProject.loadProject(defaultBuilder, balaPath);
@@ -191,8 +202,14 @@ public class PackageUtil {
         if (resolutionResponse.isEmpty()) {
             return Optional.empty();
         }
+        ResolutionResponse response = resolutionResponse.get();
+        if (response.resolutionStatus() == ResolutionResponse.ResolutionStatus.UNRESOLVED
+                || response.resolvedPackage() == null
+                || response.resolvedPackage().project() == null) {
+            return Optional.empty();
+        }
 
-        Path balaPath = resolutionResponse.get().resolvedPackage().project().sourceRoot();
+        Path balaPath = response.resolvedPackage().project().sourceRoot();
         ProjectEnvironmentBuilder defaultBuilder = ProjectEnvironmentBuilder.getDefaultBuilder();
         defaultBuilder.addCompilationCacheFactory(TempDirCompilationCache::from);
         BalaProject balaProject = BalaProject.loadProject(defaultBuilder, balaPath);
