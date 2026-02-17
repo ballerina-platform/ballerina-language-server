@@ -159,8 +159,10 @@ import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.FunctionData;
 import io.ballerina.modelgenerator.commons.FunctionDataBuilder;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
+import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.modelgenerator.commons.ParameterData;
 import io.ballerina.projects.Document;
+import io.ballerina.projects.Package;
 import io.ballerina.projects.Project;
 import io.ballerina.tools.diagnostics.Location;
 import io.ballerina.tools.text.LinePosition;
@@ -210,7 +212,8 @@ import static io.ballerina.modelgenerator.commons.CommonUtils.isPersistClient;
  */
 public class CodeAnalyzer extends NodeVisitor {
 
-    public static final String PARAMETERIZED_QUERY = "ParameterizedQuery";
+    public static final String PARAMETERIZED_QUERY = "sql:ParameterizedQuery";
+    public static final String PARAMETERIZED_CALL_QUERY = "sql:ParameterizedCallQuery";
     // Readonly fields
     private final Project project;
     private final SemanticModel semanticModel;
@@ -759,11 +762,16 @@ public class CodeAnalyzer extends NodeVisitor {
                                        RemoteMethodCallActionNode remoteMethodCallActionNode,
                                        MethodSymbol functionSymbol, String objName,
                                        Map<String, Object> metadataData) {
+        Optional<Package> resolvedPackage = moduleInfo != null ?
+                PackageUtil.resolveModulePackage(moduleInfo.org(), moduleInfo.packageName(), moduleInfo.version()) :
+                Optional.empty();
+
         FunctionDataBuilder functionDataBuilder = new FunctionDataBuilder()
                 .name(functionName)
                 .functionSymbol(functionSymbol)
                 .semanticModel(semanticModel)
-                .userModuleInfo(moduleInfo);
+                .userModuleInfo(moduleInfo)
+                .resolvedPackage(resolvedPackage.orElse(null));
         FunctionData functionData = functionDataBuilder.build();
 
         nodeBuilder
@@ -1391,7 +1399,8 @@ public class CodeAnalyzer extends NodeVisitor {
             builder.type(Property.ValueType.MAPPING_EXPRESSION_SET);
         } else {
             String ballerinaType = CommonUtils.getTypeSignature(paramData.typeSymbol(), moduleInfo);
-            if (ballerinaType != null && ballerinaType.contains(PARAMETERIZED_QUERY)) {
+            if (ballerinaType != null && (ballerinaType.contains(PARAMETERIZED_QUERY)
+                    || ballerinaType.contains(PARAMETERIZED_CALL_QUERY))) {
                 // Handle SQL query parameters with SQL_QUERY as primary option
                 builder.type()
                         .fieldType(Property.ValueType.SQL_QUERY)

@@ -28,6 +28,7 @@ import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.flowmodelgenerator.core.DiagnosticHandler;
+import io.ballerina.flowmodelgenerator.core.TypeParameterReplacer;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
 import io.ballerina.modelgenerator.commons.ParameterMemberTypeData;
@@ -71,6 +72,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
     public static final TypeToken<List<Property>> LIST_PROPERTY_TYPE_TOKEN = new TypeToken<List<Property>>() {
     };
     public static final String SQL_PARAMETERIZED_QUERY = "sql:ParameterizedQuery";
+    public static final String SQL_CALL_QUERY = "sql:ParameterizedCallQuery";
 
     @SuppressWarnings("unchecked")
     public <T> T valueAsType(TypeToken<T> typeToken) {
@@ -276,6 +278,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
         ACTION_OR_EXPRESSION,
         IDENTIFIER,
         TEXT,
+        DOC_TEXT,
         TYPE,
         ENUM,
         VIEW,
@@ -453,7 +456,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
             }
 
             public TypeBuilder ballerinaType(String ballerinaType) {
-                this.ballerinaType = ballerinaType;
+                this.ballerinaType = TypeParameterReplacer.replaceTypeParameters(ballerinaType);
                 return this;
             }
 
@@ -549,11 +552,27 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
         }
 
         public Builder<T> typeWithExpression(TypeSymbol typeSymbol, ModuleInfo moduleInfo) {
-            return typeWithExpression(typeSymbol, moduleInfo, null, null, null);
+            return typeWithExpression(typeSymbol, moduleInfo, null, null);
+        }
+
+        public Builder<T> typeWithExpression(TypeSymbol typeSymbol, ModuleInfo moduleInfo, String defaultValue) {
+            return typeWithExpression(typeSymbol, moduleInfo, null, null, defaultValue, null);
         }
 
         public Builder<T> typeWithExpression(TypeSymbol typeSymbol, ModuleInfo moduleInfo,
-                                             Node value, SemanticModel semanticModel, Property.Builder<?> builder) {
+                                             Node value, SemanticModel semanticModel) {
+            return typeWithExpression(typeSymbol, moduleInfo, value, semanticModel, null, null);
+        }
+
+        public Builder<T> typeWithExpression(TypeSymbol typeSymbol, ModuleInfo moduleInfo,
+                                             Node value, SemanticModel semanticModel,
+                                             Property.Builder<?> builder) {
+            return typeWithExpression(typeSymbol, moduleInfo, value, semanticModel, null, builder);
+        }
+
+        public Builder<T> typeWithExpression(TypeSymbol typeSymbol, ModuleInfo moduleInfo,
+                                             Node value, SemanticModel semanticModel, String defaultValue,
+                                             Property.Builder<?> builder) {
             if (typeSymbol == null) {
                 return this;
             }
@@ -581,6 +600,10 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
 
                 // If all the member types are singletons, treat it as a single-select option
                 if (allSingletons) {
+                    // Reorder options so that the default value appears first
+                    if (defaultValue != null && !defaultValue.isEmpty()) {
+                        options = reorderOptionsByDefaultValue(options, defaultValue);
+                    }
                     type().fieldType(ValueType.SINGLE_SELECT).options(options).stepOut();
                 } else {
                     // Handle union of primitive types by defining an input type for each primitive type
@@ -708,7 +731,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
 
         private boolean handlePrimitiveType(TypeSymbol typeSymbol, String ballerinaType) {
             // Check for SQL query types first
-            if (SQL_PARAMETERIZED_QUERY.equals(ballerinaType)) {
+            if (SQL_PARAMETERIZED_QUERY.equals(ballerinaType) || SQL_CALL_QUERY.equals(ballerinaType)) {
                 type().fieldType(ValueType.SQL_QUERY).ballerinaType(ballerinaType).selected(true).stepOut();
                 return true;
             }
@@ -755,6 +778,39 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                 case MAPPING_BINDING_PATTERN, MAPPING_CONSTRUCTOR -> ValueType.MAPPING_EXPRESSION_SET;
                 default -> ValueType.EXPRESSION;
             };
+        }
+
+        /**
+         * Reorders enum options so that the option matching the defaultValue appears first in the list.
+         * This improves user experience by showing the default option at the top of dropdown lists.
+         * Returns a new list without modifying the input list.
+         *
+         * @param options      The list of Option objects to reorder
+         * @param defaultValue The default value to prioritize (may contain quotes)
+         * @return A new list with the default option first, or the original list if no match found
+         */
+        private static List<Option> reorderOptionsByDefaultValue(List<Option> options, String defaultValue) {
+            if (options == null || options.isEmpty() || defaultValue == null || defaultValue.isEmpty()) {
+                return new ArrayList<>(options != null ? options : List.of());
+            }
+
+            String cleanedDefaultValue = CommonUtils.removeQuotes(defaultValue);
+            List<Option> reorderedOptions = new ArrayList<>(options);
+
+            // Find and move matching option to front
+            for (int i = 0; i < reorderedOptions.size(); i++) {
+                Option option = reorderedOptions.get(i);
+                String cleanedOptionValue = CommonUtils.removeQuotes(option.value());
+                if (cleanedDefaultValue.equalsIgnoreCase(cleanedOptionValue) ||
+                        cleanedDefaultValue.equalsIgnoreCase(option.value())) {
+                    if (i > 0) {
+                        reorderedOptions.remove(i);
+                        reorderedOptions.addFirst(option);
+                    }
+                    break;
+                }
+            }
+            return reorderedOptions;
         }
 
         public Builder<T> types(List<PropertyType> existingTypes) {
