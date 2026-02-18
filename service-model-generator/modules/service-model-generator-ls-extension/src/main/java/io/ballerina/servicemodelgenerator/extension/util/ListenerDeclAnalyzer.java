@@ -115,9 +115,6 @@ public class ListenerDeclAnalyzer {
                         || paramKind.equals(ParameterData.Kind.INCLUDED_RECORD)) {
                     continue;
                 }
-                if (paramResult.deprecated()) {
-                    continue;
-                }
 
                 String unescapedParamName = removeLeadingSingleQuote(paramResult.name());
                 Codedata codedata = new Codedata("LISTENER_INIT_PARAM");
@@ -161,10 +158,6 @@ public class ListenerDeclAnalyzer {
                             : namedArgValueMap.get(paramResult.name());
 
                     funcParamMap.remove(parameterSymbol.getName().get());
-                    if (paramResult.deprecated()) {
-                        namedArgValueMap.remove(paramResult.name());
-                        continue;
-                    }
                     String value = paramValue != null ? paramValue.toSourceCode() : null;
                     String unescapedParamName = removeLeadingSingleQuote(paramResult.name());
                     Codedata codedata = new Codedata("LISTENER_INIT_PARAM");
@@ -191,11 +184,6 @@ public class ListenerDeclAnalyzer {
                 String escapedParamName = CommonUtil.escapeReservedKeyword(restParamSymbol.getName().get());
                 ParameterData restParamResult = funcParamMap.get(escapedParamName);
                 funcParamMap.remove(restParamSymbol.getName().get());
-                if (restParamResult.deprecated()) {
-                    // Skip deprecated rest parameter
-                    addRemainingParamsToPropertyMap(funcParamMap);
-                    return;
-                }
                 String unescapedParamName = removeLeadingSingleQuote(restParamResult.name());
 
                 Codedata codedata = new Codedata("LISTENER_INIT_PARAM");
@@ -241,10 +229,6 @@ public class ListenerDeclAnalyzer {
                     paramValue = namedArgValueMap.get(paramResult.name());
                     namedArgValueMap.remove(paramResult.name());
                 }
-                if (paramResult.deprecated()) {
-                    funcParamMap.remove(escapedParamName);
-                    continue;
-                }
                 if (paramResult.kind() == ParameterData.Kind.INCLUDED_RECORD) {
                     if (argumentNodes.size() > i && argumentNodes.get(i).kind() == SyntaxKind.NAMED_ARG) {
                         FunctionArgumentNode argNode = argumentNodes.get(i);
@@ -253,9 +237,6 @@ public class ListenerDeclAnalyzer {
                         String argName = namedArgumentNode.argumentName().name().text();
                         if (argName.equals(paramResult.name())) {  // foo("a", b = {})
                             paramResult = funcParamMap.get(escapedParamName);
-                            if (paramResult.deprecated()) {
-                                continue;
-                            }
                             String value = paramValue != null ? paramValue.toSourceCode() : null;
                             String unescapedParamName = removeLeadingSingleQuote(paramResult.name());
                             Codedata codedata = new Codedata("LISTENER_INIT_PARAM");
@@ -277,9 +258,6 @@ public class ListenerDeclAnalyzer {
                             if (funcParamMap.containsKey(argName)) { // included record attribute
                                 paramResult = funcParamMap.get(argName);
                                 funcParamMap.remove(argName);
-                                if (paramResult.deprecated()) {
-                                    continue;
-                                }
                                 if (paramValue == null) {
                                     paramValue = namedArgValueMap.get(argName);
                                     namedArgValueMap.remove(argName);
@@ -308,9 +286,6 @@ public class ListenerDeclAnalyzer {
                         if (paramValue != null) {
                             String unescapedParamName = removeLeadingSingleQuote(paramResult.name());
                             funcParamMap.remove(escapedParamName);
-                            if (paramResult.deprecated()) {
-                                continue;
-                            }
                             String value = paramValue.toSourceCode();
                             Codedata codedata = new Codedata("LISTENER_INIT_PARAM");
                             codedata.setOriginalName(paramResult.name());
@@ -362,9 +337,6 @@ public class ListenerDeclAnalyzer {
                     continue;
                 }
                 ParameterData paramResult = funcParamMap.remove(escapedParamName);
-                if (paramResult.deprecated()) {
-                    continue;
-                }
                 String unescapedParamName = removeLeadingSingleQuote(paramResult.name());
                 Node paramValue = entry.getValue();
                 String value = paramValue != null ? paramValue.toSourceCode() : "";
@@ -393,9 +365,6 @@ public class ListenerDeclAnalyzer {
             ParameterData paramResult = entry.getValue();
             if (paramResult.kind().equals(ParameterData.Kind.PARAM_FOR_TYPE_INFER)
                     || paramResult.kind().equals(ParameterData.Kind.INCLUDED_RECORD)) {
-                continue;
-            }
-            if (paramResult.deprecated()) {
                 continue;
             }
 
@@ -453,3 +422,4 @@ public class ListenerDeclAnalyzer {
         return typeSymbol.subtypeOf(rawTemplateTypeDesc);
     }
 }
+

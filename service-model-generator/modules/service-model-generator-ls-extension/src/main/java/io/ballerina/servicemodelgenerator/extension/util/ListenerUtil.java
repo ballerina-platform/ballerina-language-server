@@ -356,9 +356,6 @@ public class ListenerUtil {
                     || paramResult.kind().equals(ParameterData.Kind.INCLUDED_RECORD)) {
                 continue;
             }
-            if (paramResult.deprecated()) {
-                continue;
-            }
 
             String unescapedParamName = removeLeadingSingleQuote(paramResult.name());
 
