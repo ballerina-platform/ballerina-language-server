@@ -388,8 +388,7 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
         updateReadOnlyMetadataWithAnnotations(serviceModel, serviceNode, context);
         populateListenerInfo(serviceModel, serviceNode);
         updateServiceDocs(serviceNode, serviceModel);
-        updateAnnotationAttachmentProperty(serviceNode, serviceModel);
-        updateListenerItems(FTP, semanticModel, context.project(), serviceModel);
+        updateAnnotationAttachmentProperty(serviceNode, serviceModel);        updateListenerItems(FTP, semanticModel, context.project(), serviceModel);
         return serviceModel;
     }
 
