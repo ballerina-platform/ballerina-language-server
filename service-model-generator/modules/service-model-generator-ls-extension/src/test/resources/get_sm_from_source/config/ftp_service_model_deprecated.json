@@ -15,9 +15,9 @@
     "type": "ftp",
     "moduleName": "ftp",
     "orgName": "ballerina",
-    "version": "2.15.1",
+    "version": "2.17.0",
     "packageName": "ftp",
-    "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ftp_2.15.1.png",
+    "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ftp_2.17.0.png",
     "properties": {
       "listener": {
         "metadata": {
@@ -65,6 +65,39 @@
         ],
         "enabled": true,
         "editable": false,
+        "optional": false,
+        "advanced": false
+      },
+      "annotServiceConfig": {
+        "metadata": {
+          "label": "Service Configuration",
+          "description": "Define service-level configuration such as monitoring path"
+        },
+        "codedata": {
+          "type": "ANNOTATION_ATTACHMENT",
+          "originalName": "ServiceConfig",
+          "moduleName": "ftp"
+        },
+        "placeholder": "{}",
+        "value": "{\n    path: \"/\"\n}",
+        "types": [
+          {
+            "fieldType": "RECORD_MAP_EXPRESSION",
+            "ballerinaType": "ftp:ServiceConfig",
+            "typeMembers": [
+              {
+                "type": "ServiceConfig",
+                "packageInfo": "ballerina:ftp:2.17.0",
+                "packageName": "ftp",
+                "kind": "RECORD_TYPE",
+                "selected": true
+              }
+            ],
+            "selected": true
+          }
+        ],
+        "enabled": true,
+        "editable": true,
         "optional": false,
         "advanced": false
       },
@@ -879,6 +912,106 @@
             "description": "Return type of the function"
           },
           "placeholder": "json",
+          "value": "error?",
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "enabled": false,
+        "optional": true,
+        "editable": true,
+        "canAddParameters": false,
+        "codedata": {
+          "moduleName": "ftp"
+        }
+      },
+      {
+        "metadata": {
+          "label": "onError",
+          "description": "Handle file processing errors"
+        },
+        "kind": "REMOTE",
+        "name": {
+          "metadata": {
+            "label": "onError",
+            "description": "Error handling function"
+          },
+          "placeholder": "",
+          "value": "onError",
+          "enabled": true,
+          "editable": false,
+          "optional": false,
+          "advanced": false
+        },
+        "parameters": [
+          {
+            "metadata": {
+              "label": "Error",
+              "description": "The error that occurred during file processing"
+            },
+            "kind": "REQUIRED",
+            "type": {
+              "placeholder": "ftp:Error",
+              "value": "ftp:Error",
+              "enabled": true,
+              "editable": false,
+              "optional": false,
+              "advanced": false
+            },
+            "name": {
+              "placeholder": "err",
+              "value": "err",
+              "enabled": true,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            },
+            "enabled": true,
+            "editable": false,
+            "optional": false,
+            "advanced": false,
+            "hidden": false,
+            "isGraphqlId": false
+          },
+          {
+            "metadata": {
+              "label": "FTP Connection (caller)",
+              "description": "FTP connection for further operations"
+            },
+            "kind": "REQUIRED",
+            "type": {
+              "placeholder": "ftp:Caller",
+              "value": "ftp:Caller",
+              "enabled": true,
+              "editable": false,
+              "optional": false,
+              "advanced": false
+            },
+            "name": {
+              "placeholder": "caller",
+              "value": "caller",
+              "enabled": true,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            },
+            "enabled": false,
+            "editable": true,
+            "optional": true,
+            "advanced": true,
+            "hidden": false,
+            "isGraphqlId": false
+          }
+        ],
+        "returnType": {
+          "hasError": false,
+          "isGraphqlId": false,
+          "metadata": {
+            "label": "Return type",
+            "description": "Return type of the function"
+          },
+          "placeholder": "error?",
           "value": "error?",
           "enabled": true,
           "editable": true,
