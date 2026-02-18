@@ -116,7 +116,7 @@ public class PackageUtil {
      * @return An Optional containing the semantic model.
      */
     public static Optional<SemanticModel> getSemanticModel(ModuleInfo moduleInfo) {
-        Optional<Package> modulePackage = getModulePackage(getSampleProject(), moduleInfo.org(),
+        Optional<Package> modulePackage = getModulePackage(moduleInfo.org(),
                 moduleInfo.packageName(), moduleInfo.version());
         if (modulePackage.isEmpty()) {
             return Optional.empty();
