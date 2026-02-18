@@ -122,14 +122,14 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
     private static final String SERVICE_CONFIG = "ServiceConfig";
     private static final String FUNCTION_CONFIG = "FunctionConfig";
     private static final String SERVICE_PATH = "path";
-    private static final String POST_PROCESS_ACTION = "postProcessAction";
-    private static final String POST_PROCESS_ACTION_ON_SUCCESS = "onSuccess";
-    private static final String POST_PROCESS_ACTION_ON_ERROR = "onError";
+    private static final String POST_PROCESS_ACTION_ON_SUCCESS = "postProcessActionOnSuccess";
+    private static final String POST_PROCESS_ACTION_ON_ERROR = "postProcessActionOnError";
     private static final String AFTER_PROCESS = "afterProcess";
     private static final String AFTER_ERROR = "afterError";
     private static final String ACTION_MOVE = "MOVE";
     private static final String ACTION_DELETE = "DELETE";
     private static final String MOVE_TO = "moveTo";
+    private static final String PRESERVE_SUB_DIRS = "preserveSubDirs";
 
     @Override
     public String kind() {
@@ -321,13 +321,6 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
         Service serviceModel = service.get();
         ServiceDeclarationNode serviceNode = (ServiceDeclarationNode) context.node();
         SemanticModel semanticModel = context.semanticModel();
-        Map<String, FunctionDefinitionNode> functionNodes = new HashMap<>();
-        for (Node member : serviceNode.members()) {
-            if (member.kind() == SyntaxKind.FUNCTION_DEFINITION) {
-                FunctionDefinitionNode functionNode = (FunctionDefinitionNode) member;
-                functionNodes.put(functionNode.functionName().text().trim(), functionNode);
-            }
-        }
         Codedata codedata = new Codedata.Builder()
                 .setLineRange(serviceNode.lineRange())
                 .setOrgName(context.orgName())
@@ -356,10 +349,6 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
 
                         enableParameters(sourceFunc, modelFunc);
                         updateDatabindingParameter(sourceFunc, modelFunc);
-                        FunctionDefinitionNode functionNode = functionNodes.get(sourceFuncName);
-                        if (functionNode != null) {
-                            updatePostProcessActionsFromAnnotation(functionNode, modelFunc);
-                        }
 
                         if (modelFunc.getProperties().containsKey(STREAM)) {
                             setStreamProperty(modelFunc, sourceFunc);
@@ -525,36 +514,23 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
     }
 
     private void updatePostProcessActionsFromAnnotation(FunctionDefinitionNode functionNode, Function modelFunc) {
-        if (modelFunc.getProperties() == null) {
-            return;
-        }
-
-        Value postProcessAction = modelFunc.getProperties().get(POST_PROCESS_ACTION);
-        if (postProcessAction == null || postProcessAction.getProperties() == null) {
-            return;
-        }
-        Map<String, Value> postProcessProps = postProcessAction.getProperties();
-        Value successProperty = postProcessProps.get(POST_PROCESS_ACTION_ON_SUCCESS);
-        Value errorProperty = postProcessProps.get(POST_PROCESS_ACTION_ON_ERROR);
-
-        if (functionNode.metadata().isEmpty()) {
-            disablePostProcessActions(postProcessAction, successProperty, errorProperty);
+        if (functionNode.metadata().isEmpty() || modelFunc.getProperties() == null) {
             return;
         }
 
         Optional<AnnotationNode> functionConfig = findAnnotationBySuffix(
                 functionNode.metadata().get().annotations(), FUNCTION_CONFIG);
         if (functionConfig.isEmpty()) {
-            disablePostProcessActions(postProcessAction, successProperty, errorProperty);
             return;
         }
+
         Optional<MappingConstructorExpressionNode> annotValue = functionConfig.get().annotValue();
         if (annotValue.isEmpty()) {
-            disablePostProcessActions(postProcessAction, successProperty, errorProperty);
             return;
         }
-        boolean hasAfterProcess = false;
-        boolean hasAfterError = false;
+
+        Value successProperty = modelFunc.getProperties().get(POST_PROCESS_ACTION_ON_SUCCESS);
+        Value errorProperty = modelFunc.getProperties().get(POST_PROCESS_ACTION_ON_ERROR);
         for (MappingFieldNode field : annotValue.get().fields()) {
             if (field.kind() != SyntaxKind.SPECIFIC_FIELD) {
                 continue;
@@ -566,31 +542,10 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
                 continue;
             }
             if (AFTER_PROCESS.equals(fieldName)) {
-                hasAfterProcess = true;
                 applyPostProcessAction(successProperty, valueExpr.get());
             } else if (AFTER_ERROR.equals(fieldName)) {
-                hasAfterError = true;
                 applyPostProcessAction(errorProperty, valueExpr.get());
             }
-        }
-        if (successProperty != null) {
-            successProperty.setEnabled(hasAfterProcess);
-        }
-        if (errorProperty != null) {
-            errorProperty.setEnabled(hasAfterError);
-        }
-        postProcessAction.setEnabled(hasAfterProcess || hasAfterError);
-    }
-
-    private void disablePostProcessActions(Value postProcessAction, Value successProperty, Value errorProperty) {
-        if (successProperty != null) {
-            successProperty.setEnabled(false);
-        }
-        if (errorProperty != null) {
-            errorProperty.setEnabled(false);
-        }
-        if (postProcessAction != null) {
-            postProcessAction.setEnabled(false);
         }
     }
 
@@ -633,6 +588,10 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
                 Value moveTo = choice.getProperties().get(MOVE_TO);
                 if (moveTo != null && moveProps.containsKey(MOVE_TO)) {
                     moveTo.setValue(moveProps.get(MOVE_TO));
+                }
+                Value preserve = choice.getProperties().get(PRESERVE_SUB_DIRS);
+                if (preserve != null && moveProps.containsKey(PRESERVE_SUB_DIRS)) {
+                    preserve.setValue(moveProps.get(PRESERVE_SUB_DIRS));
                 }
             }
         }
