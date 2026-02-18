@@ -27,16 +27,12 @@ import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.api.symbols.VariableSymbol;
 import io.ballerina.compiler.syntax.tree.AnnotationNode;
 import io.ballerina.compiler.syntax.tree.ExpressionNode;
-import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
-import io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode;
-import io.ballerina.compiler.syntax.tree.MappingFieldNode;
 import io.ballerina.compiler.syntax.tree.ModuleMemberDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.compiler.syntax.tree.SimpleNameReferenceNode;
-import io.ballerina.compiler.syntax.tree.SpecificFieldNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.openapi.core.generators.common.exception.BallerinaOpenApiException;
 import io.ballerina.projects.Document;
@@ -120,16 +116,6 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
     public static final String STREAM = "stream";
     public static final String EVENT = "EVENT";
     private static final String SERVICE_CONFIG = "ServiceConfig";
-    private static final String FUNCTION_CONFIG = "FunctionConfig";
-    private static final String SERVICE_PATH = "path";
-    private static final String POST_PROCESS_ACTION_ON_SUCCESS = "postProcessActionOnSuccess";
-    private static final String POST_PROCESS_ACTION_ON_ERROR = "postProcessActionOnError";
-    private static final String AFTER_PROCESS = "afterProcess";
-    private static final String AFTER_ERROR = "afterError";
-    private static final String ACTION_MOVE = "MOVE";
-    private static final String ACTION_DELETE = "DELETE";
-    private static final String MOVE_TO = "moveTo";
-    private static final String PRESERVE_SUB_DIRS = "preserveSubDirs";
 
     @Override
     public String kind() {
@@ -514,134 +500,6 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
         }
     }
 
-    private void updatePostProcessActionsFromAnnotation(FunctionDefinitionNode functionNode, Function modelFunc) {
-        if (functionNode.metadata().isEmpty() || modelFunc.getProperties() == null) {
-            return;
-        }
-
-        Optional<AnnotationNode> functionConfig = findAnnotationBySuffix(
-                functionNode.metadata().get().annotations(), FUNCTION_CONFIG);
-        if (functionConfig.isEmpty()) {
-            return;
-        }
-
-        Optional<MappingConstructorExpressionNode> annotValue = functionConfig.get().annotValue();
-        if (annotValue.isEmpty()) {
-            return;
-        }
-
-        Value successProperty = modelFunc.getProperties().get(POST_PROCESS_ACTION_ON_SUCCESS);
-        Value errorProperty = modelFunc.getProperties().get(POST_PROCESS_ACTION_ON_ERROR);
-        for (MappingFieldNode field : annotValue.get().fields()) {
-            if (field.kind() != SyntaxKind.SPECIFIC_FIELD) {
-                continue;
-            }
-            SpecificFieldNode specificField = (SpecificFieldNode) field;
-            String fieldName = specificField.fieldName().toString().trim();
-            Optional<ExpressionNode> valueExpr = specificField.valueExpr();
-            if (valueExpr.isEmpty()) {
-                continue;
-            }
-            if (AFTER_PROCESS.equals(fieldName)) {
-                applyPostProcessAction(successProperty, valueExpr.get());
-            } else if (AFTER_ERROR.equals(fieldName)) {
-                applyPostProcessAction(errorProperty, valueExpr.get());
-            }
-        }
-    }
-
-    private void applyPostProcessAction(Value actionProperty, ExpressionNode valueExpr) {
-        if (actionProperty == null || actionProperty.getChoices() == null) {
-            return;
-        }
-
-        if (valueExpr instanceof MappingConstructorExpressionNode mappingExpr) {
-            selectPostProcessChoice(actionProperty, ACTION_MOVE, extractMoveProperties(mappingExpr));
-            return;
-        }
-
-        String exprText = valueExpr.toSourceCode().trim();
-        if (exprText.endsWith(ACTION_DELETE)) {
-            selectPostProcessChoice(actionProperty, ACTION_DELETE, null);
-        }
-    }
-
-    private Map<String, String> extractMoveProperties(MappingConstructorExpressionNode mappingExpr) {
-        Map<String, String> moveProps = new HashMap<>();
-        for (MappingFieldNode field : mappingExpr.fields()) {
-            if (field.kind() != SyntaxKind.SPECIFIC_FIELD) {
-                continue;
-            }
-            SpecificFieldNode specificField = (SpecificFieldNode) field;
-            String fieldName = specificField.fieldName().toString().trim();
-            Optional<ExpressionNode> valueExpr = specificField.valueExpr();
-            valueExpr.ifPresent(expressionNode -> moveProps.put(fieldName,
-                    expressionNode.toSourceCode().trim()));
-        }
-        return moveProps;
-    }
-
-    private void selectPostProcessChoice(Value actionProperty, String action, Map<String, String> moveProps) {
-        for (Value choice : actionProperty.getChoices()) {
-            boolean isSelected = action.equals(choice.getValue());
-            choice.setEnabled(isSelected);
-            if (isSelected && ACTION_MOVE.equals(action) && moveProps != null && choice.getProperties() != null) {
-                Value moveTo = choice.getProperties().get(MOVE_TO);
-                if (moveTo != null && moveProps.containsKey(MOVE_TO)) {
-                    moveTo.setValue(moveProps.get(MOVE_TO));
-                }
-                Value preserve = choice.getProperties().get(PRESERVE_SUB_DIRS);
-                if (preserve != null && moveProps.containsKey(PRESERVE_SUB_DIRS)) {
-                    preserve.setValue(moveProps.get(PRESERVE_SUB_DIRS));
-                }
-            }
-        }
-    }
-
-    private void updateServicePathFromAnnotation(Service serviceModel, ServiceDeclarationNode serviceNode) {
-        if (serviceNode.metadata().isEmpty()) {
-            return;
-        }
-        Optional<AnnotationNode> serviceConfig = findAnnotationBySuffix(
-                serviceNode.metadata().get().annotations(), SERVICE_CONFIG);
-        if (serviceConfig.isEmpty()) {
-            return;
-        }
-        serviceModel.getProperties().remove("annot" + SERVICE_CONFIG);
-        Optional<MappingConstructorExpressionNode> annotValue = serviceConfig.get().annotValue();
-        if (annotValue.isEmpty()) {
-            return;
-        }
-        for (MappingFieldNode field : annotValue.get().fields()) {
-            if (field.kind() != SyntaxKind.SPECIFIC_FIELD) {
-                continue;
-            }
-            SpecificFieldNode specificField = (SpecificFieldNode) field;
-            if (!SERVICE_PATH.equals(specificField.fieldName().toString().trim())) {
-                continue;
-            }
-            Optional<ExpressionNode> valueExpr = specificField.valueExpr();
-            if (valueExpr.isEmpty()) {
-                return;
-            }
-            Value pathProperty = serviceModel.getProperties().get(SERVICE_PATH);
-            if (pathProperty != null) {
-                pathProperty.setValue(valueExpr.get().toSourceCode().trim());
-                pathProperty.setEnabled(true);
-            }
-            return;
-        }
-    }
-
-    private Optional<AnnotationNode> findAnnotationBySuffix(NodeList<AnnotationNode> annotations, String suffix) {
-        for (AnnotationNode annotation : annotations) {
-            String annotationText = annotation.annotReference().toString().trim();
-            if (annotationText.endsWith(suffix)) {
-                return Optional.of(annotation);
-            }
-        }
-        return Optional.empty();
-    }
 
     /**
      * Filters out legacy FTP listeners from the given set.
