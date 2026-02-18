@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-Copyright (c) 2021, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+Copyright (c) 2025, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
 
 WSO2 Inc. licenses this file to you under the Apache License,
 Version 2.0 (the "License"); you may not use this file except
@@ -19,12 +19,13 @@ under the License.
 
 <!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd" >
 
-<suite name="sa-modeling-test-suite">
-    <test name="get-model-test" parallel="false">
+<suite name="flow-model-generator-core-test-suite">
+    <test name="model-tests" parallel="false">
         <classes>
-            <class name="io.ballerina.architecturemodelgenerator.core.ServiceGeneratorTests"/>
-            <class name="io.ballerina.architecturemodelgenerator.core.TypeGeneratorTests"/>
-            <class name="io.ballerina.artifactsgenerator.ModuleNodeTransformerTest"/>
+            <class name="io.ballerina.flowmodelgenerator.core.model.CodedataTest"/>
+            <class name="io.ballerina.flowmodelgenerator.core.model.MemberTest"/>
+            <class name="io.ballerina.flowmodelgenerator.core.model.PropertyTypeTest"/>
+            <class name="io.ballerina.flowmodelgenerator.core.model.RecordSelectorTypeTest"/>
         </classes>
     </test>
 </suite>

@@ -50,6 +50,7 @@ dependencies {
     compileOnly "org.eclipse.lsp4j:org.eclipse.lsp4j:${eclipseLsp4jVersion}"
 
     testImplementation "org.testng:testng:${testngVersion}"
+    testImplementation "org.mockito:mockito-core:${mockitoVersion}"
     testImplementation "org.eclipse.lsp4j:org.eclipse.lsp4j:${eclipseLsp4jVersion}"
 
     balTools("org.ballerinalang:jballerina-tools:${ballerinaLangVersion}") {
