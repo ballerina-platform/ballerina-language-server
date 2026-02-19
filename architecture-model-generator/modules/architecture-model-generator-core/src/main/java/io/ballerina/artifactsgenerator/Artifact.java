@@ -90,8 +90,8 @@ public record Artifact(String id, LineRange location, String type, String name, 
             Map.entry("rabbitmq", "RabbitMQ Event Integration"),
             Map.entry("kafka", "Kafka Event Integration"),
             Map.entry("salesforce", "Salesforce Event Integration"),
-            Map.entry("github", "GitHub Event Integration"),
-            Map.entry("twilio", "Twilio Event Integration"),
+            Map.entry("trigger.github", "GitHub Event Integration"),
+            Map.entry("trigger.twilio", "Twilio Event Integration"),
             Map.entry("ai", "AI Agent Services"),
             Map.entry("solace", "Solace Event Integration"),
             Map.entry("mssql", "CDC MSSQL Service")
@@ -236,7 +236,7 @@ public record Artifact(String id, LineRange location, String type, String name, 
             if (module == null || !entryPointMap.containsKey(module)) {
                 this.name = name;
             } else {
-                this.name = entryPointMap.get(module);
+                this.name = entryPointMap.get(module) + (isTriggerModule() ? " - " + name : "");
             }
             return this;
         }
@@ -252,6 +252,10 @@ public record Artifact(String id, LineRange location, String type, String name, 
             }
             this.metadata.put(key, value);
             return this;
+        }
+
+        private boolean isTriggerModule() {
+            return module != null && module.startsWith("trigger");
         }
 
         /**
