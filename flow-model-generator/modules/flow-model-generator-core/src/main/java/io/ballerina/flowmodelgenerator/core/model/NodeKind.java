@@ -51,6 +51,7 @@ public enum NodeKind {
     PARALLEL_FLOW,
     WAIT,
     DATA_MAPPER_CALL,
+    TEST_FUNCTION_DEFINITION,
 
     // Branches
     CONDITIONAL,

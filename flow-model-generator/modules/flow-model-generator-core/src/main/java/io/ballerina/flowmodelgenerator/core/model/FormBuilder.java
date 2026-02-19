@@ -914,11 +914,6 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
         return this;
     }
 
-    public FormBuilder<T> functionNameTemplate(String templatePrefix, Set<String> visibleSymbols) {
-        return functionNameTemplate(templatePrefix, visibleSymbols, FunctionDefinitionBuilder.FUNCTION_NAME_LABEL,
-                FunctionDefinitionBuilder.FUNCTION_NAME_DOC);
-    }
-
     public FormBuilder<T> functionNameTemplate(String templatePrefix, Set<String> visibleSymbols, String label,
                                                String description) {
         String generatedName = NameUtil.generateTypeName(templatePrefix, visibleSymbols);

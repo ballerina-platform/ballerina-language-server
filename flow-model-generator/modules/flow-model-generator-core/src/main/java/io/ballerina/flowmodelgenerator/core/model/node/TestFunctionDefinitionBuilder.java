@@ -19,6 +19,14 @@
 package io.ballerina.flowmodelgenerator.core.model.node;
 
 import com.google.gson.Gson;
+import io.ballerina.compiler.syntax.tree.AnnotationNode;
+import io.ballerina.compiler.syntax.tree.ExpressionNode;
+import io.ballerina.compiler.syntax.tree.ListConstructorExpressionNode;
+import io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode;
+import io.ballerina.compiler.syntax.tree.MappingFieldNode;
+import io.ballerina.compiler.syntax.tree.Node;
+import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
+import io.ballerina.compiler.syntax.tree.SpecificFieldNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.Token;
 import io.ballerina.flowmodelgenerator.core.model.FormBuilder;
@@ -26,6 +34,7 @@ import io.ballerina.flowmodelgenerator.core.model.NodeBuilder;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.flowmodelgenerator.core.model.Property;
 import io.ballerina.flowmodelgenerator.core.model.SourceBuilder;
+import io.ballerina.modelgenerator.commons.Annotation;
 import io.ballerina.tools.text.LineRange;
 import org.eclipse.lsp4j.TextEdit;
 
@@ -41,32 +50,23 @@ import java.util.Optional;
  *
  * @since 1.0.0
  */
-public class FunctionDefinitionBuilder extends NodeBuilder {
+public class TestFunctionDefinitionBuilder extends FunctionDefinitionBuilder {
 
-    public static final String LABEL = "Function Definition";
-    public static final String DESCRIPTION = "Define a function";
+    public static final String LABEL = "Test Function";
+    public static final String DESCRIPTION = "Define a test function";
 
     public static final String FUNCTION_NAME_LABEL = "Name";
-    public static final String ANNOTATIONS_LABEL = "Annotations";
     public static final String FUNCTION_NAME_DOC = "Name of the function";
-    public static final String ANNOTATION_DOC = "Annotations of the function";
 
     public static final String PARAMETERS_LABEL = "Parameters";
     public static final String PARAMETERS_DOC = "Function parameters";
 
-    public static final String METADATA_RETURN_KEY = "return";
-    public static final String METADATA_PARAMETERS_KEY = "parameters";
-
     private static final Gson gson = new Gson();
-
-    public static Property getParameterSchema() {
-        return ParameterSchemaHolder.PARAMETER_SCHEMA;
-    }
 
     @Override
     public void setConcreteConstData() {
         metadata().label(LABEL).description(DESCRIPTION);
-        codedata().node(NodeKind.FUNCTION_DEFINITION);
+        codedata().node(NodeKind.TEST_FUNCTION_DEFINITION);
     }
 
     @Override
@@ -75,6 +75,7 @@ public class FunctionDefinitionBuilder extends NodeBuilder {
                 FUNCTION_NAME_LABEL, FUNCTION_NAME_DOC);
         setMandatoryProperties(this, null, "", "");
         setOptionalProperties(this);
+        addAnnotationsSchema(this, null);
     }
 
     public static void setMandatoryProperties(NodeBuilder nodeBuilder, String returnType, String description,
@@ -84,11 +85,6 @@ public class FunctionDefinitionBuilder extends NodeBuilder {
                 .returnType(returnType, null, true)
                 .returnDescription(returnDescription)
                 .nestedProperty();
-    }
-
-    public static void setProperty(FormBuilder<?> formBuilder, String type, String name, String description,
-                                   Token token) {
-        formBuilder.parameterWithDescription(type, name, token, Property.ValueType.TYPE, description);
     }
 
     public static void setOptionalProperties(NodeBuilder nodeBuilder) {
@@ -135,10 +131,25 @@ public class FunctionDefinitionBuilder extends NodeBuilder {
             }
         }
 
-        Optional<Property> annotationsProperty = sourceBuilder.getProperty(Property.ANNOTATIONS_KEY);
-        if (annotationsProperty.isPresent()) {
-            sourceBuilder.token().name(annotationsProperty.get().toSourceCode());
-        }
+        sourceBuilder.token().name("@test:Config{");
+        List<String> annotationFields = new ArrayList<>();
+        sourceBuilder.getProperty("groups").ifPresent(property -> {
+            String groupsValue = property.value().toString();
+            if (!groupsValue.isEmpty()) {
+                annotationFields.add("groups: " + groupsValue);
+            }
+        });
+
+        sourceBuilder.getProperty("enabled").ifPresent(property -> {
+            String enabledValue = property.value().toString();
+            if (!enabledValue.isEmpty()) {
+                annotationFields.add("enabled: " + enabledValue);
+            }
+        });
+
+        sourceBuilder.token().name(String.join(", ", annotationFields));
+        sourceBuilder.token().name("}");
+
         Optional<Property> isolatedProperty = sourceBuilder.getProperty(Property.IS_ISOLATED_KEY);
         if (isolatedProperty.isPresent()) {
             sourceBuilder.token().keyword(SyntaxKind.ISOLATED_KEYWORD);
@@ -171,9 +182,9 @@ public class FunctionDefinitionBuilder extends NodeBuilder {
         if (lineRange == null) {
             sourceBuilder
                     .token()
-                        .openBrace()
-                        .closeBrace()
-                        .stepOut()
+                    .openBrace()
+                    .closeBrace()
+                    .stepOut()
                     .textEdit(SourceBuilder.SourceKind.DECLARATION)
                     .acceptImport();
         } else {
@@ -181,50 +192,75 @@ public class FunctionDefinitionBuilder extends NodeBuilder {
                     .token().skipFormatting().stepOut()
                     .textEdit();
         }
+
+        sourceBuilder.addImport("ballerina/test");
         return sourceBuilder.build();
     }
 
-    protected static String getParameters(SourceBuilder sourceBuilder, boolean hasFunctionDescription,
-                                        Map<String, String> paramsDesc) {
-        Optional<Property> parameters = sourceBuilder.getProperty(Property.PARAMETERS_KEY);
-        String params = "";
-        if (parameters.isPresent() && parameters.get().value() instanceof Map<?, ?> paramMap) {
-            List<String> paramList = new ArrayList<>();
-            for (Object obj : paramMap.values()) {
-                Property paramProperty = gson.fromJson(gson.toJsonTree(obj), Property.class);
-                if (!(paramProperty.value() instanceof Map<?, ?> paramData)) {
-                    continue;
-                }
-                Map<String, Property> paramProperties = gson.fromJson(gson.toJsonTree(paramData),
-                        FormBuilder.NODE_PROPERTIES_TYPE);
+    public static void addAnnotationsSchema(NodeBuilder nodeBuilder, AnnotationNode annotationNode) {
+        Optional<MappingConstructorExpressionNode> annotValue = annotationNode.annotValue();
+        Map<String, String> valueMap = new HashMap<>();
+        buildConfigAnnotation(annotValue.orElse(null), valueMap);
 
-                String paramType = paramProperties.get(Property.TYPE_KEY).value().toString();
-                String paramName = paramProperties.get(Property.VARIABLE_KEY).value().toString();
-                paramList.add(paramType + " " + paramName);
-                if (hasFunctionDescription) {
-                    Property property = paramProperties.get(Property.PARAMETER_DESCRIPTION_KEY);
-                    if (property != null) {
-                        String paramDescription = property.value().toString();
-                        if (!paramDescription.isEmpty()) {
-                            paramsDesc.put(paramName, paramDescription);
+        nodeBuilder.properties().custom()
+                .metadata()
+                .label("Groups")
+                .description("Groups to run")
+                .stepOut()
+                .type()
+                .fieldType(Property.ValueType.EXPRESSION)
+                .ballerinaType("string[]")
+                .selected(true)
+                .stepOut()
+                .value(valueMap.getOrDefault("groups", ""))
+                .editable()
+                .stepOut()
+                .addProperty("groups");
+
+        nodeBuilder.properties().custom()
+                .metadata()
+                .label("Enabled")
+                .description("Enable/Disable the test")
+                .stepOut()
+                .type()
+                .fieldType(Property.ValueType.FLAG)
+                .ballerinaType("boolean")
+                .selected(true)
+                .stepOut()
+                .value(valueMap.getOrDefault("enabled", "true"))
+                .editable()
+                .stepOut()
+                .addProperty("enabled");
+    }
+
+    private static void buildConfigAnnotation(MappingConstructorExpressionNode mappingConstructor,
+                                              Map<String, String> valueMap) {
+        if (mappingConstructor == null) {
+            return;
+        }
+        SeparatedNodeList<MappingFieldNode> fields = mappingConstructor.fields();
+        for (MappingFieldNode field: fields) {
+            if (field instanceof SpecificFieldNode specificFieldNode) {
+                String fieldName = specificFieldNode.fieldName().toSourceCode().trim();
+                Optional<ExpressionNode> expressionNode = specificFieldNode.valueExpr();
+
+                switch (fieldName) {
+                    case "enabled" -> {
+                        if (expressionNode.isPresent()) {
+                            String value = expressionNode.get().toSourceCode().trim();
+                            valueMap.put("enabled", value);
                         }
                     }
+                    case "groups" -> {
+                        if (expressionNode.isPresent()
+                                && expressionNode.get() instanceof ListConstructorExpressionNode expr) {
+                            valueMap.put("groups", expr.toSourceCode().trim());
+                        }
+                    }
+                    default -> { }
                 }
             }
-            params = String.join(", ", paramList);
-        }
-        return params;
-    }
-
-    private static class ParameterSchemaHolder {
-
-        private static final Property PARAMETER_SCHEMA = initParameterSchema();
-
-        private static Property initParameterSchema() {
-            FormBuilder<?> formBuilder = new FormBuilder<>(null, null, null, null);
-            setProperty(formBuilder, "", "", "", null);
-            Map<String, Property> nodeProperties = formBuilder.build();
-            return nodeProperties.get("");
         }
     }
+
 }
