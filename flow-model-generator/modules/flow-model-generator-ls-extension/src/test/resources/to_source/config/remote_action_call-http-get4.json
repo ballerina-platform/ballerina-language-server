@@ -113,7 +113,7 @@
             "character": 65
           }
         },
-        "newText": "check foodClient->get(\"/bananas\");"
+        "newText": "check foodClient->get(\"/bananas\", ());"
       }
     ]
   }

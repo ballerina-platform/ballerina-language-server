@@ -139,7 +139,7 @@
             "character": 0
           }
         },
-        "newText": "json|http:ClientError item = check httpClient->get(\"/path/to/resource\");"
+        "newText": "json|http:ClientError item = check httpClient->get(\"/path/to/resource\", ());"
       }
     ]
   }

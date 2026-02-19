@@ -102,7 +102,7 @@
             "character": 46
           }
         },
-        "newText": "drinkClient->get(\"/milkshake\");"
+        "newText": "drinkClient->get(\"/milkshake\", ());"
       }
     ]
   }

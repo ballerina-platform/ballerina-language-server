@@ -135,7 +135,7 @@
             "character": 52
           }
         },
-        "newText": "json res1 = foodClient->get(\"/pears\");"
+        "newText": "json res1 = foodClient->get(\"/pears\", ());"
       }
     ]
   }

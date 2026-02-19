@@ -116,7 +116,7 @@
             "character": 0
           }
         },
-        "newText": "final covid19:Client item = check new ();"
+        "newText": "final covid19:Client item = check new ({}, https: //disease.sh) ;"
       }
     ]
   }

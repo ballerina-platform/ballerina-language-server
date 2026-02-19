@@ -145,7 +145,7 @@
             "character": 92
           }
         },
-        "newText": "check foodClient->post(\"/bananas\", \"green banana\");"
+        "newText": "check foodClient->post(\"/bananas\", \"green banana\", (), ());"
       }
     ]
   }
