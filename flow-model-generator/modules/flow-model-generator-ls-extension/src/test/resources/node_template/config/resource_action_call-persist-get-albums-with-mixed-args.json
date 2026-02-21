@@ -509,18 +509,7 @@
                     "description": ""
                   },
                   "codedata": {
-                    "node": "RECORD",
-                    "lineRange": {
-                      "fileName": "types.bal",
-                      "startLine": {
-                        "line": 8,
-                        "offset": 12
-                      },
-                      "endLine": {
-                        "line": 8,
-                        "offset": 32
-                      }
-                    }
+                    "node": "RECORD"
                   },
                   "properties": {
                     "name": {
@@ -688,18 +677,7 @@
                     "description": ""
                   },
                   "codedata": {
-                    "node": "RECORD",
-                    "lineRange": {
-                      "fileName": "types.bal",
-                      "startLine": {
-                        "line": 52,
-                        "offset": 12
-                      },
-                      "endLine": {
-                        "line": 52,
-                        "offset": 29
-                      }
-                    }
+                    "node": "RECORD"
                   },
                   "properties": {
                     "name": {
@@ -867,18 +845,7 @@
                     "description": ""
                   },
                   "codedata": {
-                    "node": "RECORD",
-                    "lineRange": {
-                      "fileName": "types.bal",
-                      "startLine": {
-                        "line": 30,
-                        "offset": 12
-                      },
-                      "endLine": {
-                        "line": 30,
-                        "offset": 35
-                      }
-                    }
+                    "node": "RECORD"
                   },
                   "properties": {
                     "name": {
