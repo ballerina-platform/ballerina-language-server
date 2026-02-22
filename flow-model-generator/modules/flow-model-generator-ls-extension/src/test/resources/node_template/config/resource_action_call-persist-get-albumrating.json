@@ -466,7 +466,10 @@
                     "description": ""
                   },
                   "codedata": {
-                    "node": "RECORD"
+                    "node": "RECORD",
+                    "id": 0,
+                    "isNew": false,
+                    "data": {}
                   },
                   "properties": {
                     "name": {
@@ -634,7 +637,10 @@
                     "description": ""
                   },
                   "codedata": {
-                    "node": "RECORD"
+                    "node": "RECORD",
+                    "id": 0,
+                    "isNew": false,
+                    "data": {}
                   },
                   "properties": {
                     "name": {
