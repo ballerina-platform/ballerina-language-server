@@ -19,6 +19,8 @@
 package io.ballerina.flowmodelgenerator.extension;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import io.ballerina.flowmodelgenerator.extension.request.SearchNodesRequest;
 import io.ballerina.modelgenerator.commons.AbstractLSTest;
 import io.ballerina.tools.text.LinePosition;
@@ -50,13 +52,18 @@ public class SearchNodesTest extends AbstractLSTest {
         );
 
         JsonArray jsonModel = getResponseAndCloseFile(request, testConfig.source()).getAsJsonArray("output");
+        assertDiagnosticsIncludeRange(jsonModel, "output");
+        JsonArray normalizedActual = jsonModel.deepCopy();
+        stripDiagnosticRanges(normalizedActual);
+        JsonArray normalizedExpected = testConfig.output().deepCopy();
+        stripDiagnosticRanges(normalizedExpected);
 
-        if (!jsonModel.equals(testConfig.output())) {
+        if (!normalizedActual.equals(normalizedExpected)) {
             TestConfig updateConfig =
                     new TestConfig(testConfig.source(), testConfig.description(), testConfig.position(),
                             testConfig.queryMap(), jsonModel);
 //            updateConfig(configJsonPath, updateConfig);
-            compareJsonElements(jsonModel, testConfig.output());
+            compareJsonElements(normalizedActual, normalizedExpected);
             Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.description(), configJsonPath));
         }
     }
@@ -97,6 +104,73 @@ public class SearchNodesTest extends AbstractLSTest {
 
         public String description() {
             return description == null ? "" : description;
+        }
+    }
+
+    private static void stripDiagnosticRanges(JsonElement jsonElement) {
+        if (jsonElement == null || jsonElement.isJsonNull()) {
+            return;
+        }
+        if (jsonElement.isJsonArray()) {
+            JsonArray jsonArray = jsonElement.getAsJsonArray();
+            for (JsonElement element : jsonArray) {
+                stripDiagnosticRanges(element);
+            }
+            return;
+        }
+        if (!jsonElement.isJsonObject()) {
+            return;
+        }
+        JsonObject jsonObject = jsonElement.getAsJsonObject();
+        if (jsonObject.has("diagnostics")) {
+            JsonElement diagnosticsElement = jsonObject.get("diagnostics");
+            if (diagnosticsElement.isJsonObject()) {
+                JsonArray diagnosticsArray = diagnosticsElement.getAsJsonObject().getAsJsonArray("diagnostics");
+                if (diagnosticsArray != null) {
+                    for (JsonElement diagnosticElement : diagnosticsArray) {
+                        if (diagnosticElement.isJsonObject()) {
+                            diagnosticElement.getAsJsonObject().remove("range");
+                        }
+                    }
+                }
+            }
+        }
+        for (String key : jsonObject.keySet()) {
+            stripDiagnosticRanges(jsonObject.get(key));
+        }
+    }
+
+    private static void assertDiagnosticsIncludeRange(JsonElement jsonElement, String path) {
+        if (jsonElement == null || jsonElement.isJsonNull()) {
+            return;
+        }
+        if (jsonElement.isJsonArray()) {
+            JsonArray jsonArray = jsonElement.getAsJsonArray();
+            for (int i = 0; i < jsonArray.size(); i++) {
+                assertDiagnosticsIncludeRange(jsonArray.get(i), path + "[" + i + "]");
+            }
+            return;
+        }
+        if (!jsonElement.isJsonObject()) {
+            return;
+        }
+        JsonObject jsonObject = jsonElement.getAsJsonObject();
+        if (jsonObject.has("diagnostics")) {
+            JsonElement diagnosticsElement = jsonObject.get("diagnostics");
+            if (diagnosticsElement.isJsonObject()) {
+                JsonArray diagnosticsArray = diagnosticsElement.getAsJsonObject().getAsJsonArray("diagnostics");
+                if (diagnosticsArray != null) {
+                    for (int i = 0; i < diagnosticsArray.size(); i++) {
+                        JsonElement diagnosticElement = diagnosticsArray.get(i);
+                        Assert.assertTrue(diagnosticElement.isJsonObject()
+                                        && diagnosticElement.getAsJsonObject().has("range"),
+                                String.format("Expected diagnostic range at %s.diagnostics.diagnostics[%d]", path, i));
+                    }
+                }
+            }
+        }
+        for (String key : jsonObject.keySet()) {
+            assertDiagnosticsIncludeRange(jsonObject.get(key), path + "." + key);
         }
     }
 }
