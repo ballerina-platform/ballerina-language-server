@@ -99,5 +99,11 @@ public enum NodeKind {
     CHUNKER,
     MEMORY,
     MEMORY_STORE,
-    MCP_TOOL_KIT
+    MCP_TOOL_KIT,
+    WORKFLOW,
+    WORKFLOW_START,
+    ACTIVITY,
+    ACTIVITY_CALL,
+    SEND_EVENT,
+    WAIT_EVENT
 }

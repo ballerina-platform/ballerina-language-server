@@ -289,7 +289,8 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
         RECORD_MAP_EXPRESSION,
         PROMPT,
         CLAUSE_EXPRESSION,
-        SQL_QUERY
+        SQL_QUERY,
+        WORKFLOW_INPUT_TYPE
     }
 
     public static class Builder<T> extends FacetedBuilder<T> implements DiagnosticHandler.DiagnosticCapable {
@@ -495,6 +496,11 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
             public TypeBuilder typeMembers(List<ParameterMemberTypeData> memberTypeData, String selectedType) {
                 this.typeMembers = memberTypeData.stream().map(m -> new PropertyTypeMemberInfo(m.type(),
                         m.packageInfo(), m.packageName(), m.kind(), m.type().equals(selectedType))).toList();
+                return this;
+            }
+
+            public TypeBuilder typeMembersRaw(List<PropertyTypeMemberInfo> typeMembers) {
+                this.typeMembers = typeMembers;
                 return this;
             }
 

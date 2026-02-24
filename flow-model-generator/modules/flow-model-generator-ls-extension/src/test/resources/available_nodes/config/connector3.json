@@ -243,6 +243,34 @@
     },
     {
       "metadata": {
+        "label": "Workflow",
+        "description": "Workflow orchestration components"
+      },
+      "items": [
+        {
+          "metadata": {
+            "label": "Start Workflow",
+            "description": "Create and start a new workflow instance"
+          },
+          "codedata": {
+            "node": "WORKFLOW"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Send Event",
+            "description": "Send an event to an existing workflow instance"
+          },
+          "codedata": {
+            "node": "EVENT"
+          },
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "metadata": {
         "label": "Statement",
         "description": "Fundamental executable units in a program"
       },
