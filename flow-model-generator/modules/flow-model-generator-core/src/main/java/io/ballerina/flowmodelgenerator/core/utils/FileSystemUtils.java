@@ -67,16 +67,19 @@ public class FileSystemUtils {
     public static Document getDocument(WorkspaceManager workspaceManager, Path filePath) {
         Document document;
         try {
+            // Create the file on disk first so that ProjectPaths.packageRoot() can locate the package root.
+            // Without this, workspaceManager.document() throws ProjectException (not NoSuchElementException)
+            // for non-existent files, bypassing the catch block below.
+            if (!Files.exists(filePath)) {
+                Files.createFile(filePath);
+                CREATED_FILES.add(filePath);
+            }
             document = workspaceManager.document(filePath).orElseThrow();
         } catch (NoSuchElementException e) {
-            // Create a new file if it does not exist on disk
+            // File exists on disk but is not yet loaded in the workspace; load it via didOpen.
+            // This works in both production and test environments, unlike didChangeWatched which is
+            // disabled when the file watcher is off.
             try {
-                if (!Files.exists(filePath)) {
-                    Files.createFile(filePath);
-                    CREATED_FILES.add(filePath);
-                }
-                // Use didOpen to load the file into the workspace. This works in both production and test
-                // environments, unlike didChangeWatched which is disabled when the file watcher is off.
                 String content = Files.readString(filePath);
                 TextDocumentItem textDocumentItem = new TextDocumentItem();
                 textDocumentItem.setUri(filePath.toUri().toString());
@@ -85,10 +88,12 @@ public class FileSystemUtils {
                 textDocumentItem.setText(content);
                 workspaceManager.didOpen(filePath, new DidOpenTextDocumentParams(textDocumentItem));
                 document = workspaceManager.document(filePath).orElseThrow();
-            } catch (IOException | WorkspaceDocumentException fileCreationException) {
-                throw new RuntimeException("Error occurred while creating the file: " + filePath,
-                        fileCreationException);
+            } catch (IOException | WorkspaceDocumentException fileLoadException) {
+                throw new RuntimeException("Error occurred while loading the file: " + filePath,
+                        fileLoadException);
             }
+        } catch (IOException e) {
+            throw new RuntimeException("Error occurred while creating the file: " + filePath, e);
         }
         return document;
     }
