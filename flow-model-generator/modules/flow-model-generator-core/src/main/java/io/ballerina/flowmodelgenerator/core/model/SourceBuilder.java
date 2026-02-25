@@ -232,23 +232,28 @@ public class SourceBuilder {
             String typeNamePrefix = capitalize(variable.toSourceCode());
             inferredType = String.format("%sType", typeNamePrefix);
 
-            List<PropertyType> propertyTypes = inferredProperty.valueAsType(PROPERTY_TYPE_LIST_TYPE_TOKEN);
-            if (propertyTypes != null && !propertyTypes.isEmpty()) {
-                RecordSelectorType recordSelectorType = propertyTypes.getFirst().recordSelectorType();
-                Path typesFilePath = filePath.resolveSibling("types.bal");
-                Document document = FileSystemUtils.getDocument(workspaceManager, typesFilePath);
-                if (document != null) {
-                    TypesManager typesManager = new TypesManager(document);
-                    List<TextEdit> typeEdits = typesManager.getTextEditsForRecordSelectorTypes(recordSelectorType,
-                            typeNamePrefix, isUpdateRequest());
-                    if (!typeEdits.isEmpty()) {
-                        if (textEditsMap.containsKey(typesFilePath)) {
-                            textEditsMap.get(typesFilePath).addAll(typeEdits);
-                        } else {
-                            textEditsMap.put(typesFilePath, new ArrayList<>(typeEdits));
+            try {
+                List<PropertyType> propertyTypes = inferredProperty.valueAsType(PROPERTY_TYPE_LIST_TYPE_TOKEN);
+                if (propertyTypes != null && !propertyTypes.isEmpty()) {
+                    RecordSelectorType recordSelectorType = propertyTypes.getFirst().recordSelectorType();
+                    Path typesFilePath = filePath.resolveSibling("types.bal");
+                    Document document = FileSystemUtils.getDocument(workspaceManager, typesFilePath);
+                    if (document != null) {
+                        TypesManager typesManager = new TypesManager(document);
+                        List<TextEdit> typeEdits = typesManager.getTextEditsForRecordSelectorTypes(recordSelectorType,
+                                typeNamePrefix, isUpdateRequest());
+                        if (!typeEdits.isEmpty()) {
+                            if (textEditsMap.containsKey(typesFilePath)) {
+                                textEditsMap.get(typesFilePath).addAll(typeEdits);
+                            } else {
+                                textEditsMap.put(typesFilePath, new ArrayList<>(typeEdits));
+                            }
                         }
                     }
                 }
+            } catch (RuntimeException e) {
+                // This can happen when the property value is not properly set as a type. In such cases, we skip the
+                // record selector type generation.
             }
         }
 

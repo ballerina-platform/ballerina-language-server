@@ -28,8 +28,10 @@ import io.ballerina.projects.ProjectException;
 import org.ballerinalang.langserver.commons.eventsync.exceptions.EventSyncException;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceDocumentException;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
+import org.eclipse.lsp4j.DidOpenTextDocumentParams;
 import org.eclipse.lsp4j.FileChangeType;
 import org.eclipse.lsp4j.FileEvent;
+import org.eclipse.lsp4j.TextDocumentItem;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -66,12 +68,21 @@ public class FileSystemUtils {
         try {
             document = workspaceManager.document(filePath).orElseThrow();
         } catch (Throwable e) {
-            // Create a new file as it does not exist
+            // Create a new file if it does not exist on disk
             try {
-                Files.createFile(filePath);
-                CREATED_FILES.add(filePath);
-                FileEvent fileEvent = new FileEvent(filePath.toUri().toString(), FileChangeType.Created);
-                workspaceManager.didChangeWatched(filePath, fileEvent);
+                if (!Files.exists(filePath)) {
+                    Files.createFile(filePath);
+                    CREATED_FILES.add(filePath);
+                }
+                // Use didOpen to load the file into the workspace. This works in both production and test
+                // environments, unlike didChangeWatched which is disabled when the file watcher is off.
+                String content = Files.readString(filePath);
+                TextDocumentItem textDocumentItem = new TextDocumentItem();
+                textDocumentItem.setUri(filePath.toUri().toString());
+                textDocumentItem.setLanguageId("ballerina");
+                textDocumentItem.setVersion(1);
+                textDocumentItem.setText(content);
+                workspaceManager.didOpen(filePath, new DidOpenTextDocumentParams(textDocumentItem));
                 document = workspaceManager.document(filePath).orElseThrow();
             } catch (IOException | WorkspaceDocumentException fileCreationException) {
                 throw new RuntimeException("Error occurred while creating the file: " + filePath,
