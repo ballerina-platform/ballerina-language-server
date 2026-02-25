@@ -1,0 +1,3 @@
+[workspace]
+name = "empty_workspace_proj"
+packages = []
