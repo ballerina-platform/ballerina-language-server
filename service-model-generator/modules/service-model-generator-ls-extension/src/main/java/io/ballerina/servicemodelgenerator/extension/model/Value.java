@@ -148,7 +148,7 @@ public class Value {
     }
 
     public String getValue() {
-        if (value == null || value.toString().isEmpty()) {
+        if ((values == null || values.isEmpty()) && (value == null || value.toString().isEmpty())) {
             return "";
         }
 
