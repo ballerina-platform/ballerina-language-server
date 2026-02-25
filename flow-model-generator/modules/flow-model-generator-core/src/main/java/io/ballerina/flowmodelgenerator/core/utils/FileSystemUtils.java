@@ -38,6 +38,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 /**
@@ -67,7 +68,7 @@ public class FileSystemUtils {
         Document document;
         try {
             document = workspaceManager.document(filePath).orElseThrow();
-        } catch (Throwable e) {
+        } catch (NoSuchElementException e) {
             // Create a new file if it does not exist on disk
             try {
                 if (!Files.exists(filePath)) {
