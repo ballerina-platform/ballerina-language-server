@@ -443,7 +443,9 @@ public class TypesManager {
                     .findFirst();
             if (field.isPresent()) {
                 if (referencedType.metadata() != null && referencedTypeName.equals(referencedType.metadata().label())) {
-                    String newTypeName = typePrefix + capitalize(getTypeName(field.get().name())) + "Type";
+                    String fieldName = field.get().name();
+                    String sanitizedFieldName = fieldName.startsWith("'") ? fieldName.substring(1) : fieldName;
+                    String newTypeName = typePrefix + capitalize(getTypeName(sanitizedFieldName)) + "Type";
                     TypeData updatedRefType = referencedType.toBuilder()
                             .name(newTypeName)
                             .build();

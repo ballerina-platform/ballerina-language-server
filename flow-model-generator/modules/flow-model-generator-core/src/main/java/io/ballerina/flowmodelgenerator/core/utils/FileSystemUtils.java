@@ -87,7 +87,8 @@ public class FileSystemUtils {
                 textDocumentItem.setVersion(1);
                 textDocumentItem.setText(content);
                 workspaceManager.didOpen(filePath, new DidOpenTextDocumentParams(textDocumentItem));
-                document = workspaceManager.document(filePath).orElseThrow();
+                document = workspaceManager.document(filePath).orElseThrow(
+                        () -> new WorkspaceDocumentException("Error occurred while loading the file: " + filePath));
             } catch (IOException | WorkspaceDocumentException fileLoadException) {
                 throw new RuntimeException("Error occurred while loading the file: " + filePath,
                         fileLoadException);
