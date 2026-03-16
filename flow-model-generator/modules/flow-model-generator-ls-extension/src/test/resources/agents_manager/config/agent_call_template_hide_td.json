@@ -101,6 +101,38 @@
         },
         "types": [
           {
+            "fieldType": "REPEATABLE_LIST",
+            "ballerinaType": "(ai:BaseToolKit|ai:ToolConfig|ai:FunctionTool)[]",
+            "template": {
+              "types": [
+                {
+                  "fieldType": "RECORD_MAP_EXPRESSION",
+                  "ballerinaType": "ai:ToolConfig",
+                  "typeMembers": [
+                    {
+                      "type": "ToolConfig",
+                      "packageInfo": "ballerina:ai:1.9.0",
+                      "packageName": "ai",
+                      "kind": "RECORD_TYPE",
+                      "selected": false
+                    }
+                  ],
+                  "selected": false
+                },
+                {
+                  "fieldType": "EXPRESSION",
+                  "ballerinaType": "ai:BaseToolKit|ai:ToolConfig|ai:FunctionTool",
+                  "selected": false
+                }
+              ],
+              "optional": false,
+              "editable": false,
+              "advanced": false,
+              "hidden": false
+            },
+            "selected": false
+          },
+          {
             "fieldType": "EXPRESSION",
             "ballerinaType": "(ai:BaseToolKit|ai:ToolConfig|ai:FunctionTool)[]",
             "selected": false
@@ -461,11 +493,21 @@
         },
         "types": [
           {
-            "fieldType": "TYPE",
-            "ballerinaType": "ai:Trace|string",
-            "selected": false
+            "fieldType": "SINGLE_SELECT",
+            "options": [
+              {
+                "label": "string",
+                "value": "string"
+              },
+              {
+                "label": "ai:Trace",
+                "value": "ai:Trace"
+              }
+            ],
+            "selected": true
           }
         ],
+        "value": "string",
         "placeholder": "ai:Trace|string",
         "optional": true,
         "editable": true,

@@ -254,7 +254,8 @@ public class DataMapManager {
                 refOutputPort = getRefMappingPort(parentName, parentName, parentRefType, new HashMap<>(), references);
                 setModuleInfo(parentTypeSymbol, refOutputPort);
 
-                MappingPort convertedVariablePort = getRefMappingPort(name, name, refType, new HashMap<>(), references);
+                MappingPort convertedVariablePort = getRefMappingPort(name, name + "Converted", refType,
+                        new HashMap<>(), references);
                 convertedVariablePort.category = "converted-variable";
                 refOutputPort.convertedVariable = convertedVariablePort;
                 setModuleInfo(targetTypeSymbol, convertedVariablePort);
@@ -265,7 +266,6 @@ public class DataMapManager {
         } catch (UnsupportedOperationException e) {
             return null;
         }
-
 
         MatchingNode matchingNode = targetNode.matchingNode();
         Query query = null;
@@ -807,7 +807,7 @@ public class DataMapManager {
         }
         String varName = ((CaptureBindingPatternNode) bindingPattern).variableName().text();
         String jsonConversion = "jsondata:toJson(" + varName + ")";
-        String xmlConversion = "xml:toXml(" + varName + ")";
+        String xmlConversion = "xmldata:toXml(" + varName + ")";
 
         String letExprSource = letExpr.toSourceCode().trim();
         if (varName.equals(letExprSource) ||
@@ -1824,21 +1824,21 @@ public class DataMapManager {
 
     private ExpressionNode findConvertedVariable(LetExpressionNode letExpr) {
         ExpressionNode expr = letExpr.expression();
-        if (expr.kind() != SyntaxKind.SIMPLE_NAME_REFERENCE) {
-            return expr;
-        }
-        String name = expr.toSourceCode().trim();
+        String exprSource = expr.toSourceCode().trim();
         for (LetVariableDeclarationNode letVar : letExpr.letVarDeclarations()) {
             BindingPatternNode bindingPattern = letVar.typedBindingPattern().bindingPattern();
             if (bindingPattern.kind() != SyntaxKind.CAPTURE_BINDING_PATTERN) {
                 continue;
             }
-            if (((CaptureBindingPatternNode) bindingPattern).variableName().text().equals(name)) {
-                expr = letVar.expression();
-                if (expr.kind() == SyntaxKind.LET_EXPRESSION) {
-                    return ((LetExpressionNode) expr).expression();
+            String varName = ((CaptureBindingPatternNode) bindingPattern).variableName().text();
+            String jsonConversion = "jsondata:toJson(" + varName + ")";
+            String xmlConversion = "xmldata:toXml(" + varName + ")";
+            if (varName.equals(exprSource) || jsonConversion.equals(exprSource) || xmlConversion.equals(exprSource)) {
+                ExpressionNode letVarExpr = letVar.expression();
+                if (letVarExpr.kind() == SyntaxKind.LET_EXPRESSION) {
+                    return ((LetExpressionNode) letVarExpr).expression();
                 } else {
-                    return expr;
+                    return letVarExpr;
                 }
             }
         }
@@ -1878,7 +1878,7 @@ public class DataMapManager {
                         String varName = ((CaptureBindingPatternNode) bindingPatternNode).variableName().text();
                         String letExprSource = letExpr.toSourceCode().trim();
                         String jsonConversion = "jsondata:toJson(" + varName + ")";
-                        String xmlConversion = "xml:toXml(" + varName + ")";
+                        String xmlConversion = "xmldata:toXml(" + varName + ")";
                         if (varName.equals(letExprSource) ||
                                 jsonConversion.equals(letExprSource) || xmlConversion.equals(letExprSource)) {
                             return letVarDeclaration.expression();
@@ -3963,13 +3963,14 @@ public class DataMapManager {
             LetExpressionNode letExpr = (LetExpressionNode) expression;
             if (!isInput) {
                 if (codedata.isNew() != null && codedata.isNew()) {
+                    ExpressionNode expr = letExpr.expression();
                     String statement = String.format(", %s %s = %s", typeName, variableName,
-                            letExpr.expression().toSourceCode().trim());
+                            expr.kind() == SyntaxKind.MAPPING_CONSTRUCTOR ? expr.toSourceCode().trim() : "{}");
                     SeparatedNodeList<LetVariableDeclarationNode> letVarDeclarationNodes = letExpr.letVarDeclarations();
                     LinePosition linePosition =
                             letVarDeclarationNodes.get(letVarDeclarationNodes.size() - 1).lineRange().endLine();
                     textEdits.add(new TextEdit(CommonUtils.toRange(linePosition), statement));
-                    textEdits.add(new TextEdit(CommonUtils.toRange(letExpr.expression().lineRange()),
+                    textEdits.add(new TextEdit(CommonUtils.toRange(expr.lineRange()),
                             addTypeConversion(parentTypeName, textEdits, variableName,
                                     document.syntaxTree().rootNode())));
                 } else {
@@ -3978,16 +3979,14 @@ public class DataMapManager {
                             CommonUtils.toRange(letVar.typedBindingPattern().typeDescriptor().lineRange()), typeName));
                 }
             } else {
-                SeparatedNodeList<LetVariableDeclarationNode> letVarDeclarationNodes = letExpr.letVarDeclarations();
                 if (codedata.isNew() != null && codedata.isNew()) {
-                    String statement = String.format(", %s %sConverted = check %s.ensureType()", typeName, variableName,
+                    String statement = String.format(" %s %sConverted = check %s.ensureType(),", typeName, variableName,
                             variableName);
-                    LinePosition linePosition =
-                            letVarDeclarationNodes.get(letVarDeclarationNodes.size() - 1).lineRange().endLine();
-                    textEdits.add(new TextEdit(CommonUtils.toRange(linePosition), statement));
+                    textEdits.add(
+                            new TextEdit(CommonUtils.toRange(letExpr.letKeyword().lineRange().endLine()), statement));
                     addErrorReturn(functionDefinitionNode, semanticModel, textEdits);
                 } else {
-                    LetVariableDeclarationNode letVar = getMatchingLetVar(letVarDeclarationNodes, variableName);
+                    LetVariableDeclarationNode letVar = getMatchingLetVar(letExpr.letVarDeclarations(), variableName);
                     textEdits.add(new TextEdit(
                             CommonUtils.toRange(letVar.typedBindingPattern().typeDescriptor().lineRange()), typeName));
                 }
@@ -3996,8 +3995,8 @@ public class DataMapManager {
             String statement;
             if (!isInput) {
                 statement = String.format("let %s %s = %s in %s", typeName, variableName,
-                        expression.toSourceCode().trim(), addTypeConversion(parentTypeName, textEdits, variableName,
-                                document.syntaxTree().rootNode()));
+                        expression.kind() == SyntaxKind.MAPPING_CONSTRUCTOR ? expression.toSourceCode().trim() : "{}",
+                        addTypeConversion(parentTypeName, textEdits, variableName, document.syntaxTree().rootNode()));
             } else {
                 statement = String.format("let %s %sConverted = check %s.ensureType() in %s", typeName, variableName,
                         variableName, expression.toSourceCode().trim());
