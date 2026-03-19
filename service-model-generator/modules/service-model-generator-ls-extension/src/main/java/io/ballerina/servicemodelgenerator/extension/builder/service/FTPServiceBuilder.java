@@ -41,6 +41,8 @@ import io.ballerina.servicemodelgenerator.extension.core.OpenApiServiceGenerator
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.MetaData;
+import io.ballerina.servicemodelgenerator.extension.model.Option;
+import io.ballerina.servicemodelgenerator.extension.model.PropertyType;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
 import io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
@@ -160,7 +162,6 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
             Map<String, Value> templateProps = (designApproach != null
                     && designApproach.getChoices() != null && !designApproach.getChoices().isEmpty())
                     ? designApproach.getChoices().get(0).getProperties() : Map.of();
-            MetaData protocolMetadata = designApproach != null ? designApproach.getMetadata() : null;
 
             // Always build the choice property with "Existing Server" and "New FTP Server" options
             Map<String, Value> listenerProps =
@@ -173,7 +174,7 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
                         context.semanticModel(), context.project());
                 // Apply init model metadata so existing listener configs use the same
                 // labels/descriptions as the "New FTP Server" form
-                applyInitModelMetadata(listenerConfigs, templateProps, protocolMetadata);
+                applyInitModelMetadata(listenerConfigs, templateProps, designApproach);
             } else {
                 listenerConfigs = Map.of();
             }
@@ -199,13 +200,13 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
      * configs so that labels and descriptions are consistent between "New FTP Server" and
      * "Existing Server" views.
      *
-     * @param configs          Extracted listener configs (listener name → property key → Value)
-     * @param templateProps    Properties from the first designApproach choice in ftp_init.json
-     * @param protocolMetadata MetaData from the designApproach property (for protocol field)
+     * @param configs         Extracted listener configs (listener name → property key → Value)
+     * @param templateProps   Properties from the first designApproach choice in ftp_init.json
+     * @param designApproach  The designApproach Value from the init model (used for protocol)
      */
     private static void applyInitModelMetadata(Map<String, Map<String, Value>> configs,
                                                Map<String, Value> templateProps,
-                                               MetaData protocolMetadata) {
+                                               Value designApproach) {
         // Mapping from extracted config keys to init model property keys
         Map<String, String> keyMapping = Map.of(
                 "host", "host",
@@ -214,9 +215,10 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
         );
 
         for (Map<String, Value> config : configs.values()) {
-            // Apply protocol metadata from designApproach
-            if (protocolMetadata != null && config.containsKey("protocol")) {
-                config.get("protocol").setMetadata(protocolMetadata);
+            // Build protocol radio button from designApproach choices
+            if (designApproach != null && config.containsKey("protocol")) {
+                config.put("protocol", buildProtocolFromDesignApproach(
+                        designApproach, config.get("protocol").getValue().toString()));
             }
 
             // Apply metadata from template properties
@@ -228,6 +230,31 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
                 }
             }
         }
+    }
+
+    /**
+     * Builds a read-only SINGLE_SELECT protocol Value from the designApproach choices in the
+     * init model, so the options are derived from the model rather than hardcoded.
+     */
+    private static Value buildProtocolFromDesignApproach(Value designApproach, String selectedValue) {
+        List<Option> options = new ArrayList<>();
+        if (designApproach.getChoices() != null) {
+            for (Value choice : designApproach.getChoices()) {
+                MetaData choiceMeta = choice.getMetadata();
+                if (choiceMeta != null) {
+                    options.add(new Option(choiceMeta.label(), choice.getValue().toString()));
+                }
+            }
+        }
+
+        return new Value.ValueBuilder()
+                .setMetadata(designApproach.getMetadata())
+                .value(selectedValue)
+                .types(List.of(PropertyType.types(Value.FieldType.SINGLE_SELECT, options)))
+                .enabled(true)
+                .editable(false)
+                .setAdvanced(false)
+                .build();
     }
 
     /**
