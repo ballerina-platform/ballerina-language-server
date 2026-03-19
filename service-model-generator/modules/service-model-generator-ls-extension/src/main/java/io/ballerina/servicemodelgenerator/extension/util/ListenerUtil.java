@@ -1143,6 +1143,11 @@ public class ListenerUtil {
             }
         }
 
+        // Default to "No Authentication" when no auth argument is present
+        if (!config.containsKey("authentication")) {
+            config.put("authentication", buildAuthChoiceValue(null));
+        }
+
         return config;
     }
 
