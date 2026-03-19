@@ -63,6 +63,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -162,7 +163,13 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
 
             Value choicesProperty = ListenerUtil.buildAlwaysPresentListenerChoiceProperty(
                     listenerProps, listenerConfigs, compatibleListeners, LABEL_FTP);
-            properties.put(KEY_CONFIGURE_LISTENER, choicesProperty);
+
+            // Insert configureListener at the top of the form (LinkedHashMap preserves insertion order)
+            Map<String, Value> reordered = new LinkedHashMap<>();
+            reordered.put(KEY_CONFIGURE_LISTENER, choicesProperty);
+            reordered.putAll(properties);
+            properties.clear();
+            properties.putAll(reordered);
 
             return serviceInitModel;
         } catch (IOException e) {

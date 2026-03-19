@@ -918,7 +918,7 @@ public class ListenerUtil {
                 .types(List.of(PropertyType.types(Value.FieldType.CHOICE)))
                 .enabled(true)
                 .editable(true)
-                .setAdvanced(true)
+                .setAdvanced(false)
                 .build();
 
         Value existingChoice = buildExistingServerChoice(listenerConfigs, existingListeners, moduleName,
