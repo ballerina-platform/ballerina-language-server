@@ -152,8 +152,17 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
             Set<String> compatibleListeners = filterNonLegacyListeners(allListeners, context.semanticModel(),
                     context.project());
 
-            // Always build the choice property with "Existing Server" and "New FTP Server" options
+            // Capture template metadata from the init model BEFORE properties are removed.
+            // The designApproach CHOICE contains nested properties (host, portNumber, etc.)
+            // with rich descriptions that we want to reuse for existing listener configs.
             Map<String, Value> properties = serviceInitModel.getProperties();
+            Value designApproach = properties.get(PROPERTY_DESIGN_APPROACH);
+            Map<String, Value> templateProps = (designApproach != null
+                    && designApproach.getChoices() != null && !designApproach.getChoices().isEmpty())
+                    ? designApproach.getChoices().get(0).getProperties() : Map.of();
+            MetaData protocolMetadata = designApproach != null ? designApproach.getMetadata() : null;
+
+            // Always build the choice property with "Existing Server" and "New FTP Server" options
             Map<String, Value> listenerProps =
                     ListenerUtil.removeAndCollectListenerProperties(properties, LISTENER_CONFIG_KEYS);
 
@@ -162,6 +171,9 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
                 // Extract actual configs from existing listener declarations
                 listenerConfigs = ListenerUtil.extractListenerConfigs(compatibleListeners,
                         context.semanticModel(), context.project());
+                // Apply init model metadata so existing listener configs use the same
+                // labels/descriptions as the "New FTP Server" form
+                applyInitModelMetadata(listenerConfigs, templateProps, protocolMetadata);
             } else {
                 listenerConfigs = Map.of();
             }
@@ -179,6 +191,42 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
             return serviceInitModel;
         } catch (IOException e) {
             return null;
+        }
+    }
+
+    /**
+     * Applies metadata from the init model template properties onto the extracted existing listener
+     * configs so that labels and descriptions are consistent between "New FTP Server" and
+     * "Existing Server" views.
+     *
+     * @param configs          Extracted listener configs (listener name → property key → Value)
+     * @param templateProps    Properties from the first designApproach choice in ftp_init.json
+     * @param protocolMetadata MetaData from the designApproach property (for protocol field)
+     */
+    private static void applyInitModelMetadata(Map<String, Map<String, Value>> configs,
+                                               Map<String, Value> templateProps,
+                                               MetaData protocolMetadata) {
+        // Mapping from extracted config keys to init model property keys
+        Map<String, String> keyMapping = Map.of(
+                "host", "host",
+                "portNumber", "portNumber",
+                "authentication", "authentication"
+        );
+
+        for (Map<String, Value> config : configs.values()) {
+            // Apply protocol metadata from designApproach
+            if (protocolMetadata != null && config.containsKey("protocol")) {
+                config.get("protocol").setMetadata(protocolMetadata);
+            }
+
+            // Apply metadata from template properties
+            for (Map.Entry<String, String> mapping : keyMapping.entrySet()) {
+                Value configValue = config.get(mapping.getKey());
+                Value templateValue = templateProps.get(mapping.getValue());
+                if (configValue != null && templateValue != null && templateValue.getMetadata() != null) {
+                    configValue.setMetadata(templateValue.getMetadata());
+                }
+            }
         }
     }
 
