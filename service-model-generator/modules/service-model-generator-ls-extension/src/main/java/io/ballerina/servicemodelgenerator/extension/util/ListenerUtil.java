@@ -1178,19 +1178,36 @@ public class ListenerUtil {
     }
 
     /**
-     * Builds a read-only SINGLE_SELECT Value for displaying the protocol of an existing listener.
+     * Builds a read-only CHOICE (radio button) Value for displaying the protocol of an existing listener.
      */
     private static Value buildProtocolSelectValue(String value) {
-        List<Option> options = List.of(
-                new Option("FTP", "FTP"),
-                new Option("SFTP", "SFTP"),
-                new Option("FTPS", "FTPS")
+        List<Value> choices = List.of(
+                buildProtocolChoice("FTP", "FTP", value),
+                buildProtocolChoice("SFTP", "SFTP", value),
+                buildProtocolChoice("FTPS", "FTPS", value)
         );
-        return new Value.ValueBuilder()
+
+        Value protocol = new Value.ValueBuilder()
                 .metadata("Protocol", "Connection protocol")
                 .value(value)
-                .types(List.of(PropertyType.types(Value.FieldType.SINGLE_SELECT, options)))
+                .types(List.of(PropertyType.types(Value.FieldType.CHOICE)))
                 .enabled(true)
+                .editable(false)
+                .setAdvanced(false)
+                .build();
+        protocol.setChoices(choices);
+        return protocol;
+    }
+
+    /**
+     * Builds a single protocol choice for the radio button group.
+     */
+    private static Value buildProtocolChoice(String label, String choiceValue, String selectedValue) {
+        return new Value.ValueBuilder()
+                .metadata(label, "")
+                .value(choiceValue)
+                .types(List.of(PropertyType.types(Value.FieldType.FORM)))
+                .enabled(choiceValue.equals(selectedValue))
                 .editable(false)
                 .setAdvanced(false)
                 .build();

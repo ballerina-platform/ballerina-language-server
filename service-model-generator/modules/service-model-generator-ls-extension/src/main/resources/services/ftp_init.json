@@ -12,7 +12,7 @@
     "designApproach": {
       "metadata": {
         "label": "Protocol",
-        "description": "Select the protocol for the remote server connection"
+        "description": "Select the protocol for the remote source connection"
       },
       "enabled": true,
       "editable": true,

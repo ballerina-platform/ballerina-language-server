@@ -41,7 +41,7 @@ import io.ballerina.servicemodelgenerator.extension.core.OpenApiServiceGenerator
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.MetaData;
-import io.ballerina.servicemodelgenerator.extension.model.Option;
+
 import io.ballerina.servicemodelgenerator.extension.model.PropertyType;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
 import io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel;
@@ -233,28 +233,38 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
     }
 
     /**
-     * Builds a read-only SINGLE_SELECT protocol Value from the designApproach choices in the
+     * Builds a read-only CHOICE (radio button) protocol Value from the designApproach choices in the
      * init model, so the options are derived from the model rather than hardcoded.
      */
     private static Value buildProtocolFromDesignApproach(Value designApproach, String selectedValue) {
-        List<Option> options = new ArrayList<>();
+        List<Value> choices = new ArrayList<>();
         if (designApproach.getChoices() != null) {
             for (Value choice : designApproach.getChoices()) {
                 MetaData choiceMeta = choice.getMetadata();
                 if (choiceMeta != null) {
-                    options.add(new Option(choiceMeta.label(), choice.getValue().toString()));
+                    String choiceValue = choice.getValue().toString();
+                    choices.add(new Value.ValueBuilder()
+                            .metadata(choiceMeta.label(), "")
+                            .value(choiceValue)
+                            .types(List.of(PropertyType.types(Value.FieldType.FORM)))
+                            .enabled(choiceValue.equals(selectedValue))
+                            .editable(false)
+                            .setAdvanced(false)
+                            .build());
                 }
             }
         }
 
-        return new Value.ValueBuilder()
+        Value protocol = new Value.ValueBuilder()
                 .setMetadata(designApproach.getMetadata())
                 .value(selectedValue)
-                .types(List.of(PropertyType.types(Value.FieldType.SINGLE_SELECT, options)))
+                .types(List.of(PropertyType.types(Value.FieldType.CHOICE)))
                 .enabled(true)
                 .editable(false)
                 .setAdvanced(false)
                 .build();
+        protocol.setChoices(choices);
+        return protocol;
     }
 
     /**
