@@ -71,6 +71,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import static io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel.KEY_CONFIGURE_LISTENER;
+import static io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel.KEY_LISTENER_SELECTION;
 import static io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel.KEY_LISTENER_VAR_NAME;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.BALLERINA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.CLOSE_BRACE;
@@ -145,15 +146,23 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
             Set<String> compatibleListeners = filterNonLegacyListeners(allListeners, context.semanticModel(),
                     context.project());
 
+            // Always build the choice property with "Existing Server" and "New FTP Server" options
+            Map<String, Value> properties = serviceInitModel.getProperties();
+            Map<String, Value> listenerProps =
+                    ListenerUtil.removeAndCollectListenerProperties(properties, LISTENER_CONFIG_KEYS);
+
+            Map<String, Map<String, Value>> listenerConfigs;
             if (!compatibleListeners.isEmpty()) {
-                Map<String, Value> properties = serviceInitModel.getProperties();
-                // Get properties from the enabled design approach choice
-                Map<String, Value> listenerProps =
-                        ListenerUtil.removeAndCollectListenerProperties(properties, LISTENER_CONFIG_KEYS);
-                Value choicesProperty = ListenerUtil.buildListenerChoiceProperty(listenerProps, compatibleListeners,
-                        LABEL_FTP);
-                properties.put(KEY_CONFIGURE_LISTENER, choicesProperty);
+                // Extract actual configs from existing listener declarations
+                listenerConfigs = ListenerUtil.extractListenerConfigs(compatibleListeners,
+                        context.semanticModel(), context.project());
+            } else {
+                listenerConfigs = Map.of();
             }
+
+            Value choicesProperty = ListenerUtil.buildAlwaysPresentListenerChoiceProperty(
+                    listenerProps, listenerConfigs, compatibleListeners, LABEL_FTP);
+            properties.put(KEY_CONFIGURE_LISTENER, choicesProperty);
 
             return serviceInitModel;
         } catch (IOException e) {
@@ -172,30 +181,51 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
 
         Map<String, Value> properties = serviceInitModel.getProperties();
 
-        // Check if listener choice property exists and apply it first (designApproach is nested)
+        // Apply the configure listener choice (always present now)
         if (properties.containsKey(KEY_CONFIGURE_LISTENER)) {
             applyEnabledChoiceProperty(serviceInitModel, KEY_CONFIGURE_LISTENER);
         }
 
-        // Get the selected protocol (ftp, ftps, or sftp) from the design approach choices
-        String selectedProtocol = getEnabledChoiceValue(serviceInitModel, PROPERTY_DESIGN_APPROACH);
-        applyEnabledChoiceProperty(serviceInitModel, PROPERTY_DESIGN_APPROACH);
-
         properties = serviceInitModel.getProperties();
 
-        // Check if we should use an existing listener
-        boolean useExistingListener = ListenerUtil.shouldUseExistingListener(properties);
-        String listenerVarName;
-        String listenerDeclaration = "";
-        // path is now a service-level property (in @ftp:ServiceConfig annotation).
+        // Determine if "Existing Server" was selected by checking for the nested listenerSelection choice
+        boolean useExistingListener = false;
+        String existingListenerName = null;
+        if (properties.containsKey(KEY_LISTENER_SELECTION)) {
+            Value listenerSelection = properties.get(KEY_LISTENER_SELECTION);
+            if (listenerSelection != null && listenerSelection.getChoices() != null) {
+                for (Value choice : listenerSelection.getChoices()) {
+                    if (choice.isEnabled()) {
+                        existingListenerName = String.valueOf(choice.getValue());
+                        useExistingListener = true;
+                        break;
+                    }
+                }
+            }
+            properties.remove(KEY_LISTENER_SELECTION);
+        }
+        // Backward compatibility: also check the old-style KEY_EXISTING_LISTENER
+        if (!useExistingListener && ListenerUtil.shouldUseExistingListener(properties)) {
+            useExistingListener = true;
+            existingListenerName = ListenerUtil.getExistingListenerName(properties).orElse("");
+        }
+
+        // path is a service-level property (in @ftp:ServiceConfig annotation).
         // Keep backward compatibility with legacy payloads that still send `folderPath`.
         String folderPath = getPropertyValueLiteralValue(properties, "path",
                 getPropertyValueLiteralValue(properties, "folderPath", "\"/\""));
 
+        String listenerVarName;
+        String listenerDeclaration = "";
+
         if (useExistingListener) {
-            listenerVarName = ListenerUtil.getExistingListenerName(properties).orElse("");
+            listenerVarName = existingListenerName;
         } else {
-            // After applyEnabledChoiceProperty, all properties are flattened into the main properties map
+            // "New FTP Server" was selected - get the protocol and build the listener declaration
+            String selectedProtocol = getEnabledChoiceValue(serviceInitModel, PROPERTY_DESIGN_APPROACH);
+            applyEnabledChoiceProperty(serviceInitModel, PROPERTY_DESIGN_APPROACH);
+            properties = serviceInitModel.getProperties();
+
             listenerVarName = properties.get("listenerVarName").getValue();
             String host = getPropertyValueLiteralValue(properties, "host", "\"127.0.0.1\"");
             String port = getPropertyValue(properties, "portNumber", "21");
@@ -217,7 +247,6 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
             if (!username.isEmpty() || !password.isEmpty() || !privateKey.isEmpty() || !secureSocket.isEmpty()) {
                 listenerBuilder.append("auth= { ");
 
-                // Add credentials block if username or password is provided
                 if (!username.isEmpty() || !password.isEmpty()) {
                     listenerBuilder.append("credentials: { ");
                     if (!username.isEmpty()) {
@@ -231,7 +260,6 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
                     }
                     listenerBuilder.append("}");
 
-                    // Add comma if private key or secure socket is also present
                     if (!privateKey.isEmpty() || !secureSocket.isEmpty()) {
                         listenerBuilder.append(", ");
                     } else {
@@ -239,12 +267,10 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
                     }
                 }
 
-                // Add private key configuration if provided
                 if (!privateKey.isEmpty()) {
                     listenerBuilder.append("privateKey: ");
                     listenerBuilder.append(privateKey);
 
-                    // Add comma if secure socket is also present
                     if (!secureSocket.isEmpty()) {
                         listenerBuilder.append(", ");
                     } else {

@@ -896,6 +896,298 @@ public class ListenerUtil {
     }
 
     /**
+     * Builds a CHOICE property that is always present, with "Existing Server" and "New FTP Server" options.
+     * When existing listeners are present, "Existing Server" is default and shows read-only config.
+     * When no existing listeners, "Existing Server" is disabled and "New FTP Server" is default.
+     *
+     * @param newListenerProperties    Map of properties needed to create a new listener
+     * @param listenerConfigs          Map of listener name to its extracted config properties (read-only)
+     * @param existingListeners        Set of existing listener variable names
+     * @param moduleName               Module name for display (e.g., "FTP")
+     * @return Value configured as CHOICE with two options always present.
+     */
+    public static Value buildAlwaysPresentListenerChoiceProperty(Map<String, Value> newListenerProperties,
+                                                                 Map<String, Map<String, Value>> listenerConfigs,
+                                                                 Set<String> existingListeners,
+                                                                 String moduleName) {
+        boolean hasExisting = !existingListeners.isEmpty();
+
+        Value choicesProperty = new Value.ValueBuilder()
+                .metadata("Select FTP Server", "Select an existing FTP server or create a new one")
+                .value("")
+                .types(List.of(PropertyType.types(Value.FieldType.CHOICE)))
+                .enabled(true)
+                .editable(true)
+                .setAdvanced(true)
+                .build();
+
+        Value existingChoice = buildExistingServerChoice(listenerConfigs, existingListeners, moduleName,
+                hasExisting);
+        Value newChoice = buildNewServerChoice(newListenerProperties, moduleName, !hasExisting);
+
+        choicesProperty.setChoices(List.of(existingChoice, newChoice));
+        return choicesProperty;
+    }
+
+    /**
+     * Builds the "Existing Server" choice containing a nested CHOICE for listener selection.
+     * Each listener option shows its configuration as read-only properties.
+     *
+     * @param listenerConfigs   Map of listener name to its read-only config properties
+     * @param listeners         Set of existing listener variable names
+     * @param moduleName        Module name for display
+     * @param enabled           Whether this choice is enabled (false when no listeners exist)
+     * @return Value configured as a FORM with nested CHOICE for listener selection.
+     */
+    private static Value buildExistingServerChoice(Map<String, Map<String, Value>> listenerConfigs,
+                                                    Set<String> listeners, String moduleName,
+                                                    boolean enabled) {
+        Map<String, Value> existingServerProps = new LinkedHashMap<>();
+
+        if (enabled && !listeners.isEmpty()) {
+            // Build nested CHOICE where each option is a listener with read-only config
+            Value listenerSelectionChoice = buildListenerSelectionChoice(listenerConfigs, listeners, moduleName);
+            existingServerProps.put("listenerSelection", listenerSelectionChoice);
+        }
+
+        String label = enabled ? "Existing Server" : "Existing Server (none available)";
+        return new Value.ValueBuilder()
+                .metadata(label, "Use an existing " + moduleName + " server")
+                .value("true")
+                .types(List.of(PropertyType.types(Value.FieldType.FORM)))
+                .enabled(enabled)
+                .editable(false)
+                .setAdvanced(false)
+                .setProperties(existingServerProps)
+                .build();
+    }
+
+    /**
+     * Builds a nested CHOICE for selecting among existing listeners.
+     * Each listener is a choice option with its config shown as read-only fields.
+     *
+     * @param listenerConfigs Map of listener name to config properties
+     * @param listeners       Set of listener names
+     * @param moduleName      Module name for display
+     * @return Value configured as CHOICE with one option per listener.
+     */
+    private static Value buildListenerSelectionChoice(Map<String, Map<String, Value>> listenerConfigs,
+                                                       Set<String> listeners, String moduleName) {
+        Value selectionChoice = new Value.ValueBuilder()
+                .metadata("Select Server", "Select which " + moduleName + " server to use")
+                .value("")
+                .types(List.of(PropertyType.types(Value.FieldType.CHOICE)))
+                .enabled(true)
+                .editable(true)
+                .setAdvanced(false)
+                .build();
+
+        List<Value> choices = new ArrayList<>();
+        boolean first = true;
+        for (String listenerName : listeners) {
+            Map<String, Value> config = listenerConfigs.getOrDefault(listenerName, new LinkedHashMap<>());
+
+            // Make all config properties read-only
+            Map<String, Value> readOnlyConfig = new LinkedHashMap<>();
+            for (Map.Entry<String, Value> entry : config.entrySet()) {
+                Value prop = entry.getValue();
+                prop.setEditable(false);
+                readOnlyConfig.put(entry.getKey(), prop);
+            }
+
+            Value listenerChoice = new Value.ValueBuilder()
+                    .metadata(listenerName, "FTP server: " + listenerName)
+                    .value(listenerName)
+                    .types(List.of(PropertyType.types(Value.FieldType.FORM)))
+                    .enabled(first)
+                    .editable(false)
+                    .setAdvanced(false)
+                    .setProperties(readOnlyConfig)
+                    .build();
+            choices.add(listenerChoice);
+            first = false;
+        }
+
+        selectionChoice.setChoices(choices);
+        return selectionChoice;
+    }
+
+    /**
+     * Builds the "New FTP Server" choice with editable configuration properties.
+     *
+     * @param listenerProperties Map of properties for creating a new listener
+     * @param moduleName         Module name for display
+     * @param enabled            Whether this choice is enabled by default
+     * @return Value configured as a FORM with listener configuration properties.
+     */
+    private static Value buildNewServerChoice(Map<String, Value> listenerProperties,
+                                               String moduleName, boolean enabled) {
+        return new Value.ValueBuilder()
+                .metadata("New FTP Server",
+                        String.format("Create a new %s server connection", moduleName))
+                .value("true")
+                .types(List.of(PropertyType.types(Value.FieldType.FORM)))
+                .enabled(enabled)
+                .editable(false)
+                .setAdvanced(false)
+                .setProperties(listenerProperties)
+                .build();
+    }
+
+    /**
+     * Extracts listener configuration properties from source code for the given listener names.
+     * For each listener, finds its declaration in the project and extracts key configuration
+     * values (protocol, host, port, authentication).
+     *
+     * @param listenerNames  Set of listener variable names to extract configs for
+     * @param semanticModel  Semantic model for symbol resolution
+     * @param project        Project for source traversal
+     * @return Map of listener name to its configuration properties.
+     */
+    public static Map<String, Map<String, Value>> extractListenerConfigs(Set<String> listenerNames,
+                                                                          SemanticModel semanticModel,
+                                                                          Project project) {
+        Map<String, Map<String, Value>> configs = new LinkedHashMap<>();
+
+        for (String listenerName : listenerNames) {
+            Map<String, Value> config = extractSingleListenerConfig(listenerName, semanticModel, project);
+            if (config != null && !config.isEmpty()) {
+                configs.put(listenerName, config);
+            }
+        }
+        return configs;
+    }
+
+    /**
+     * Extracts configuration for a single listener by finding its declaration node and parsing its
+     * constructor arguments.
+     */
+    private static Map<String, Value> extractSingleListenerConfig(String listenerName,
+                                                                    SemanticModel semanticModel,
+                                                                    Project project) {
+        // Find the listener's VariableSymbol
+        Optional<VariableSymbol> listenerSymbol = Optional.empty();
+        for (Symbol moduleSymbol : semanticModel.moduleSymbols()) {
+            if (!(moduleSymbol instanceof VariableSymbol variableSymbol)
+                    || !variableSymbol.qualifiers().contains(Qualifier.LISTENER)) {
+                continue;
+            }
+            if (variableSymbol.getName().isPresent() && variableSymbol.getName().get().equals(listenerName)) {
+                listenerSymbol = Optional.of(variableSymbol);
+                break;
+            }
+        }
+        if (listenerSymbol.isEmpty() || listenerSymbol.get().getLocation().isEmpty()) {
+            return null;
+        }
+
+        // Find the ListenerDeclarationNode from the symbol's location
+        Location location = listenerSymbol.get().getLocation().get();
+        try {
+            Path path = project.sourceRoot().resolve(location.lineRange().fileName());
+            DocumentId documentId = project.documentId(path);
+            Document document = project.currentPackage().getDefaultModule().document(documentId);
+            if (document == null) {
+                return null;
+            }
+
+            ModulePartNode modulePartNode = document.syntaxTree().rootNode();
+            TextRange range = TextRange.from(location.textRange().startOffset(), location.textRange().length());
+            NonTerminalNode foundNode = modulePartNode.findNode(range);
+            while (foundNode != null && !(foundNode instanceof ListenerDeclarationNode)) {
+                foundNode = foundNode.parent();
+            }
+            if (foundNode == null) {
+                return null;
+            }
+
+            ListenerDeclarationNode listenerNode = (ListenerDeclarationNode) foundNode;
+            return extractConfigFromListenerDeclaration(listenerNode);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /**
+     * Extracts key configuration values from a listener declaration node by parsing its
+     * constructor arguments directly.
+     *
+     * @param listenerNode The listener declaration node
+     * @return Map of config property names to their Value objects
+     */
+    private static Map<String, Value> extractConfigFromListenerDeclaration(ListenerDeclarationNode listenerNode) {
+        Map<String, Value> config = new LinkedHashMap<>();
+
+        Node initializer = listenerNode.initializer();
+        NewExpressionNode newExpressionNode;
+        if (initializer instanceof CheckExpressionNode checkExpressionNode) {
+            newExpressionNode = (NewExpressionNode) checkExpressionNode.expression();
+        } else {
+            newExpressionNode = (NewExpressionNode) initializer;
+        }
+
+        SeparatedNodeList<FunctionArgumentNode> arguments = getArgList(newExpressionNode);
+        if (arguments == null) {
+            return config;
+        }
+
+        // Extract named arguments
+        for (FunctionArgumentNode argument : arguments) {
+            if (argument instanceof NamedArgumentNode namedArg) {
+                String argName = namedArg.argumentName().name().text().trim();
+                String argValue = namedArg.expression().toSourceCode().trim();
+
+                switch (argName) {
+                    case "protocol" -> config.put("protocol", buildReadOnlyTextValue("Protocol",
+                            "Connection protocol", argValue));
+                    case "host" -> config.put("host", buildReadOnlyTextValue("Host",
+                            "Server hostname", argValue));
+                    case "port", "portNumber" -> config.put("portNumber", buildReadOnlyTextValue("Port",
+                            "Server port", argValue));
+                    case "auth" -> config.put("authentication", buildReadOnlyTextValue("Authentication",
+                            "Authentication configuration", summarizeAuthConfig(argValue)));
+                    default -> {
+                        // Skip other arguments
+                    }
+                }
+            }
+        }
+
+        return config;
+    }
+
+    /**
+     * Summarizes an authentication configuration value for display.
+     * Converts raw auth expressions to human-readable text.
+     */
+    private static String summarizeAuthConfig(String authValue) {
+        if (authValue == null || authValue.isEmpty()) {
+            return "None";
+        }
+        if (authValue.contains("credentials")) {
+            return "Credentials configured";
+        }
+        if (authValue.contains("privateKey")) {
+            return "Certificate based";
+        }
+        return "Configured";
+    }
+
+    /**
+     * Builds a read-only text Value for displaying listener config information.
+     */
+    private static Value buildReadOnlyTextValue(String label, String description, String value) {
+        return new Value.ValueBuilder()
+                .metadata(label, description)
+                .value(value)
+                .types(List.of(PropertyType.types(Value.FieldType.TEXT)))
+                .enabled(true)
+                .editable(false)
+                .setAdvanced(false)
+                .build();
+    }
+
+    /**
      * Builds a "Use Existing Listener" choice with a dropdown of available listeners.
      *
      * @param listeners  Set of existing listener variable names
