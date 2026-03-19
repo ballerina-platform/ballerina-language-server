@@ -1126,8 +1126,7 @@ public class ListenerUtil {
                 String argValue = namedArg.expression().toSourceCode().trim();
 
                 switch (argName) {
-                    case "protocol" -> config.put("protocol", buildReadOnlyTextValue("Protocol",
-                            "Connection protocol", argValue));
+                    case "protocol" -> config.put("protocol", buildProtocolSelectValue(argValue));
                     case "host" -> config.put("host", buildReadOnlyTextValue("Host",
                             "Server hostname", argValue));
                     case "port", "portNumber" -> config.put("portNumber", buildReadOnlyTextValue("Port",
@@ -1169,6 +1168,25 @@ public class ListenerUtil {
                 .metadata(label, description)
                 .value(value)
                 .types(List.of(PropertyType.types(Value.FieldType.TEXT)))
+                .enabled(true)
+                .editable(false)
+                .setAdvanced(false)
+                .build();
+    }
+
+    /**
+     * Builds a read-only SINGLE_SELECT Value for displaying the protocol of an existing listener.
+     */
+    private static Value buildProtocolSelectValue(String value) {
+        List<Option> options = List.of(
+                new Option("FTP", "FTP"),
+                new Option("SFTP", "SFTP"),
+                new Option("FTPS", "FTPS")
+        );
+        return new Value.ValueBuilder()
+                .metadata("Protocol", "Connection protocol")
+                .value(value)
+                .types(List.of(PropertyType.types(Value.FieldType.SINGLE_SELECT, options)))
                 .enabled(true)
                 .editable(false)
                 .setAdvanced(false)
