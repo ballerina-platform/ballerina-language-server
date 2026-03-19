@@ -361,7 +361,7 @@ public class TypesManager {
                             .orElse(null);
                     updatedTypeNames.put(targetMemberTypeName,
                             new ReferenceTypeInfo(sourceMemberTypeName, sourceMemberCodedata));
-                    memberBuilder.typeName(sourceMemberTypeName)
+                    memberBuilder.typeName(sourceMember.get().typeName())
                             .refs(sourceMember.get().refs())
                             .type(sourceMember.get().type());
                 }
