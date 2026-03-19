@@ -915,7 +915,7 @@ public class ListenerUtil {
         Value choicesProperty = new Value.ValueBuilder()
                 .metadata("Select FTP Server", "Select an existing FTP server or create a new one")
                 .value("")
-                .types(List.of(PropertyType.types(Value.FieldType.CHOICE)))
+                .types(List.of(PropertyType.types(Value.FieldType.INLINE_CHOICE)))
                 .enabled(true)
                 .editable(true)
                 .setAdvanced(false)
@@ -930,14 +930,16 @@ public class ListenerUtil {
     }
 
     /**
-     * Builds the "Existing Server" choice containing a nested CHOICE for listener selection.
-     * Each listener option shows its configuration as read-only properties.
+     * Builds the "Existing Server" choice with an inline SINGLE_SELECT dropdown for listener
+     * selection. Each listener's configuration is stored as nested properties on the dropdown
+     * property, keyed by listener name, so the frontend can show read-only config when a
+     * listener is selected.
      *
      * @param listenerConfigs   Map of listener name to its read-only config properties
      * @param listeners         Set of existing listener variable names
      * @param moduleName        Module name for display
      * @param enabled           Whether this choice is enabled (false when no listeners exist)
-     * @return Value configured as a FORM with nested CHOICE for listener selection.
+     * @return Value configured as a FORM whose first property is the inline dropdown.
      */
     private static Value buildExistingServerChoice(Map<String, Map<String, Value>> listenerConfigs,
                                                     Set<String> listeners, String moduleName,
@@ -945,9 +947,45 @@ public class ListenerUtil {
         Map<String, Value> existingServerProps = new LinkedHashMap<>();
 
         if (enabled && !listeners.isEmpty()) {
-            // Build nested CHOICE where each option is a listener with read-only config
-            Value listenerSelectionChoice = buildListenerSelectionChoice(listenerConfigs, listeners, moduleName);
-            existingServerProps.put("listenerSelection", listenerSelectionChoice);
+            // Build SINGLE_SELECT dropdown with listener names as items
+            List<String> listenerNames = new ArrayList<>(listeners);
+
+            // Nested properties keyed by listener name, each containing read-only config
+            Map<String, Value> perListenerConfigs = new LinkedHashMap<>();
+            for (String listenerName : listenerNames) {
+                Map<String, Value> config = listenerConfigs.getOrDefault(
+                        listenerName, new LinkedHashMap<>());
+
+                // Make all config properties read-only
+                Map<String, Value> readOnlyConfig = new LinkedHashMap<>();
+                for (Map.Entry<String, Value> entry : config.entrySet()) {
+                    Value prop = entry.getValue();
+                    prop.setEditable(false);
+                    readOnlyConfig.put(entry.getKey(), prop);
+                }
+
+                Value configGroup = new Value.ValueBuilder()
+                        .metadata(listenerName, moduleName + " server: " + listenerName)
+                        .value(listenerName)
+                        .types(List.of(PropertyType.types(Value.FieldType.FORM)))
+                        .enabled(true)
+                        .editable(false)
+                        .setProperties(readOnlyConfig)
+                        .build();
+                perListenerConfigs.put(listenerName, configGroup);
+            }
+
+            Value listenerDropdown = new Value.ValueBuilder()
+                    .metadata("", "")
+                    .value(listenerNames.get(0))
+                    .types(List.of(PropertyType.types(Value.FieldType.SINGLE_SELECT)))
+                    .enabled(true)
+                    .editable(true)
+                    .setItems(new ArrayList<Object>(listenerNames))
+                    .setProperties(perListenerConfigs)
+                    .build();
+
+            existingServerProps.put("existingListener", listenerDropdown);
         }
 
         String label = enabled ? "Existing Server" : "Existing Server (none available)";
@@ -960,56 +998,6 @@ public class ListenerUtil {
                 .setAdvanced(false)
                 .setProperties(existingServerProps)
                 .build();
-    }
-
-    /**
-     * Builds a nested CHOICE for selecting among existing listeners.
-     * Each listener is a choice option with its config shown as read-only fields.
-     *
-     * @param listenerConfigs Map of listener name to config properties
-     * @param listeners       Set of listener names
-     * @param moduleName      Module name for display
-     * @return Value configured as CHOICE with one option per listener.
-     */
-    private static Value buildListenerSelectionChoice(Map<String, Map<String, Value>> listenerConfigs,
-                                                       Set<String> listeners, String moduleName) {
-        Value selectionChoice = new Value.ValueBuilder()
-                .metadata("Select Server", "Select which " + moduleName + " server to use")
-                .value("")
-                .types(List.of(PropertyType.types(Value.FieldType.CHOICE)))
-                .enabled(true)
-                .editable(true)
-                .setAdvanced(false)
-                .build();
-
-        List<Value> choices = new ArrayList<>();
-        boolean first = true;
-        for (String listenerName : listeners) {
-            Map<String, Value> config = listenerConfigs.getOrDefault(listenerName, new LinkedHashMap<>());
-
-            // Make all config properties read-only
-            Map<String, Value> readOnlyConfig = new LinkedHashMap<>();
-            for (Map.Entry<String, Value> entry : config.entrySet()) {
-                Value prop = entry.getValue();
-                prop.setEditable(false);
-                readOnlyConfig.put(entry.getKey(), prop);
-            }
-
-            Value listenerChoice = new Value.ValueBuilder()
-                    .metadata(listenerName, "FTP server: " + listenerName)
-                    .value(listenerName)
-                    .types(List.of(PropertyType.types(Value.FieldType.FORM)))
-                    .enabled(first)
-                    .editable(false)
-                    .setAdvanced(false)
-                    .setProperties(readOnlyConfig)
-                    .build();
-            choices.add(listenerChoice);
-            first = false;
-        }
-
-        selectionChoice.setChoices(choices);
-        return selectionChoice;
     }
 
     /**

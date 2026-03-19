@@ -195,10 +195,20 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
 
         properties = serviceInitModel.getProperties();
 
-        // Determine if "Existing Server" was selected by checking for the nested listenerSelection choice
+        // Determine if "Existing Server" was selected.
+        // With INLINE_CHOICE, the existingListener SINGLE_SELECT value contains the listener name.
         boolean useExistingListener = false;
         String existingListenerName = null;
-        if (properties.containsKey(KEY_LISTENER_SELECTION)) {
+        if (properties.containsKey(KEY_EXISTING_LISTENER)) {
+            Value existingListenerValue = properties.get(KEY_EXISTING_LISTENER);
+            if (existingListenerValue != null && existingListenerValue.getValue() != null) {
+                existingListenerName = String.valueOf(existingListenerValue.getValue());
+                useExistingListener = !existingListenerName.isEmpty();
+            }
+            properties.remove(KEY_EXISTING_LISTENER);
+        }
+        // Backward compatibility: also check the old-style nested CHOICE via listenerSelection
+        if (!useExistingListener && properties.containsKey(KEY_LISTENER_SELECTION)) {
             Value listenerSelection = properties.get(KEY_LISTENER_SELECTION);
             if (listenerSelection != null && listenerSelection.getChoices() != null) {
                 for (Value choice : listenerSelection.getChoices()) {
@@ -211,7 +221,6 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
             }
             properties.remove(KEY_LISTENER_SELECTION);
         }
-        // Backward compatibility: also check the old-style KEY_EXISTING_LISTENER
         if (!useExistingListener && ListenerUtil.shouldUseExistingListener(properties)) {
             useExistingListener = true;
             existingListenerName = ListenerUtil.getExistingListenerName(properties).orElse("");

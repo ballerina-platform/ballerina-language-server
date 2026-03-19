@@ -113,6 +113,7 @@ public class Value {
         ACTION_TYPE,
         REPEATABLE_LIST,
         REPEATABLE_MAP,
+        INLINE_CHOICE,
     }
 
     public MetaData getMetadata() {
