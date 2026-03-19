@@ -655,8 +655,8 @@
     },
     "listenerVarName": {
       "metadata": {
-        "label": "Listener Name",
-        "description": "Provide a name for the listener being created"
+        "label": "Server Name",
+        "description": "Provide a name for the server being created"
       },
       "codedata": {
         "type": "LISTENER_VAR_NAME"
