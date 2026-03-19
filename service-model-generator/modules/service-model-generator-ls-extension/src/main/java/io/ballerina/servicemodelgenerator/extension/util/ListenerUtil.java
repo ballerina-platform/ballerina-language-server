@@ -1134,8 +1134,8 @@ public class ListenerUtil {
                             "Server hostname", argValue));
                     case "port", "portNumber" -> config.put("portNumber", buildReadOnlyTextValue("Port",
                             "Server port", argValue));
-                    case "auth" -> config.put("authentication", buildReadOnlyTextValue("Authentication",
-                            "Authentication configuration", summarizeAuthConfig(argValue)));
+                    case "auth" -> config.put("authentication",
+                            buildAuthChoiceValue(namedArg.expression()));
                     default -> {
                         // Skip other arguments
                     }
@@ -1147,20 +1147,131 @@ public class ListenerUtil {
     }
 
     /**
-     * Summarizes an authentication configuration value for display.
-     * Converts raw auth expressions to human-readable text.
+     * Builds a read-only CHOICE (radio button) Value for displaying the authentication
+     * configuration of an existing listener, mirroring the structure in ftp_init.json.
+     *
+     * <p>Parses the auth mapping constructor to determine which auth type is used
+     * (No Auth / Basic / Certificate) and populates the selected choice's properties
+     * with actual values from the source code.
      */
-    private static String summarizeAuthConfig(String authValue) {
-        if (authValue == null || authValue.isEmpty()) {
-            return "None";
+    private static Value buildAuthChoiceValue(Node authExpression) {
+        // Parse auth fields from the mapping constructor
+        String username = "";
+        String password = "";
+        String privateKey = "";
+        boolean hasCredentials = false;
+        boolean hasPrivateKey = false;
+
+        if (authExpression instanceof MappingConstructorExpressionNode mapping) {
+            for (MappingFieldNode fieldNode : mapping.fields()) {
+                if (fieldNode instanceof SpecificFieldNode field) {
+                    String fieldName = field.fieldName().toSourceCode().trim();
+                    String fieldValue = field.valueExpr()
+                            .map(expr -> expr.toSourceCode().trim()).orElse("");
+
+                    switch (fieldName) {
+                        case "credentials" -> {
+                            hasCredentials = true;
+                            // Parse nested credentials record
+                            if (field.valueExpr().isPresent()
+                                    && field.valueExpr().get()
+                                    instanceof MappingConstructorExpressionNode credMapping) {
+                                for (MappingFieldNode credField : credMapping.fields()) {
+                                    if (credField instanceof SpecificFieldNode credSpecific) {
+                                        String credFieldName =
+                                                credSpecific.fieldName().toSourceCode().trim();
+                                        String credFieldValue = credSpecific.valueExpr()
+                                                .map(expr -> expr.toSourceCode().trim()).orElse("");
+                                        if ("username".equals(credFieldName)) {
+                                            username = credFieldValue;
+                                        } else if ("password".equals(credFieldName)) {
+                                            password = credFieldValue;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        case "privateKey" -> {
+                            hasPrivateKey = true;
+                            privateKey = fieldValue;
+                        }
+                        default -> {
+                            // Skip other fields
+                        }
+                    }
+                }
+            }
         }
-        if (authValue.contains("credentials")) {
-            return "Credentials configured";
+
+        // Determine which auth type is active
+        boolean isCertAuth = hasPrivateKey;
+        boolean isBasicAuth = hasCredentials && !hasPrivateKey;
+
+        // Build choices mirroring ftp_init.json auth CHOICE structure
+        List<Value> choices = new ArrayList<>();
+
+        // No Authentication
+        choices.add(new Value.ValueBuilder()
+                .metadata("No Authentication", "")
+                .value("true")
+                .types(List.of(PropertyType.types(Value.FieldType.FORM)))
+                .enabled(!isBasicAuth && !isCertAuth)
+                .editable(false)
+                .setAdvanced(false)
+                .build());
+
+        if (isCertAuth) {
+            // Certificate Based Authentication
+            Map<String, Value> certProps = new LinkedHashMap<>();
+            certProps.put("privateKey", buildReadOnlyTextValue("Private Key",
+                    "Private key configuration for SSH-based authentication", privateKey));
+            if (!username.isEmpty()) {
+                certProps.put("userName", buildReadOnlyTextValue("Username",
+                        "Remote server username for key-based authentication", username));
+            }
+            Value certChoice = new Value.ValueBuilder()
+                    .metadata("Certificate Based Authentication", "")
+                    .value("true")
+                    .types(List.of(PropertyType.types(Value.FieldType.FORM)))
+                    .enabled(true)
+                    .editable(false)
+                    .setAdvanced(false)
+                    .setProperties(certProps)
+                    .build();
+            choices.add(certChoice);
+        } else {
+            // Basic Authentication
+            Map<String, Value> basicProps = new LinkedHashMap<>();
+            if (!username.isEmpty()) {
+                basicProps.put("userName", buildReadOnlyTextValue("Username",
+                        "Remote server username for authentication", username));
+            }
+            if (!password.isEmpty()) {
+                basicProps.put("password", buildReadOnlyTextValue("Password",
+                        "Remote server password for authentication", password));
+            }
+            Value basicChoice = new Value.ValueBuilder()
+                    .metadata("Basic Authentication", "")
+                    .value("true")
+                    .types(List.of(PropertyType.types(Value.FieldType.FORM)))
+                    .enabled(isBasicAuth)
+                    .editable(false)
+                    .setAdvanced(false)
+                    .setProperties(basicProps)
+                    .build();
+            choices.add(basicChoice);
         }
-        if (authValue.contains("privateKey")) {
-            return "Certificate based";
-        }
-        return "Configured";
+
+        Value auth = new Value.ValueBuilder()
+                .metadata("Authentication", "Select the authentication method")
+                .value("")
+                .types(List.of(PropertyType.types(Value.FieldType.CHOICE)))
+                .enabled(true)
+                .editable(false)
+                .setAdvanced(false)
+                .build();
+        auth.setChoices(choices);
+        return auth;
     }
 
     /**
