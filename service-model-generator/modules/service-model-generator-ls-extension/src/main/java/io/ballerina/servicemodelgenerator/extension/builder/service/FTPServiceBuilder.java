@@ -199,13 +199,13 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
         // With INLINE_CHOICE, the existingListener SINGLE_SELECT value contains the listener name.
         boolean useExistingListener = false;
         String existingListenerName = null;
-        if (properties.containsKey(KEY_EXISTING_LISTENER)) {
-            Value existingListenerValue = properties.get(KEY_EXISTING_LISTENER);
+        if (properties.containsKey(ServiceInitModel.KEY_EXISTING_LISTENER)) {
+            Value existingListenerValue = properties.get(ServiceInitModel.KEY_EXISTING_LISTENER);
             if (existingListenerValue != null && existingListenerValue.getValue() != null) {
                 existingListenerName = String.valueOf(existingListenerValue.getValue());
                 useExistingListener = !existingListenerName.isEmpty();
             }
-            properties.remove(KEY_EXISTING_LISTENER);
+            properties.remove(ServiceInitModel.KEY_EXISTING_LISTENER);
         }
         // Backward compatibility: also check the old-style nested CHOICE via listenerSelection
         if (!useExistingListener && properties.containsKey(KEY_LISTENER_SELECTION)) {
