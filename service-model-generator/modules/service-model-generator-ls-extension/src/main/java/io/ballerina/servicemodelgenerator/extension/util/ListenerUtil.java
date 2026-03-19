@@ -1211,6 +1211,7 @@ public class ListenerUtil {
         // Determine which auth type is active
         boolean isCertAuth = hasPrivateKey;
         boolean isBasicAuth = hasCredentials && !hasPrivateKey;
+        boolean isNoAuth = authExpression != null && !isBasicAuth && !isCertAuth;
 
         // Build choices mirroring ftp_init.json auth CHOICE structure
         List<Value> choices = new ArrayList<>();
@@ -1220,7 +1221,7 @@ public class ListenerUtil {
                 .metadata("No Authentication", "")
                 .value("true")
                 .types(List.of(PropertyType.types(Value.FieldType.FORM)))
-                .enabled(!isBasicAuth && !isCertAuth)
+                .enabled(isNoAuth)
                 .editable(false)
                 .setAdvanced(false)
                 .build());
