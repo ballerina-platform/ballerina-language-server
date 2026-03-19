@@ -667,11 +667,11 @@
           "selected": true
         }
       ],
-      "value": "ftpListenerOut",
+      "value": "ftpServer",
       "enabled": true,
       "editable": true,
       "optional": false,
-      "advanced": true
+      "advanced": false
     }
   }
 }

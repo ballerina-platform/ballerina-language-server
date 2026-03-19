@@ -108,6 +108,9 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
     // Display label
     private static final String LABEL_FTP = "FTP";
 
+    // Variable name prefix for FTP servers (produces ftpServer, ftpServer1, ftpServer2, ...)
+    private static final String FTP_SERVER_VAR_NAME = "ftpServer";
+
     // Listener configuration property keys (path is service-level, not listener-level)
     // designApproach contains protocol choice with nested listener properties (host, port, auth)
     private static final List<String> LISTENER_CONFIG_KEYS = List.of(
@@ -137,9 +140,11 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
 
         try (JsonReader reader = new JsonReader(new InputStreamReader(resourceStream, StandardCharsets.UTF_8))) {
             ServiceInitModel serviceInitModel = new Gson().fromJson(reader, ServiceInitModel.class);
-            Value listenerNameProp = listenerNameProperty(context);
+            // Generate a unique server name using the "ftpServer" prefix
+            String serverName = Utils.generateVariableIdentifier(context.semanticModel(), context.document(),
+                    context.document().syntaxTree().rootNode().lineRange().endLine(), FTP_SERVER_VAR_NAME);
             Value listener = serviceInitModel.getProperties().get(KEY_LISTENER_VAR_NAME);
-            listener.setValue(listenerNameProp.getValue());
+            listener.setValue(serverName);
 
             // Check for existing compatible FTP listeners (excluding legacy ones)
             Set<String> allListeners = ListenerUtil.getCompatibleListeners(context.moduleName(),

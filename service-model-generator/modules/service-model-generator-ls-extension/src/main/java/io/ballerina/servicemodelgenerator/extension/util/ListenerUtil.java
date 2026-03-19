@@ -914,7 +914,7 @@ public class ListenerUtil {
 
         Value choicesProperty = new Value.ValueBuilder()
                 .metadata("Select FTP Server", "Select an existing FTP server or create a new one")
-                .value("")
+                .value(hasExisting ? "0" : "1")
                 .types(List.of(PropertyType.types(Value.FieldType.INLINE_CHOICE)))
                 .enabled(true)
                 .editable(true)
@@ -990,7 +990,7 @@ public class ListenerUtil {
 
         String label = enabled ? "Existing Server" : "Existing Server (none available)";
         return new Value.ValueBuilder()
-                .metadata(label, "Use an existing " + moduleName + " server")
+                .metadata(label, "Select an existing " + moduleName + " server")
                 .value("true")
                 .types(List.of(PropertyType.types(Value.FieldType.FORM)))
                 .enabled(enabled)
@@ -1012,7 +1012,7 @@ public class ListenerUtil {
                                                String moduleName, boolean enabled) {
         return new Value.ValueBuilder()
                 .metadata("New FTP Server",
-                        String.format("Create a new %s server connection", moduleName))
+                        String.format("Create a new %s server", moduleName))
                 .value("true")
                 .types(List.of(PropertyType.types(Value.FieldType.FORM)))
                 .enabled(enabled)
