@@ -655,8 +655,8 @@
     },
     "listenerVarName": {
       "metadata": {
-        "label": "Server Name",
-        "description": "Provide a name for the server being created"
+        "label": "Source Name",
+        "description": "Unique name for this FTP source"
       },
       "codedata": {
         "type": "LISTENER_VAR_NAME"
@@ -667,7 +667,7 @@
           "selected": true
         }
       ],
-      "value": "ftpServer",
+      "value": "ftpSource",
       "enabled": true,
       "editable": true,
       "optional": false,

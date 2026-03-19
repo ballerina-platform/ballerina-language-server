@@ -110,8 +110,8 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
     // Display label
     private static final String LABEL_FTP = "FTP";
 
-    // Variable name prefix for FTP servers (produces ftpServer, ftpServer1, ftpServer2, ...)
-    private static final String FTP_SERVER_VAR_NAME = "ftpServer";
+    // Variable name prefix for FTP sources (produces ftpSource, ftpSource1, ftpSource2, ...)
+    private static final String FTP_SOURCE_VAR_NAME = "ftpSource";
 
     // Listener configuration property keys (path is service-level, not listener-level)
     // designApproach contains protocol choice with nested listener properties (host, port, auth)
@@ -142,11 +142,11 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
 
         try (JsonReader reader = new JsonReader(new InputStreamReader(resourceStream, StandardCharsets.UTF_8))) {
             ServiceInitModel serviceInitModel = new Gson().fromJson(reader, ServiceInitModel.class);
-            // Generate a unique server name using the "ftpServer" prefix
-            String serverName = Utils.generateVariableIdentifier(context.semanticModel(), context.document(),
-                    context.document().syntaxTree().rootNode().lineRange().endLine(), FTP_SERVER_VAR_NAME);
+            // Generate a unique source name using the "ftpSource" prefix
+            String sourceName = Utils.generateVariableIdentifier(context.semanticModel(), context.document(),
+                    context.document().syntaxTree().rootNode().lineRange().endLine(), FTP_SOURCE_VAR_NAME);
             Value listener = serviceInitModel.getProperties().get(KEY_LISTENER_VAR_NAME);
-            listener.setValue(serverName);
+            listener.setValue(sourceName);
 
             // Check for existing compatible FTP listeners (excluding legacy ones)
             Set<String> allListeners = ListenerUtil.getCompatibleListeners(context.moduleName(),
@@ -163,7 +163,7 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
                     && designApproach.getChoices() != null && !designApproach.getChoices().isEmpty())
                     ? designApproach.getChoices().get(0).getProperties() : Map.of();
 
-            // Always build the choice property with "Existing Server" and "New FTP Server" options
+            // Always build the choice property with "Use existing" and "Create new" source options
             Map<String, Value> listenerProps =
                     ListenerUtil.removeAndCollectListenerProperties(properties, LISTENER_CONFIG_KEYS);
 
@@ -173,7 +173,7 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
                 listenerConfigs = ListenerUtil.extractListenerConfigs(compatibleListeners,
                         context.semanticModel(), context.project());
                 // Apply init model metadata so existing listener configs use the same
-                // labels/descriptions as the "New FTP Server" form
+                // labels/descriptions as the "Create new" source form
                 applyInitModelMetadata(listenerConfigs, templateProps, designApproach);
             } else {
                 listenerConfigs = Map.of();
@@ -197,8 +197,8 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
 
     /**
      * Applies metadata from the init model template properties onto the extracted existing listener
-     * configs so that labels and descriptions are consistent between "New FTP Server" and
-     * "Existing Server" views.
+     * configs so that labels and descriptions are consistent between "Create new" and
+     * "Use existing" source views.
      *
      * @param configs         Extracted listener configs (listener name → property key → Value)
      * @param templateProps   Properties from the first designApproach choice in ftp_init.json
@@ -275,7 +275,7 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
 
         properties = serviceInitModel.getProperties();
 
-        // Determine if "Existing Server" was selected.
+        // Determine if "Use existing" source was selected.
         // With INLINE_CHOICE, the existingListener SINGLE_SELECT value contains the listener name.
         boolean useExistingListener = false;
         String existingListenerName = null;
@@ -317,7 +317,7 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
         if (useExistingListener) {
             listenerVarName = existingListenerName;
         } else {
-            // "New FTP Server" was selected - get the protocol and build the listener declaration
+            // "Create new" source was selected - get the protocol and build the listener declaration
             String selectedProtocol = getEnabledChoiceValue(serviceInitModel, PROPERTY_DESIGN_APPROACH);
             applyEnabledChoiceProperty(serviceInitModel, PROPERTY_DESIGN_APPROACH);
             properties = serviceInitModel.getProperties();

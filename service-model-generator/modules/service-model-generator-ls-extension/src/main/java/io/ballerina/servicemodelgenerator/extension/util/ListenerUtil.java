@@ -896,9 +896,9 @@ public class ListenerUtil {
     }
 
     /**
-     * Builds a CHOICE property that is always present, with "Existing Server" and "New FTP Server" options.
-     * When existing listeners are present, "Existing Server" is default and shows read-only config.
-     * When no existing listeners, "Existing Server" is disabled and "New FTP Server" is default.
+     * Builds a CHOICE property that is always present, with "Use existing" and "Create new" source options.
+     * When existing listeners are present, "Use existing" is default and shows read-only config.
+     * When no existing listeners, "Use existing" is disabled and "Create new" is default.
      *
      * @param newListenerProperties    Map of properties needed to create a new listener
      * @param listenerConfigs          Map of listener name to its extracted config properties (read-only)
@@ -913,7 +913,8 @@ public class ListenerUtil {
         boolean hasExisting = !existingListeners.isEmpty();
 
         Value choicesProperty = new Value.ValueBuilder()
-                .metadata("Select FTP Server", "Select an existing FTP server or create a new one")
+                .metadata("Configure " + moduleName + " Source",
+                        "Select an existing " + moduleName + " source or create a new one")
                 .value(hasExisting ? "0" : "1")
                 .types(List.of(PropertyType.types(Value.FieldType.INLINE_CHOICE)))
                 .enabled(true)
@@ -921,16 +922,16 @@ public class ListenerUtil {
                 .setAdvanced(false)
                 .build();
 
-        Value existingChoice = buildExistingServerChoice(listenerConfigs, existingListeners, moduleName,
+        Value existingChoice = buildExistingSourceChoice(listenerConfigs, existingListeners, moduleName,
                 hasExisting);
-        Value newChoice = buildNewServerChoice(newListenerProperties, moduleName, !hasExisting);
+        Value newChoice = buildNewSourceChoice(newListenerProperties, moduleName, !hasExisting);
 
         choicesProperty.setChoices(List.of(existingChoice, newChoice));
         return choicesProperty;
     }
 
     /**
-     * Builds the "Existing Server" choice with an inline SINGLE_SELECT dropdown for listener
+     * Builds the "Use existing" source choice with an inline SINGLE_SELECT dropdown for listener
      * selection. Each listener's configuration is stored as nested properties on the dropdown
      * property, keyed by listener name, so the frontend can show read-only config when a
      * listener is selected.
@@ -941,7 +942,7 @@ public class ListenerUtil {
      * @param enabled           Whether this choice is enabled (false when no listeners exist)
      * @return Value configured as a FORM whose first property is the inline dropdown.
      */
-    private static Value buildExistingServerChoice(Map<String, Map<String, Value>> listenerConfigs,
+    private static Value buildExistingSourceChoice(Map<String, Map<String, Value>> listenerConfigs,
                                                     Set<String> listeners, String moduleName,
                                                     boolean enabled) {
         Map<String, Value> existingServerProps = new LinkedHashMap<>();
@@ -965,7 +966,7 @@ public class ListenerUtil {
                 }
 
                 Value configGroup = new Value.ValueBuilder()
-                        .metadata(listenerName, moduleName + " server: " + listenerName)
+                        .metadata(listenerName, moduleName + " source: " + listenerName)
                         .value(listenerName)
                         .types(List.of(PropertyType.types(Value.FieldType.FORM)))
                         .enabled(true)
@@ -988,9 +989,9 @@ public class ListenerUtil {
             existingServerProps.put("existingListener", listenerDropdown);
         }
 
-        String label = enabled ? "Existing Server" : "Existing Server (none available)";
+        String label = enabled ? "Use existing" : "Use existing (none available)";
         return new Value.ValueBuilder()
-                .metadata(label, "Select an existing " + moduleName + " server")
+                .metadata(label, "Select an existing " + moduleName + " source")
                 .value("true")
                 .types(List.of(PropertyType.types(Value.FieldType.FORM)))
                 .enabled(enabled)
@@ -1001,18 +1002,20 @@ public class ListenerUtil {
     }
 
     /**
-     * Builds the "New FTP Server" choice with editable configuration properties.
+     * Builds the "Create new" source choice with editable configuration properties.
+     * The listener variable name is embedded as a property within this choice so the
+     * user sees it inline rather than as a separate top-level field.
      *
      * @param listenerProperties Map of properties for creating a new listener
      * @param moduleName         Module name for display
      * @param enabled            Whether this choice is enabled by default
      * @return Value configured as a FORM with listener configuration properties.
      */
-    private static Value buildNewServerChoice(Map<String, Value> listenerProperties,
+    private static Value buildNewSourceChoice(Map<String, Value> listenerProperties,
                                                String moduleName, boolean enabled) {
         return new Value.ValueBuilder()
-                .metadata("New FTP Server",
-                        String.format("Create a new %s server", moduleName))
+                .metadata("Create new",
+                        String.format("Create a new %s source", moduleName))
                 .value("true")
                 .types(List.of(PropertyType.types(Value.FieldType.FORM)))
                 .enabled(enabled)
