@@ -12,9 +12,7 @@
     "designApproach": {
       "metadata": {
         "label": "Protocol",
-        "description": "Select the protocol for the remote source connection",
-        "groupName": "Listener Configuration",
-        "groupNo": 1
+        "description": "Select the protocol for the remote source connection"
       },
       "enabled": true,
       "editable": true,
@@ -658,9 +656,7 @@
     "listenerVarName": {
       "metadata": {
         "label": "Source Name",
-        "description": "Unique name for this FTP source",
-        "groupName": "Listener Configuration",
-        "groupNo": 1
+        "description": "Unique name for this FTP source"
       },
       "codedata": {
         "type": "LISTENER_VAR_NAME"

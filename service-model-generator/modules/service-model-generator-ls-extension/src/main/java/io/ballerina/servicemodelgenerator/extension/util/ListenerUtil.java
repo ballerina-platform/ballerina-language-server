@@ -916,8 +916,7 @@ public class ListenerUtil {
 
         Value choicesProperty = new Value.ValueBuilder()
                 .setMetadata(new MetaData("Configure " + moduleName + " Source",
-                        "Select an existing " + moduleName + " source or create a new one",
-                        null, "Listener Configuration", null))
+                        "Select an existing " + moduleName + " source or create a new one"))
                 .value(hasExisting ? "0" : "1")
                 .types(List.of(PropertyType.types(Value.FieldType.CHOICE)))
                 .enabled(true)
