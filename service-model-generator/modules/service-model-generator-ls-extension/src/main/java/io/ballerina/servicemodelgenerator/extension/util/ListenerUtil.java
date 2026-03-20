@@ -67,6 +67,7 @@ import io.ballerina.servicemodelgenerator.extension.model.Listener;
 import io.ballerina.servicemodelgenerator.extension.model.MetaData;
 import io.ballerina.servicemodelgenerator.extension.model.Option;
 import io.ballerina.servicemodelgenerator.extension.model.PropertyType;
+import io.ballerina.servicemodelgenerator.extension.model.PropertyTypeMemberInfo;
 import io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
 import io.ballerina.servicemodelgenerator.extension.model.context.AddModelContext;
@@ -91,6 +92,7 @@ import java.util.Set;
 import static io.ballerina.modelgenerator.commons.CommonUtils.removeLeadingSingleQuote;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ASB;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ASB_DEFAULT_LISTENER_EXPR;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TYPE_LISTENER_PARAM_INCLUDED_FIELD;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.DEFAULT_LISTENER_ITEM_LABEL;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.DEFAULT_LISTENER_VAR_NAME;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.DEFAULT_LISTENER_TYPE;
@@ -1136,6 +1138,8 @@ public class ListenerUtil {
                             "Server port", argValue));
                     case "auth" -> config.put("authentication",
                             buildAuthChoiceValue(namedArg.expression()));
+                    case "secureSocket" -> config.put("secureSocket",
+                            buildReadOnlySecureSocketValue(argValue));
                     default -> {
                         // Skip other arguments
                     }
@@ -1292,6 +1296,40 @@ public class ListenerUtil {
                 .enabled(true)
                 .editable(false)
                 .setAdvanced(false)
+                .build();
+    }
+
+    /**
+     * Builds a read-only secure socket Value for displaying the secureSocket configuration
+     * of an existing FTPS listener, mirroring the structure in ftp_init.json.
+     */
+    private static Value buildReadOnlySecureSocketValue(String value) {
+        List<PropertyTypeMemberInfo> typeMembers = List.of(
+                new PropertyTypeMemberInfo("SecureSocket", "ballerina:ftp", FTP, "RECORD_TYPE", true)
+        );
+
+        PropertyType recordType = new PropertyType.Builder()
+                .fieldType(Value.FieldType.RECORD_MAP_EXPRESSION)
+                .ballerinaType("ftp:SecureSocket")
+                .setMembers(typeMembers)
+                .selected(true)
+                .build();
+
+        PropertyType expressionType = new PropertyType.Builder()
+                .fieldType(Value.FieldType.EXPRESSION)
+                .ballerinaType("ftp:SecureSocket")
+                .selected(false)
+                .build();
+
+        return new Value.ValueBuilder()
+                .metadata("Secure Socket (SecureSocket)",
+                        "Configure SSL/TLS configuration for secure connection.")
+                .value(value)
+                .types(List.of(recordType, expressionType))
+                .setCodedata(new Codedata(null, ARG_TYPE_LISTENER_PARAM_INCLUDED_FIELD))
+                .enabled(true)
+                .editable(false)
+                .setAdvanced(true)
                 .build();
     }
 
