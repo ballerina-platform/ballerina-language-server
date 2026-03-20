@@ -1287,7 +1287,8 @@ public class ListenerUtil {
         return new Value.ValueBuilder()
                 .metadata(label, description)
                 .value(value)
-                .types(List.of(PropertyType.types(Value.FieldType.TEXT)))
+                .types(List.of(PropertyType.types(Value.FieldType.TEXT, "string"),
+                        PropertyType.types(Value.FieldType.EXPRESSION, "string")))
                 .enabled(true)
                 .editable(false)
                 .setAdvanced(false)
