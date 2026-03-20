@@ -286,7 +286,7 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
         properties = serviceInitModel.getProperties();
 
         // Determine if "Use existing" source was selected.
-        // With INLINE_CHOICE, the existingListener SINGLE_SELECT value contains the listener name.
+        // The existingListener SINGLE_SELECT value contains the listener name.
         boolean useExistingListener = false;
         String existingListenerName = null;
         if (properties.containsKey(ServiceInitModel.KEY_EXISTING_LISTENER)) {
