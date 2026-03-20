@@ -113,15 +113,15 @@
       {
         "range": {
           "start": {
-            "line": 6,
+            "line": 25,
             "character": 0
           },
           "end": {
-            "line": 6,
+            "line": 25,
             "character": 0
           }
         },
-        "newText": "\n[[tool.persist]]\nid = \"sample_project.testdb\"\ntargetModule = \"sample_project.testdb\"\nfilePath = \"persist/testdb/model.bal\"\noptions.datastore = \"mssql\"\noptions.eagerLoading = true\noptions.withInitParams = true\n\n[[dependency]]\norg = \"ballerina\"\nname = \"tool.persist\"\nversion = \"1.9.1\"\n"
+        "newText": "\n[[tool.persist]]\nid = \"sample_project.testdb\"\ntargetModule = \"sample_project.testdb\"\nfilePath = \"persist/testdb/model.bal\"\noptions.datastore = \"mssql\"\noptions.eagerLoading = true\noptions.withInitParams = true\n"
       }
     ],
     "sample-project-empty-module/config.bal": [
