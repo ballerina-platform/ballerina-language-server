@@ -1311,6 +1311,21 @@ public class ListenerUtil {
     }
 
     /**
+     * Builds a read-only number Value for displaying listener config information.
+     */
+    public static Value buildReadOnlyNumberValue(String label, String description, String value) {
+        return new Value.ValueBuilder()
+                .metadata(label, description)
+                .value(value)
+                .types(List.of(PropertyType.types(Value.FieldType.NUMBER, "int"),
+                        PropertyType.types(Value.FieldType.EXPRESSION, "int")))
+                .enabled(true)
+                .editable(false)
+                .setAdvanced(false)
+                .build();
+    }
+
+    /**
      * Builds a read-only TEXT_SET Value for displaying multi-valued listener config fields.
      */
     public static Value buildReadOnlyTextSetValue(String label, String description, List<String> values) {

@@ -23,7 +23,9 @@ import io.ballerina.compiler.api.symbols.Qualifier;
 import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.api.symbols.VariableSymbol;
 import io.ballerina.compiler.syntax.tree.CheckExpressionNode;
+import io.ballerina.compiler.syntax.tree.ExpressionNode;
 import io.ballerina.compiler.syntax.tree.FunctionArgumentNode;
+import io.ballerina.compiler.syntax.tree.ListConstructorExpressionNode;
 import io.ballerina.compiler.syntax.tree.ListenerDeclarationNode;
 import io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode;
 import io.ballerina.compiler.syntax.tree.MappingFieldNode;
@@ -43,6 +45,7 @@ import io.ballerina.tools.diagnostics.Location;
 import io.ballerina.tools.text.TextRange;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -264,7 +267,7 @@ public final class MssqlCdcServiceBuilder extends AbstractCdcServiceBuilder {
                         ListenerUtil.buildReadOnlyTextValue("Host",
                                 "The hostname of the Microsoft SQL Server", fieldValue));
                 case "port" -> config.put(KEY_PORT,
-                        ListenerUtil.buildReadOnlyTextValue("Port",
+                        ListenerUtil.buildReadOnlyNumberValue("Port",
                                 "The port number of the Microsoft SQL Server", fieldValue));
                 case "username" -> config.put(KEY_USERNAME,
                         ListenerUtil.buildReadOnlyTextValue("Username",
@@ -272,17 +275,42 @@ public final class MssqlCdcServiceBuilder extends AbstractCdcServiceBuilder {
                 case "password" -> config.put(KEY_PASSWORD,
                         ListenerUtil.buildReadOnlyTextValue("Password",
                                 "The password for the Microsoft SQL Server connection", fieldValue));
-                case "databaseNames" -> config.put(KEY_DATABASES,
-                        ListenerUtil.buildReadOnlyTextValue("Databases",
-                                "List of databases to capture changes from", fieldValue));
-                case "includedSchemas" -> config.put(KEY_SCHEMAS,
-                        ListenerUtil.buildReadOnlyTextValue("Schemas",
-                                "A list of regular expressions that match names of schemas to capture changes from",
-                                fieldValue));
+                case "databaseNames" -> {
+                    List<String> items = extractListValues(field);
+                    config.put(KEY_DATABASES,
+                            ListenerUtil.buildReadOnlyTextSetValue("Databases",
+                                    "List of databases to capture changes from", items));
+                }
+                case "includedSchemas" -> {
+                    List<String> items = extractListValues(field);
+                    config.put(KEY_SCHEMAS,
+                            ListenerUtil.buildReadOnlyTextSetValue("Schemas",
+                                    "A list of regular expressions that match names of schemas to capture changes from",
+                                    items));
+                }
                 default -> {
                     // Skip other fields
                 }
             }
         }
+    }
+
+    private List<String> extractListValues(SpecificFieldNode field) {
+        List<String> values = new ArrayList<>();
+        Optional<ExpressionNode> valueExpr = field.valueExpr();
+        if (valueExpr.isPresent() && valueExpr.get() instanceof ListConstructorExpressionNode listNode) {
+            for (Node node : listNode.expressions()) {
+                if (node instanceof ExpressionNode expr) {
+                    String val = expr.toSourceCode().trim();
+                    if (val.startsWith("\"") && val.endsWith("\"")) {
+                        val = val.substring(1, val.length() - 1);
+                    }
+                    if (!val.isEmpty()) {
+                        values.add(val);
+                    }
+                }
+            }
+        }
+        return values;
     }
 }
