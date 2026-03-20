@@ -1337,15 +1337,17 @@ public class ListenerUtil {
      * Builds a read-only CHOICE (radio button) Value for displaying the protocol of an existing listener.
      */
     private static Value buildProtocolSelectValue(String value) {
+        // Strip module prefix (e.g. "ftp:SFTP" → "SFTP") for matching against choice values
+        String normalizedValue = value.contains(":") ? value.substring(value.lastIndexOf(':') + 1) : value;
         List<Value> choices = List.of(
-                buildProtocolChoice("FTP", "FTP", value),
-                buildProtocolChoice("SFTP", "SFTP", value),
-                buildProtocolChoice("FTPS", "FTPS", value)
+                buildProtocolChoice("FTP", "FTP", normalizedValue),
+                buildProtocolChoice("SFTP", "SFTP", normalizedValue),
+                buildProtocolChoice("FTPS", "FTPS", normalizedValue)
         );
 
         Value protocol = new Value.ValueBuilder()
                 .metadata("Protocol", "Connection protocol")
-                .value(value)
+                .value(normalizedValue)
                 .types(List.of(PropertyType.types(Value.FieldType.CHOICE)))
                 .enabled(true)
                 .editable(false)
