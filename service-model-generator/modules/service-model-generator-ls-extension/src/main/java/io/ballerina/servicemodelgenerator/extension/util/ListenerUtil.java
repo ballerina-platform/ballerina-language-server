@@ -1217,7 +1217,9 @@ public class ListenerUtil {
         boolean isBasicAuth = hasCredentials && !hasPrivateKey;
         boolean isNoAuth = authExpression != null && !isBasicAuth && !isCertAuth;
 
-        // Build choices mirroring ftp_init.json auth CHOICE structure
+        // Build choices mirroring ftp_init.json auth CHOICE structure.
+        // Always include all three options so the UI shows disabled radio buttons
+        // for unselected auth types, matching the protocol radio button behaviour.
         List<Value> choices = new ArrayList<>();
 
         // No Authentication
@@ -1230,28 +1232,9 @@ public class ListenerUtil {
                 .setAdvanced(false)
                 .build());
 
-        if (isCertAuth) {
-            // Certificate Based Authentication
-            Map<String, Value> certProps = new LinkedHashMap<>();
-            certProps.put("privateKey", buildReadOnlyTextValue("Private Key",
-                    "Private key configuration for SSH-based authentication", privateKey));
-            if (!username.isEmpty()) {
-                certProps.put("userName", buildReadOnlyTextValue("Username",
-                        "Remote server username for key-based authentication", username));
-            }
-            Value certChoice = new Value.ValueBuilder()
-                    .metadata("Certificate Based Authentication", "")
-                    .value("true")
-                    .types(List.of(PropertyType.types(Value.FieldType.FORM)))
-                    .enabled(true)
-                    .editable(false)
-                    .setAdvanced(false)
-                    .setProperties(certProps)
-                    .build();
-            choices.add(certChoice);
-        } else {
-            // Basic Authentication
-            Map<String, Value> basicProps = new LinkedHashMap<>();
+        // Basic Authentication
+        Map<String, Value> basicProps = new LinkedHashMap<>();
+        if (isBasicAuth) {
             if (!username.isEmpty()) {
                 basicProps.put("userName", buildReadOnlyTextValue("Username",
                         "Remote server username for authentication", username));
@@ -1260,17 +1243,38 @@ public class ListenerUtil {
                 basicProps.put("password", buildReadOnlyTextValue("Password",
                         "Remote server password for authentication", password));
             }
-            Value basicChoice = new Value.ValueBuilder()
-                    .metadata("Basic Authentication", "")
-                    .value("true")
-                    .types(List.of(PropertyType.types(Value.FieldType.FORM)))
-                    .enabled(isBasicAuth)
-                    .editable(false)
-                    .setAdvanced(false)
-                    .setProperties(basicProps)
-                    .build();
-            choices.add(basicChoice);
         }
+        Value basicChoice = new Value.ValueBuilder()
+                .metadata("Basic Authentication", "")
+                .value("true")
+                .types(List.of(PropertyType.types(Value.FieldType.FORM)))
+                .enabled(isBasicAuth)
+                .editable(false)
+                .setAdvanced(false)
+                .setProperties(basicProps)
+                .build();
+        choices.add(basicChoice);
+
+        // Certificate Based Authentication
+        Map<String, Value> certProps = new LinkedHashMap<>();
+        if (isCertAuth) {
+            certProps.put("privateKey", buildReadOnlyTextValue("Private Key",
+                    "Private key configuration for SSH-based authentication", privateKey));
+            if (!username.isEmpty()) {
+                certProps.put("userName", buildReadOnlyTextValue("Username",
+                        "Remote server username for key-based authentication", username));
+            }
+        }
+        Value certChoice = new Value.ValueBuilder()
+                .metadata("Certificate Based Authentication", "")
+                .value("true")
+                .types(List.of(PropertyType.types(Value.FieldType.FORM)))
+                .enabled(isCertAuth)
+                .editable(false)
+                .setAdvanced(false)
+                .setProperties(certProps)
+                .build();
+        choices.add(certChoice);
 
         Value auth = new Value.ValueBuilder()
                 .metadata("Authentication", "Select the authentication method")
