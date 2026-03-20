@@ -217,7 +217,7 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
             // Build protocol radio button from designApproach choices
             if (designApproach != null && config.containsKey("protocol")) {
                 config.put("protocol", buildProtocolFromDesignApproach(
-                        designApproach, config.get("protocol").getValue().toString()));
+                        designApproach, config.get("protocol").getValue()));
             }
 
             // Apply metadata from template properties
@@ -241,7 +241,7 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
             for (Value choice : designApproach.getChoices()) {
                 MetaData choiceMeta = choice.getMetadata();
                 if (choiceMeta != null) {
-                    String choiceValue = choice.getValue().toString();
+                    String choiceValue = choice.getValue();
                     choices.add(new Value.ValueBuilder()
                             .metadata(choiceMeta.label(), "")
                             .value(choiceValue)

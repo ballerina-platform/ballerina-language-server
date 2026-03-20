@@ -980,7 +980,7 @@ public class ListenerUtil {
             }
 
             Value listenerDropdown = new Value.ValueBuilder()
-                    .metadata("", "")
+                    .metadata("Source Name", "Select an existing " + moduleName + " source")
                     .value(listenerNames.get(0))
                     .types(List.of(PropertyType.types(Value.FieldType.SINGLE_SELECT)))
                     .enabled(true)
@@ -990,6 +990,17 @@ public class ListenerUtil {
                     .build();
 
             existingServerProps.put("existingListener", listenerDropdown);
+
+            // Add the first listener's config properties directly to the form so they
+            // are rendered as disabled fields alongside the dropdown
+            String firstListener = listenerNames.get(0);
+            Map<String, Value> firstConfig = listenerConfigs.getOrDefault(
+                    firstListener, new LinkedHashMap<>());
+            for (Map.Entry<String, Value> entry : firstConfig.entrySet()) {
+                Value prop = entry.getValue();
+                prop.setEditable(false);
+                existingServerProps.put(entry.getKey(), prop);
+            }
         }
 
         String label = enabled ? "Use existing" : "Use existing (none available)";
@@ -1097,7 +1108,7 @@ public class ListenerUtil {
 
             ListenerDeclarationNode listenerNode = (ListenerDeclarationNode) foundNode;
             return extractConfigFromListenerDeclaration(listenerNode);
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             return null;
         }
     }
