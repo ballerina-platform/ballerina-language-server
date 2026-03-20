@@ -1661,6 +1661,8 @@ public class CodeAnalyzer extends NodeVisitor {
                 .addData(CONNECTOR_TYPE, PERSIST);
         getPersistModelFilePath(project.sourceRoot(), classSymbol)
                 .ifPresent(modelPath -> nodeBuilder.metadata().addData(PERSIST_MODEL_FILE, modelPath));
+        CommonUtils.getPersistDatabaseIcon(classSymbol)
+                .ifPresent(icon -> nodeBuilder.metadata().icon(icon));
     }
 
     private NodeKind resolveNodeKind(ClassSymbol classSymbol) {
