@@ -832,7 +832,7 @@ public class ListenerUtil {
         listenerModel.getProperties().forEach((k, v) -> v.setAdvanced(false));
     }
 
-    private static SeparatedNodeList<FunctionArgumentNode> getArgList(NewExpressionNode newExpressionNode) {
+    public static SeparatedNodeList<FunctionArgumentNode> getArgList(NewExpressionNode newExpressionNode) {
         if (newExpressionNode instanceof ExplicitNewExpressionNode explicitNewExpressionNode) {
             return explicitNewExpressionNode.parenthesizedArgList().arguments();
         } else {
@@ -1298,7 +1298,7 @@ public class ListenerUtil {
     /**
      * Builds a read-only text Value for displaying listener config information.
      */
-    private static Value buildReadOnlyTextValue(String label, String description, String value) {
+    public static Value buildReadOnlyTextValue(String label, String description, String value) {
         return new Value.ValueBuilder()
                 .metadata(label, description)
                 .value(value)

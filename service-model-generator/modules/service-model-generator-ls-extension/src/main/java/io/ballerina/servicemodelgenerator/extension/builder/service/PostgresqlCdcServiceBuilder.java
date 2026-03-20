@@ -18,7 +18,13 @@
 
 package io.ballerina.servicemodelgenerator.extension.builder.service;
 
+import io.ballerina.compiler.api.SemanticModel;
+import io.ballerina.projects.Project;
+import io.ballerina.servicemodelgenerator.extension.model.Value;
+
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.POSTGRESQL;
 
@@ -31,6 +37,7 @@ public final class PostgresqlCdcServiceBuilder extends AbstractCdcServiceBuilder
 
     private static final String CDC_POSTGRESQL_SERVICE_MODEL_LOCATION = "services/cdc_postgresql.json";
     private static final String POSTGRESQL_CDC_DRIVER_MODULE_NAME = "postgresql.cdc.driver";
+    private static final String DISPLAY_LABEL = "PostgreSQL CDC";
 
     @Override
     protected String getCdcServiceModelLocation() {
@@ -61,5 +68,23 @@ public final class PostgresqlCdcServiceBuilder extends AbstractCdcServiceBuilder
     @Override
     public String kind() {
         return POSTGRESQL;
+    }
+
+    @Override
+    protected String getDisplayLabel() {
+        return DISPLAY_LABEL;
+    }
+
+    @Override
+    protected Map<String, Map<String, Value>> extractListenerConfigs(
+            Set<String> listenerNames, SemanticModel semanticModel, Project project) {
+        // TODO: Implement PostgreSQL-specific listener config extraction
+        return Map.of();
+    }
+
+    @Override
+    protected void applyInitModelMetadata(Map<String, Map<String, Value>> configs,
+                                           Map<String, Value> templateProps) {
+        // TODO: Implement PostgreSQL-specific metadata application
     }
 }
