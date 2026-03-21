@@ -33,6 +33,7 @@ import org.eclipse.lsp4j.TextEdit;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -122,12 +123,36 @@ public final class SolaceServiceBuilder extends AbstractServiceBuilder {
         Set<String> listeners = ListenerUtil.getCompatibleListeners(context.moduleName(),
                 context.semanticModel(), context.project());
 
+        Map<String, Value> listenerProps =
+                ListenerUtil.removeAndCollectListenerProperties(properties, LISTENER_CONFIG_KEYS);
+        Value groupSection = new Value.ValueBuilder()
+                .metadata("Source Configuration",
+                        "Configure the " + LABEL_SOLACE + " source connection")
+                .types(List.of(PropertyType.types(Value.FieldType.GROUP_SECTION)))
+                .enabled(true)
+                .editable(true)
+                .setProperties(listenerProps)
+                .build();
+        Map<String, Value> wrappedListenerProps = new LinkedHashMap<>();
+        wrappedListenerProps.put("sourceConfig", groupSection);
+
+        Map<String, Map<String, Value>> listenerConfigs;
         if (!listeners.isEmpty()) {
-            Map<String, Value> listenerProps =
-                    ListenerUtil.removeAndCollectListenerProperties(properties, LISTENER_CONFIG_KEYS);
-            Value choicesProperty = ListenerUtil.buildListenerChoiceProperty(listenerProps, listeners, LABEL_SOLACE);
-            properties.put(KEY_CONFIGURE_LISTENER, choicesProperty);
+            listenerConfigs = ListenerUtil.extractListenerConfigs(listeners, context.semanticModel(),
+                    context.project());
+        } else {
+            listenerConfigs = Map.of();
         }
+
+        Value choicesProperty = ListenerUtil.buildAlwaysPresentListenerChoiceProperty(
+                wrappedListenerProps, listenerConfigs, listeners, LABEL_SOLACE);
+        wrapExistingChoiceInGroupSection(choicesProperty);
+
+        Map<String, Value> reordered = new LinkedHashMap<>();
+        reordered.put(KEY_CONFIGURE_LISTENER, choicesProperty);
+        reordered.putAll(properties);
+        properties.clear();
+        properties.putAll(reordered);
 
         Value destinationChoice = buildDestinationChoice(
                 "\"test-queue\"",
@@ -155,23 +180,47 @@ public final class SolaceServiceBuilder extends AbstractServiceBuilder {
     @Override
     public Map<String, List<TextEdit>> addServiceInitSource(AddServiceInitModelContext context) {
         ServiceInitModel serviceInitModel = context.serviceInitModel();
-        applyEnabledChoiceProperty(serviceInitModel, PROPERTY_DESTINATION);
-
         Map<String, Value> properties = serviceInitModel.getProperties();
 
         cleanSecureSocketProperty(properties);
-        if (!properties.containsKey(KEY_CONFIGURE_LISTENER)) {
-            applyAuthenticationProperty(properties);
-            return addServiceWithNewListener(context);
+        if (properties.containsKey(KEY_CONFIGURE_LISTENER)) {
+            applyEnabledChoiceProperty(serviceInitModel, KEY_CONFIGURE_LISTENER);
         }
-        applyEnabledChoiceProperty(serviceInitModel, KEY_CONFIGURE_LISTENER);
-        cleanSecureSocketProperty(properties);
+        properties = serviceInitModel.getProperties();
+
+        // Unwrap GROUP_SECTION properties to top level so downstream code can access them directly
+        for (String key : List.copyOf(properties.keySet())) {
+            Value val = properties.get(key);
+            if (val != null && val.getTypes() != null
+                    && val.getTypes().stream().anyMatch(t -> t.fieldType() == Value.FieldType.GROUP_SECTION)
+                    && val.getProperties() != null) {
+                properties.putAll(val.getProperties());
+                properties.remove(key);
+            }
+        }
+
+        // Determine if "Use existing" source was selected
+        boolean useExistingListener = false;
+        String existingListenerName = null;
+        if (properties.containsKey(ServiceInitModel.KEY_EXISTING_LISTENER)) {
+            Value existingListenerValue = properties.get(ServiceInitModel.KEY_EXISTING_LISTENER);
+            if (existingListenerValue != null && existingListenerValue.getValue() != null) {
+                existingListenerName = String.valueOf(existingListenerValue.getValue());
+                useExistingListener = !existingListenerName.isEmpty();
+            }
+            properties.remove(ServiceInitModel.KEY_EXISTING_LISTENER);
+        }
+        if (!useExistingListener && ListenerUtil.shouldUseExistingListener(properties)) {
+            useExistingListener = true;
+            existingListenerName = ListenerUtil.getExistingListenerName(properties).orElse("");
+        }
+
         applyAuthenticationProperty(properties);
+        applyEnabledChoiceProperty(serviceInitModel, PROPERTY_DESTINATION);
 
         ListenerDTO listenerDTO;
-        if (ListenerUtil.shouldUseExistingListener(properties)) {
-            String listenerName = ListenerUtil.getExistingListenerName(properties).orElse("");
-            listenerDTO = new ListenerDTO(context.serviceInitModel().getModuleName(), listenerName, "");
+        if (useExistingListener && existingListenerName != null && !existingListenerName.isEmpty()) {
+            listenerDTO = new ListenerDTO(context.serviceInitModel().getModuleName(), existingListenerName, "");
         } else {
             listenerDTO = buildListenerDTO(context);
         }
@@ -179,6 +228,28 @@ public final class SolaceServiceBuilder extends AbstractServiceBuilder {
         String serviceCode = buildJMSServiceCode(context, listenerDTO);
 
         return buildServiceCodeEdits(context, serviceCode, null);
+    }
+
+    private static void wrapExistingChoiceInGroupSection(Value choicesProperty) {
+        if (choicesProperty.getChoices() == null || choicesProperty.getChoices().isEmpty()) {
+            return;
+        }
+        Value existingChoice = choicesProperty.getChoices().get(0);
+        Map<String, Value> existingProps = existingChoice.getProperties();
+        if (existingProps == null || existingProps.isEmpty()) {
+            return;
+        }
+
+        Value groupSection = new Value.ValueBuilder()
+                .metadata("Source Configuration", "Existing source configuration")
+                .types(List.of(PropertyType.types(Value.FieldType.GROUP_SECTION)))
+                .enabled(true)
+                .editable(false)
+                .setProperties(existingProps)
+                .build();
+        Map<String, Value> wrapped = new LinkedHashMap<>();
+        wrapped.put("sourceConfig", groupSection);
+        existingChoice.setProperties(wrapped);
     }
 
     private void applyAuthenticationProperty(Map<String, Value> properties) {
