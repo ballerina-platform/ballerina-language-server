@@ -266,12 +266,6 @@ public final class SolaceServiceBuilder extends AbstractServiceBuilder {
         }
     }
 
-    private Map<String, List<TextEdit>> addServiceWithNewListener(AddServiceInitModelContext context) {
-        ListenerDTO listenerDTO = buildListenerDTO(context);
-        String serviceCode = buildJMSServiceCode(context, listenerDTO);
-        return buildServiceCodeEdits(context, serviceCode, null);
-    }
-
     private String buildJMSServiceCode(AddServiceInitModelContext context, ListenerDTO listenerDTO) {
         ServiceInitModel serviceInitModel = context.serviceInitModel();
         Map<String, Value> properties = serviceInitModel.getProperties();
