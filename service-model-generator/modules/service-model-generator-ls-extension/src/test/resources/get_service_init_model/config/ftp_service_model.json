@@ -29,13 +29,25 @@
                 "description": "Select an existing FTP source"
               },
               "value": "true",
-              "properties": {},
-              "types": [
-                {
-                  "fieldType": "FORM",
-                  "selected": true
+              "properties": {
+                "sourceConfig": {
+                  "metadata": {
+                    "label": "Source Configuration",
+                    "description": "Existing source configuration"
+                  },
+                  "properties": {},
+                  "types": [
+                    {
+                      "fieldType": "GROUP_SECTION",
+                      "selected": false
+                    }
+                  ],
+                  "enabled": true,
+                  "editable": false,
+                  "optional": false,
+                  "advanced": false
                 }
-              ],
+              },
               "enabled": false,
               "editable": false,
               "optional": false,
@@ -639,7 +651,7 @@
                   "types": [
                     {
                       "fieldType": "GROUP_SECTION",
-                      "selected": true
+                      "selected": false
                     }
                   ],
                   "enabled": true,
@@ -648,12 +660,6 @@
                   "advanced": false
                 }
               },
-              "types": [
-                {
-                  "fieldType": "FORM",
-                  "selected": true
-                }
-              ],
               "enabled": true,
               "editable": true,
               "optional": false,
