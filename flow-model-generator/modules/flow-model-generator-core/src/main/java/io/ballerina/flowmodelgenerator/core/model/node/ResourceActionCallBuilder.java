@@ -83,12 +83,18 @@ public class ResourceActionCallBuilder extends CallBuilder {
 
         String defaultIcon = CommonUtils.generateIcon(functionData.org(), functionData.packageName(),
                 functionData.version());
-        SemanticModel semanticModel = FileSystemUtils.getSemanticModel(context.workspaceManager(), context.filePath());
-        String icon = CommonUtils.getClientClassSymbol(semanticModel, functionData, codedata.object())
-                .filter(cs -> CommonUtils.isPersistClient(cs, semanticModel))
-                .flatMap(CommonUtils::getPersistDatabaseIcon)
-                .orElse(defaultIcon);
-
+        String icon;
+        try {
+            SemanticModel semanticModel = FileSystemUtils.getSemanticModel(context.workspaceManager(),
+                    context.filePath());
+            icon = CommonUtils.getClientClassSymbol(semanticModel, functionData, codedata.object())
+                    .filter(cs -> CommonUtils.isPersistClient(cs, semanticModel))
+                    .flatMap(CommonUtils::getPersistDatabaseIcon)
+                    .orElse(defaultIcon);
+        } catch (RuntimeException ignore) {
+            // Fallback to defaultIcon if semantic model lookup or icon resolution fails
+            icon = defaultIcon;
+        }
         metadata()
                 .label(functionData.name())
                 .description(functionData.description())
