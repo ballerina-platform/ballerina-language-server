@@ -26,12 +26,17 @@ import io.ballerina.centralconnector.response.FunctionsResponse;
 import io.ballerina.centralconnector.response.Listeners;
 import io.ballerina.centralconnector.response.PackageResponse;
 import io.ballerina.centralconnector.response.SymbolResponse;
+import io.ballerina.projects.Settings;
+import io.ballerina.projects.internal.model.Repository;
+import org.ballerinalang.langserver.commons.BallerinaCompilerApi;
+import org.wso2.ballerinalang.util.RepoUtils;
 
 import java.util.Map;
 
 /**
  * An implementation {@code CentralAPI} to interact with the Ballerina central to obtain information about the Ballerina
- * libraries. This class provides a facade for interacting with REST and GraphQL clients.
+ * libraries. This class provides a facade for interacting with REST and GraphQL clients, or a Maven central proxy
+ * client if a repository with {@code proxyCentral} is configured in the settings.
  *
  * @since 1.0.0
  */
@@ -39,6 +44,7 @@ public class RemoteCentral implements CentralAPI {
 
     private final RestClient restClient;
     private final GraphQlClient graphQlClient;
+    private final MavenCentralProxyClient mavenProxyClient;
 
     private static class Holder {
 
@@ -50,57 +56,107 @@ public class RemoteCentral implements CentralAPI {
     }
 
     private RemoteCentral() {
-        this.restClient = new RestClient();
-        this.graphQlClient = new GraphQlClient();
+        BallerinaCompilerApi compilerApi = BallerinaCompilerApi.getInstance();
+        MavenCentralProxyClient proxyClient = null;
+        if (compilerApi.isCentralProxyEnabled()) {
+            Settings settings = RepoUtils.readSettings();
+            Repository[] repositories = settings.getRepositories();
+            if (repositories != null) {
+                for (Repository repo : repositories) {
+                    if (repo.proxyCentral()) {
+                        proxyClient = new MavenCentralProxyClient(repo, settings);
+                        break;
+                    }
+                }
+            }
+        }
+        this.mavenProxyClient = proxyClient;
+        if (this.mavenProxyClient == null) {
+            this.restClient = new RestClient();
+            this.graphQlClient = new GraphQlClient();
+        } else {
+            this.restClient = null;
+            this.graphQlClient = null;
+        }
     }
 
     @Override
     public PackageResponse searchPackages(Map<String, String> queryMap) {
+        if (mavenProxyClient != null) {
+            return mavenProxyClient.searchPackages(queryMap);
+        }
         return restClient.searchPackages(queryMap);
     }
 
     @Override
     public SymbolResponse searchSymbols(Map<String, String> queryMap) {
+        if (mavenProxyClient != null) {
+            return mavenProxyClient.searchSymbols(queryMap);
+        }
         return restClient.searchSymbols(queryMap);
     }
 
     @Override
     public FunctionsResponse functions(String organization, String name, String version) {
+        if (mavenProxyClient != null) {
+            return mavenProxyClient.functions(organization, name, version);
+        }
         return graphQlClient.getFunctions(organization, name, version);
     }
 
     @Override
     public Listeners listeners(String organization, String name, String version) {
+        if (mavenProxyClient != null) {
+            return mavenProxyClient.listeners(organization, name, version);
+        }
         return graphQlClient.getListeners(organization, name, version);
     }
 
     @Override
     public FunctionResponse function(String organization, String name, String version, String functionName) {
+        if (mavenProxyClient != null) {
+            return mavenProxyClient.function(organization, name, version, functionName);
+        }
         return graphQlClient.getFunction(organization, name, version, functionName);
     }
 
     @Override
     public ConnectorsResponse connectors(Map<String, String> queryMap) {
+        if (mavenProxyClient != null) {
+            return mavenProxyClient.connectors(queryMap);
+        }
         return restClient.connectors(queryMap);
     }
 
     @Override
     public ConnectorResponse connector(String id) {
+        if (mavenProxyClient != null) {
+            return mavenProxyClient.connector(id);
+        }
         return restClient.connector(id);
     }
 
     @Override
     public ConnectorResponse connector(String organization, String name, String version, String clientName) {
+        if (mavenProxyClient != null) {
+            return mavenProxyClient.connector(organization, name, version, clientName);
+        }
         return restClient.connector(organization, name, version, clientName);
     }
 
     @Override
     public String latestPackageVersion(String org, String name) {
+        if (mavenProxyClient != null) {
+            return mavenProxyClient.latestPackageVersion(org, name);
+        }
         return restClient.latestPackageVersion(org, name);
     }
 
     @Override
     public boolean hasAuthorizedAccess() {
+        if (mavenProxyClient != null) {
+            return mavenProxyClient.hasAuthorizedAccess();
+        }
         return restClient.hasAuthorizedAccess();
     }
 }

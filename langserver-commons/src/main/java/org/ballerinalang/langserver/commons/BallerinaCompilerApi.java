@@ -289,4 +289,9 @@ public abstract class BallerinaCompilerApi {
      * the operation is not supported or the project is not a workspace project.
      */
     public abstract Optional<Project> updateWorkspaceToml(Project project, String content);
+
+    /**
+     * Checks Settings.toml for Central proxy repository configuration and returns true if it is enabled.
+     */
+    public abstract boolean isCentralProxyEnabled();
 }

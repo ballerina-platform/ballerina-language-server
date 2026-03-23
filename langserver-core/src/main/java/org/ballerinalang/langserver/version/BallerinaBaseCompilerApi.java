@@ -153,6 +153,11 @@ public class BallerinaBaseCompilerApi extends BallerinaCompilerApi {
         return Optional.empty();
     }
 
+    @Override
+    public  boolean isCentralProxyEnabled() {
+        return false;
+    }
+
     private Project createProject(Path filePath, BuildOptions buildOptions) {
         Pair<ProjectKind, Path> projectKindAndProjectRootPair = computeProjectKindAndProjectRoot(filePath);
         ProjectKind projectKind = projectKindAndProjectRootPair.getLeft();

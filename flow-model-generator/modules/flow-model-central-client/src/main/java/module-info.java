@@ -22,6 +22,7 @@ module io.ballerina.centralconnector {
     requires io.ballerina.central.client;
     requires com.google.gson;
     requires com.graphqljava;
+    requires io.ballerina.language.server.commons;
 
     exports io.ballerina.centralconnector;
     exports io.ballerina.centralconnector.response;
