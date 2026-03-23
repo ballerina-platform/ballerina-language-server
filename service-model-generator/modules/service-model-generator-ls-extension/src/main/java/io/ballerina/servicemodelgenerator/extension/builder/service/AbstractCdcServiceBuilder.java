@@ -114,6 +114,7 @@ public abstract class AbstractCdcServiceBuilder extends AbstractServiceBuilder {
     protected static final String KEY_SECURE_SOCKET = "secureSocket";
     protected static final String KEY_OPTIONS = "options";
     protected static final String KEY_CONFIGURE_LISTENER = "configureListener";
+    protected static final String KEY_ADVANCED_CONFIGURATIONS = "advancedConfigurations";
     protected static final String KEY_TABLE = "table";
 
     // Type and annotation names
@@ -227,6 +228,9 @@ public abstract class AbstractCdcServiceBuilder extends AbstractServiceBuilder {
             Map<String, Value> listenerProps =
                     ListenerUtil.removeAndCollectListenerProperties(properties, getListenerFields());
 
+            // Wrap advanced listener fields into a GROUP_SECTION
+            wrapAdvancedFieldsInGroupSection(listenerProps);
+
             // Extract read-only configs from existing listeners if any
             Map<String, Map<String, Value>> listenerConfigs;
             if (!compatibleListeners.isEmpty()) {
@@ -266,6 +270,9 @@ public abstract class AbstractCdcServiceBuilder extends AbstractServiceBuilder {
             applyEnabledChoiceProperty(serviceInitModel, KEY_CONFIGURE_LISTENER);
         }
         properties = serviceInitModel.getProperties();
+
+        // Unwrap GROUP_SECTION children back into the properties map
+        unwrapGroupSections(properties);
 
         // Determine if "Use existing" was selected
         boolean useExistingListener = ListenerUtil.shouldUseExistingListener(properties);
@@ -419,6 +426,49 @@ public abstract class AbstractCdcServiceBuilder extends AbstractServiceBuilder {
         if (optionsValue != null && isInvalidValue(optionsValue.getValue())) {
             properties.remove(KEY_OPTIONS);
         }
+    }
+
+    private void wrapAdvancedFieldsInGroupSection(Map<String, Value> listenerProps) {
+        Map<String, Value> advancedProps = new LinkedHashMap<>();
+        List<String> advancedKeys = new ArrayList<>();
+        for (Map.Entry<String, Value> entry : listenerProps.entrySet()) {
+            if (entry.getValue().isAdvanced()) {
+                entry.getValue().setAdvanced(false);
+                advancedProps.put(entry.getKey(), entry.getValue());
+                advancedKeys.add(entry.getKey());
+            }
+        }
+        if (advancedProps.isEmpty()) {
+            return;
+        }
+        advancedKeys.forEach(listenerProps::remove);
+        Value groupSection = new Value.ValueBuilder()
+                .metadata("Advanced Configurations", "")
+                .value("")
+                .types(List.of(PropertyType.types(Value.FieldType.GROUP_SECTION)))
+                .enabled(true)
+                .editable(false)
+                .setAdvanced(false)
+                .setProperties(advancedProps)
+                .build();
+        listenerProps.put(KEY_ADVANCED_CONFIGURATIONS, groupSection);
+    }
+
+    private void unwrapGroupSections(Map<String, Value> properties) {
+        List<String> groupKeys = new ArrayList<>();
+        Map<String, Value> childProps = new LinkedHashMap<>();
+        for (Map.Entry<String, Value> entry : properties.entrySet()) {
+            Value value = entry.getValue();
+            if (value.getTypes() != null && value.getTypes().stream()
+                    .anyMatch(t -> t.fieldType() == Value.FieldType.GROUP_SECTION)) {
+                groupKeys.add(entry.getKey());
+                if (value.getProperties() != null) {
+                    childProps.putAll(value.getProperties());
+                }
+            }
+        }
+        groupKeys.forEach(properties::remove);
+        properties.putAll(childProps);
     }
 
     private void addDatabaseConfiguration(Map<String, Value> properties) {
