@@ -925,6 +925,10 @@ public class CodeAnalyzer extends NodeVisitor {
                 .properties()
                 .callConnection(expressionNode, Property.CONNECTION_KEY, metadataData)
                 .data(this.typedBindingPatternNode, false, new HashSet<>());
+        if (isPersistClient(classSymbol.get(), semanticModel)) {
+            CommonUtils.getPersistDatabaseIcon(classSymbol.get())
+                    .ifPresent(icon -> nodeBuilder.metadata().icon(icon));
+        }
         processFunctionSymbol(clientResourceAccessActionNode, argumentNodes, functionSymbol, functionData);
     }
 
