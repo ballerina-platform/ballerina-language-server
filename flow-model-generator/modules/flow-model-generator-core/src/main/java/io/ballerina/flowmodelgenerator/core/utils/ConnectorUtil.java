@@ -43,7 +43,7 @@ public class ConnectorUtil {
 
     private static final String CONNECTORS_LANDING_JSON = "connectors_landing.json";
     private static final Type CONNECTION_CATEGORY_LIST_TYPE = new TypeToken<Map<String, List<String>>>() { }.getType();
-    private static final String DEFAULT_CONNECTION_TYPE = "default";
+    private static final String DEFAULT_CONNECTION_TYPE = "Default";
     private static final Map<String, String> MODULE_TO_CATEGORY_MAP;
 
     static {
