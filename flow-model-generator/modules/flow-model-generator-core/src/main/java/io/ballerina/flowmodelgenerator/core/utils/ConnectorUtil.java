@@ -82,7 +82,7 @@ public class ConnectorUtil {
 
     /**
      * Get the connection category for a given module name using the connector landing data.
-     * Returns "default" if the module name is not found in any category.
+     * Returns "Default" if the module name is not found in any category.
      *
      * @param moduleName the module name (e.g., "http", "mysql", "kafka")
      * @return the category name (e.g., "Network", "Database") or "default" if not found
