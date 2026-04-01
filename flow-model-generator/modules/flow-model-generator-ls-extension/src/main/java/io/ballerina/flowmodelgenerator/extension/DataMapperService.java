@@ -314,7 +314,8 @@ public class DataMapperService implements ExtendedLanguageServerService {
                 }
                 DataMapManager dataMapManager = new DataMapManager(document.get());
                 response.setVisualizableProperties(
-                        dataMapManager.getVisualizableProperties(semanticModel.get(), request.codedata()));
+                        dataMapManager.getVisualizableProperties(semanticModel.get(), request.codedata(),
+                                workspaceManager, filePath));
             } catch (Throwable e) {
                 response.setError(e);
             }
