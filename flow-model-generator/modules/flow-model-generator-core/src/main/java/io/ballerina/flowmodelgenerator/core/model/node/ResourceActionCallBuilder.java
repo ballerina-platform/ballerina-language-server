@@ -33,9 +33,9 @@ import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.FunctionData;
 import io.ballerina.modelgenerator.commons.FunctionDataBuilder;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
-import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.modelgenerator.commons.ParameterData;
 import io.ballerina.projects.Module;
+import org.ballerinalang.langserver.common.utils.PackageResolver;
 import org.eclipse.lsp4j.TextEdit;
 
 import java.nio.file.Path;
@@ -74,7 +74,7 @@ public class ResourceActionCallBuilder extends CallBuilder {
                 .lsClientLogger(context.lsClientLogger())
                 .parentSymbolType(codedata.object())
                 .resourcePath(codedata.resourcePath())
-                .project(PackageUtil.loadProject(context.workspaceManager(), context.filePath()))
+                .project(PackageResolver.loadProject(context.workspaceManager(), context.filePath()))
                 .functionResultKind(FunctionData.Kind.RESOURCE)
                 .workspaceManager(context.workspaceManager())
                 .filePath(context.filePath());

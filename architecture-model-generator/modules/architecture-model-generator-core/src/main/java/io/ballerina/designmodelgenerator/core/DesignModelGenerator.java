@@ -35,11 +35,11 @@ import io.ballerina.designmodelgenerator.core.model.Listener;
 import io.ballerina.designmodelgenerator.core.model.Location;
 import io.ballerina.designmodelgenerator.core.model.ResourceFunction;
 import io.ballerina.designmodelgenerator.core.model.Service;
-import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.Module;
 import io.ballerina.projects.Package;
 import io.ballerina.tools.text.LineRange;
+import org.ballerinalang.langserver.common.utils.PackageResolver;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -74,7 +74,7 @@ public class DesignModelGenerator {
     public DesignModelGenerator(Package ballerinaPackage) {
         this.defaultModule = ballerinaPackage.getDefaultModule();
         this.semanticModel =
-                PackageUtil.getCompilation(ballerinaPackage).getSemanticModel(this.defaultModule.moduleId());
+                PackageResolver.getCompilation(ballerinaPackage).getSemanticModel(this.defaultModule.moduleId());
         this.rootPath = ballerinaPackage.project().sourceRoot();
         this.documentMap = new HashMap<>();
         this.defaultModule.documentIds().forEach(documentId -> {

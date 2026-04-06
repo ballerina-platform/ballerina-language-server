@@ -39,13 +39,13 @@ import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.flowmodelgenerator.core.model.node.NewConnectionBuilder;
 import io.ballerina.flowmodelgenerator.core.utils.ConnectorUtil;
 import io.ballerina.modelgenerator.commons.CommonUtils;
-import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.modelgenerator.commons.SearchResult;
 import io.ballerina.projects.Module;
 import io.ballerina.projects.PackageCompilation;
 import io.ballerina.projects.Project;
 import io.ballerina.tools.text.LineRange;
 import org.ballerinalang.diagramutil.connector.models.connector.Connector;
+import org.ballerinalang.langserver.common.utils.PackageResolver;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -270,7 +270,7 @@ public class ConnectorSearchCommand extends SearchCommand {
     }
 
     private List<SearchResult> getLocalConnectors() {
-        PackageCompilation compilation = PackageUtil.getCompilation(project);
+        PackageCompilation compilation = PackageResolver.getCompilation(project);
         Iterable<Module> modules = project.currentPackage().modules();
         List<SearchResult> localConnections = new ArrayList<>();
         for (Module module : modules) {

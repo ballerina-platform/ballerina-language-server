@@ -28,12 +28,12 @@ import io.ballerina.flowmodelgenerator.core.model.Item;
 import io.ballerina.flowmodelgenerator.core.model.Metadata;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.modelgenerator.commons.CommonUtils;
-import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.modelgenerator.commons.SearchResult;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.Package;
 import io.ballerina.projects.Project;
 import io.ballerina.tools.text.LineRange;
+import org.ballerinalang.langserver.common.utils.PackageResolver;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -76,7 +76,7 @@ class FunctionSearchCommand extends SearchCommand {
 
         // Obtain the imported module names
         Package currentPackage = project.currentPackage();
-        PackageUtil.getCompilation(currentPackage);
+        PackageResolver.getCompilation(currentPackage);
         moduleNames = currentPackage.getDefaultModule().moduleDependencies().stream()
                 .map(moduleDependency -> moduleDependency.descriptor().name().packageName().value())
                 .toList();

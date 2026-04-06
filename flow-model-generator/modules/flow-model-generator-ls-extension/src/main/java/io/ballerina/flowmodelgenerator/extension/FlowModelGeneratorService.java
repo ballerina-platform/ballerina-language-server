@@ -67,7 +67,6 @@ import io.ballerina.flowmodelgenerator.extension.response.FunctionDefinitionResp
 import io.ballerina.flowmodelgenerator.extension.response.SearchNodesResponse;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
-import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.DocumentId;
 import io.ballerina.projects.Module;
@@ -81,6 +80,7 @@ import io.ballerina.tools.text.TextEdit;
 import io.ballerina.tools.text.TextRange;
 import org.ballerinalang.annotation.JavaSPIService;
 import org.ballerinalang.langserver.LSClientLogger;
+import org.ballerinalang.langserver.common.utils.PackageResolver;
 import org.ballerinalang.langserver.common.utils.PathUtil;
 import org.ballerinalang.langserver.commons.LanguageServerContext;
 import org.ballerinalang.langserver.commons.service.spi.ExtendedLanguageServerService;
@@ -192,7 +192,7 @@ public class FlowModelGeneratorService implements ExtendedLanguageServerService 
                 DocumentId documentId = newProject.documentId(filePath);
                 Module newModule = newProject.currentPackage().module(documentId.moduleId());
                 SemanticModel newSemanticModel =
-                        PackageUtil.getCompilation(newProject).getSemanticModel(newModule.moduleId());
+                        PackageResolver.getCompilation(newProject).getSemanticModel(newModule.moduleId());
                 Document newDocument = newModule.document(documentId);
                 if (newSemanticModel == null || newDocument == null) {
                     return response;
@@ -227,7 +227,7 @@ public class FlowModelGeneratorService implements ExtendedLanguageServerService 
                         newTextDocument.linePositionFrom(end + request.text().length()));
 
                 ModelGenerator suggestedModelGenerator =
-                        new ModelGenerator(newProject, PackageUtil.getCompilation(newProject)
+                        new ModelGenerator(newProject, PackageResolver.getCompilation(newProject)
                                 .getSemanticModel(newDoc.module().moduleId()), filePath, workspaceManager);
                 JsonElement newFlowModel = suggestedModelGenerator.getFlowModel(newDoc,
                         endLineRange, newDataMappingsDoc.orElse(null), newFunctionsDoc.orElse(null));
@@ -635,7 +635,7 @@ public class FlowModelGeneratorService implements ExtendedLanguageServerService 
 
                 if (Files.isDirectory(filePath)) {
                     // For project paths, use the default module's semantic model
-                    semanticModel = PackageUtil.getCompilation(project.currentPackage())
+                    semanticModel = PackageResolver.getCompilation(project.currentPackage())
                             .getSemanticModel(project.currentPackage().getDefaultModule().moduleId());
                     position = null;
                 } else {

@@ -108,7 +108,6 @@ import io.ballerina.flowmodelgenerator.core.model.node.VariableBuilder;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.DefaultValueGeneratorUtil;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
-import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.ModuleDescriptor;
 import io.ballerina.projects.Project;
@@ -132,6 +131,7 @@ import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefType
 import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefUnionType;
 import org.ballerinalang.langserver.common.utils.CommonUtil;
 import org.ballerinalang.langserver.common.utils.NameUtil;
+import org.ballerinalang.langserver.common.utils.PackageResolver;
 import org.ballerinalang.langserver.commons.eventsync.exceptions.EventSyncException;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceDocumentException;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
@@ -2698,7 +2698,8 @@ public class DataMapManager {
             semanticModel = sm;
         } else {
             ModuleInfo moduleInfo = new ModuleInfo(org, codedata.packageName(), codedata.module(), codedata.version());
-            Optional<SemanticModel> optSemanticModel = PackageUtil.getSemanticModel(moduleInfo);
+            Optional<SemanticModel> optSemanticModel = PackageResolver.getSemanticModel(moduleInfo.org(),
+                    moduleInfo.packageName(), moduleInfo.moduleName(), moduleInfo.version());
             if (optSemanticModel.isEmpty()) {
                 throw new IllegalStateException("Semantic model cannot be found for the module: " + moduleInfo);
             }

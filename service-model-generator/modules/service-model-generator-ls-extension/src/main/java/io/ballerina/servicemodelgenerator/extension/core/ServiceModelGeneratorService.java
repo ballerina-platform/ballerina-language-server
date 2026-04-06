@@ -34,7 +34,6 @@ import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
-import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.modelgenerator.commons.ServiceDatabaseManager;
 import io.ballerina.modelgenerator.commons.ServiceDeclaration;
 import io.ballerina.projects.Document;
@@ -96,6 +95,7 @@ import io.ballerina.tools.text.TextDocument;
 import io.ballerina.tools.text.TextRange;
 import org.ballerinalang.annotation.JavaSPIService;
 import org.ballerinalang.langserver.LSClientLogger;
+import org.ballerinalang.langserver.common.utils.PackageResolver;
 import org.ballerinalang.langserver.commons.LanguageServerContext;
 import org.ballerinalang.langserver.commons.service.spi.ExtendedLanguageServerService;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
@@ -204,7 +204,7 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
                 Package currentPackage = project.currentPackage();
                 Module module = currentPackage.module(ModuleName.from(currentPackage.packageName()));
                 ModuleId moduleId = module.moduleId();
-                SemanticModel semanticModel = PackageUtil.getCompilation(currentPackage).getSemanticModel(moduleId);
+                SemanticModel semanticModel = PackageResolver.getCompilation(currentPackage).getSemanticModel(moduleId);
                 Set<String> listeners = ListenerUtil.getCompatibleListeners(request.moduleName(),
                         semanticModel, project);
                 if (FTP.equals(request.moduleName()) && request.removeDeprecated() != null) {
@@ -312,7 +312,7 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
                 Package currentPackage = project.currentPackage();
                 Module module = currentPackage.module(ModuleName.from(currentPackage.packageName()));
                 ModuleId moduleId = module.moduleId();
-                SemanticModel semanticModel = PackageUtil.getCompilation(currentPackage).getSemanticModel(moduleId);
+                SemanticModel semanticModel = PackageResolver.getCompilation(currentPackage).getSemanticModel(moduleId);
 
                 Optional<String> httpDefaultListenerNameRef = ListenerUtil.getHttpDefaultListenerNameRef(
                         semanticModel, project);

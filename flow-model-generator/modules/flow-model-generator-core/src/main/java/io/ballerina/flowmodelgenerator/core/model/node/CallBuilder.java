@@ -44,13 +44,13 @@ import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.FunctionData;
 import io.ballerina.modelgenerator.commons.FunctionDataBuilder;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
-import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.modelgenerator.commons.ParameterData;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.Module;
 import io.ballerina.projects.ProjectException;
 import io.ballerina.tools.text.LinePosition;
 import org.ballerinalang.langserver.common.utils.CommonUtil;
+import org.ballerinalang.langserver.common.utils.PackageResolver;
 import org.ballerinalang.langserver.commons.eventsync.exceptions.EventSyncException;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceDocumentException;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
@@ -89,7 +89,7 @@ public abstract class CallBuilder extends NodeBuilder {
                 .moduleInfo(targetModuleInfo)
                 .lsClientLogger(context.lsClientLogger())
                 .functionResultKind(getFunctionResultKind())
-                .project(PackageUtil.loadProject(context.workspaceManager(), context.filePath()))
+                .project(PackageResolver.loadProject(context.workspaceManager(), context.filePath()))
                 .userModuleInfo(moduleInfo)
                 .workspaceManager(context.workspaceManager())
                 .filePath(context.filePath());
@@ -127,7 +127,7 @@ public abstract class CallBuilder extends NodeBuilder {
                     .label(Property.CONNECTION_LABEL)
                     .description(Property.CONNECTION_DOC)
                     .stepOut()
-                    .type(Property.ValueType.EXPRESSION, PackageUtil.isLocalFunction(context.workspaceManager(),
+                    .type(Property.ValueType.EXPRESSION, PackageResolver.isLocalFunction(context.workspaceManager(),
                             context.filePath(), codedata.org(), codedata.module()) ? codedata.object() :
                             CommonUtils.getClassType(codedata.module(), codedata.object()))
                     .value(codedata.parentSymbol())

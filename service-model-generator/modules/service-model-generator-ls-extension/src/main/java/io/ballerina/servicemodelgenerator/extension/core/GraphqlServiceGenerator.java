@@ -36,7 +36,6 @@ import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.graphql.generator.service.GraphqlServiceProject;
 import io.ballerina.graphql.generator.service.generator.ServiceCodeGenerator;
 import io.ballerina.graphql.generator.utils.SrcFilePojo;
-import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.DocumentConfig;
 import io.ballerina.projects.DocumentId;
@@ -51,6 +50,7 @@ import io.ballerina.servicemodelgenerator.extension.util.Utils;
 import io.ballerina.tools.text.LinePosition;
 import io.ballerina.tools.text.TextDocuments;
 import org.apache.commons.io.FilenameUtils;
+import org.ballerinalang.langserver.common.utils.PackageResolver;
 import org.ballerinalang.langserver.commons.eventsync.exceptions.EventSyncException;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceDocumentException;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
@@ -168,7 +168,7 @@ public class GraphqlServiceGenerator {
 
     private String genServiceImplementation(Project project, ModuleId moduleId, String path, String listeners,
                                             String svcTypeName) throws IOException {
-        SemanticModel semanticModel = PackageUtil.getCompilation(project).getSemanticModel(moduleId);
+        SemanticModel semanticModel = PackageResolver.getCompilation(project).getSemanticModel(moduleId);
         TypeDefinitionSymbol symbol = getServiceTypeSymbol(semanticModel.moduleSymbols(), svcTypeName);
         if (symbol == null) {
             throw new IOException("Cannot find service type definition");

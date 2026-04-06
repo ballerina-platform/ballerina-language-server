@@ -32,12 +32,12 @@ import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.modelgenerator.commons.FunctionData;
 import io.ballerina.modelgenerator.commons.FunctionDataBuilder;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
-import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.modelgenerator.commons.ParameterData;
 import io.ballerina.modelgenerator.commons.ParameterMemberTypeData;
 import io.ballerina.projects.Module;
 import io.ballerina.projects.ModuleDescriptor;
 import io.ballerina.projects.Package;
+import org.ballerinalang.langserver.common.utils.PackageResolver;
 
 import java.io.FileReader;
 import java.io.IOException;
@@ -64,6 +64,7 @@ class IndexGenerator {
     private static final Logger LOGGER = Logger.getLogger(IndexGenerator.class.getName());
 
     public static void main(String[] args) {
+        PackageResolver.initialize(false);
         DatabaseManager.createDatabase();
 
         Gson gson = new Gson();
@@ -119,7 +120,7 @@ class IndexGenerator {
                                        PackageListGenerator.PackageMetadataInfo packageMetadataInfo) {
         Package resolvedPackage;
         try {
-            resolvedPackage = Objects.requireNonNull(PackageUtil.resolveModulePackage(org,
+            resolvedPackage = Objects.requireNonNull(PackageResolver.resolveModulePackage(org,
                     packageMetadataInfo.name(), packageMetadataInfo.version())).orElseThrow();
         } catch (Throwable e) {
             LOGGER.severe("Error resolving package: " + packageMetadataInfo.name() + e.getMessage());
@@ -148,7 +149,7 @@ class IndexGenerator {
 
         SemanticModel semanticModel;
         try {
-            semanticModel = PackageUtil.getCompilation(resolvedPackage)
+            semanticModel = PackageResolver.getCompilation(resolvedPackage)
                     .getSemanticModel(module.moduleId());
         } catch (Exception e) {
             LOGGER.severe("Error reading semantic model: " + e.getMessage());
@@ -233,7 +234,7 @@ class IndexGenerator {
         ModuleInfo moduleInfo = ModuleInfo.from(module.descriptor());
 
         // Create and set the resolved package for the function
-        Optional<Package> resolvedPackage = PackageUtil.resolveModulePackage(
+        Optional<Package> resolvedPackage = PackageResolver.resolveModulePackage(
                 moduleInfo.org(), moduleInfo.packageName(), moduleInfo.version());
 
         // Determine function kind based on function type

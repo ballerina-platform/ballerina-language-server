@@ -70,6 +70,7 @@ import io.ballerina.runtime.api.utils.IdentifierUtils;
 import io.ballerina.tools.text.LinePosition;
 import org.ballerinalang.langserver.LSClientLogger;
 import org.ballerinalang.langserver.common.utils.CommonUtil;
+import org.ballerinalang.langserver.common.utils.PackageResolver;
 import org.ballerinalang.langserver.commons.BallerinaCompilerApi;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 import org.eclipse.lsp4j.MessageType;
@@ -168,7 +169,7 @@ public class FunctionDataBuilder {
             return this;
         }
         if (semanticModel == null) {
-            semanticModel(PackageUtil.getCompilation(resolvedPackage).getSemanticModel(
+            semanticModel(PackageResolver.getCompilation(resolvedPackage).getSemanticModel(
                     resolvedPackage.getDefaultModule().moduleId()));
         }
         this.resolvedPackage = resolvedPackage;
@@ -280,7 +281,7 @@ public class FunctionDataBuilder {
 
     private void resolvePackageAndSemanticModel() {
         if (workspaceManager != null && filePath != null) {
-            boolean isLocal = PackageUtil.isLocalFunction(workspaceManager, filePath,
+            boolean isLocal = PackageResolver.isLocalFunction(workspaceManager, filePath,
                     moduleInfo.org(), moduleInfo.moduleName());
             if (isLocal) {
                 // For local functions: use current workspace package + document + semantic model
@@ -304,7 +305,7 @@ public class FunctionDataBuilder {
         }
 
         // For external functions: resolve from central repository
-        Package resolvedPackage = PackageUtil.resolveModulePackage(
+        Package resolvedPackage = PackageResolver.resolveModulePackage(
                 moduleInfo.org(), moduleInfo.packageName(), moduleInfo.version()).orElse(null);
         this.resolvedPackage(resolvedPackage);
     }
@@ -367,7 +368,7 @@ public class FunctionDataBuilder {
                             (currentPackageName.equals(moduleInfo.packageName()) ||
                                     currentPackageName.equals(moduleInfo.moduleName()))) {
                         // TODO: Extend the support for sub-modules of a project.
-                        semanticModel(PackageUtil.getCompilation(childProject)
+                        semanticModel(PackageResolver.getCompilation(childProject)
                                 .getSemanticModel(currentPackage.getDefaultModule().moduleId()));
                         break;
                     }
@@ -392,8 +393,8 @@ public class FunctionDataBuilder {
                 moduleInfo = new ModuleInfo(moduleInfo.org(), moduleInfo.packageName(), moduleInfo.moduleName(),
                         centralApi.latestPackageVersion(moduleInfo.org(), moduleInfo.packageName()));
             }
-            if (moduleInfo.isComplete() &&
-                    PackageUtil.isModuleUnresolved(moduleInfo.org(), moduleInfo.packageName(), moduleInfo.version())) {
+            if (moduleInfo.isComplete() && PackageResolver.isModuleUnresolved(
+                    moduleInfo.org(), moduleInfo.packageName(), moduleInfo.version())) {
                 notifyClient(MessageType.Info, PULLING_THE_MODULE_MESSAGE);
                 if (semanticModel == null) {
                     deriveSemanticModel();
@@ -565,7 +566,7 @@ public class FunctionDataBuilder {
             for (Module module : project.currentPackage().modules()) {
                 ModuleName moduleName = module.moduleName();
                 if ((moduleName.packageName() + "." + moduleName.moduleNamePart()).equals(moduleInfo.moduleName())) {
-                    semanticModel(PackageUtil.getCompilation(project).getSemanticModel(module.moduleId()));
+                    semanticModel(PackageResolver.getCompilation(project).getSemanticModel(module.moduleId()));
                     break;
                 }
             }
@@ -684,7 +685,9 @@ public class FunctionDataBuilder {
     }
 
     private void deriveSemanticModel() {
-        semanticModel(PackageUtil.getSemanticModel(moduleInfo)
+        semanticModel(PackageResolver.getSemanticModel(
+                        moduleInfo.org(), moduleInfo.packageName(), moduleInfo.moduleName(),
+                        moduleInfo.version())
                 .orElseThrow(() -> new IllegalStateException("Semantic model not found")));
     }
 

@@ -26,7 +26,6 @@ import io.ballerina.compiler.syntax.tree.SyntaxInfo;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.TypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.UnionTypeDescriptorNode;
-import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.projects.Package;
 import io.ballerina.projects.Project;
 import io.ballerina.projects.ProjectException;
@@ -34,6 +33,7 @@ import io.ballerina.projects.directory.BuildProject;
 import io.ballerina.projects.directory.SingleFileProject;
 import io.ballerina.projects.util.ProjectUtils;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.ballerinalang.langserver.common.utils.PackageResolver;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 
 import java.nio.file.Path;
@@ -115,7 +115,7 @@ public final class DataMappingModelConverterUtils {
                 // Since the project-root cannot be found, the provided file is considered as SingleFileProject.
                 project = SingleFileProject.load(filePath);
                 Package currentPackage = project.currentPackage();
-                moduleSymbols = PackageUtil.getCompilation(currentPackage)
+                moduleSymbols = PackageResolver.getCompilation(currentPackage)
                         .getSemanticModel(currentPackage.getDefaultModule().moduleId())
                         .moduleSymbols();
                 moduleSymbols.forEach(symbol -> {
@@ -126,7 +126,7 @@ public final class DataMappingModelConverterUtils {
             } else {
                 project = BuildProject.load(projectRoot);
                 Package currentPackage = project.currentPackage();
-                moduleSymbols = PackageUtil.getCompilation(currentPackage)
+                moduleSymbols = PackageResolver.getCompilation(currentPackage)
                         .getSemanticModel(currentPackage.getDefaultModule().moduleId())
                         .moduleSymbols();
                 moduleSymbols.forEach(symbol -> {

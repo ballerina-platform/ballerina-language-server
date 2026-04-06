@@ -37,9 +37,9 @@ import io.ballerina.flowmodelgenerator.core.model.SourceBuilder;
 import io.ballerina.flowmodelgenerator.core.utils.FlowNodeUtil;
 import io.ballerina.modelgenerator.commons.DefaultValueGeneratorUtil;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
-import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.projects.Project;
 import org.ballerinalang.langserver.common.utils.CommonUtil;
+import org.ballerinalang.langserver.common.utils.PackageResolver;
 import org.ballerinalang.langserver.commons.eventsync.exceptions.EventSyncException;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceDocumentException;
 import org.eclipse.lsp4j.TextEdit;
@@ -88,7 +88,8 @@ public class AgentIdAuthConfigBuilder extends NodeBuilder {
         }
 
         ModuleInfo aiModuleInfo = new ModuleInfo(Ai.BALLERINA_ORG, Ai.AI_PACKAGE, Ai.AI_PACKAGE, aiModuleVersion);
-        Optional<SemanticModel> semanticModelOpt = PackageUtil.getSemanticModel(aiModuleInfo);
+        Optional<SemanticModel> semanticModelOpt = PackageResolver.getSemanticModel(aiModuleInfo.org(),
+                aiModuleInfo.packageName(), aiModuleInfo.moduleName(), aiModuleInfo.version());
         if (semanticModelOpt.isEmpty()) {
             return;
         }

@@ -28,9 +28,9 @@ import io.ballerina.architecturemodelgenerator.core.model.entity.Entity;
 import io.ballerina.architecturemodelgenerator.core.model.functionentrypoint.FunctionEntryPoint;
 import io.ballerina.architecturemodelgenerator.core.model.service.Connection;
 import io.ballerina.architecturemodelgenerator.core.model.service.Service;
-import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.projects.Package;
 import io.ballerina.projects.PackageCompilation;
+import org.ballerinalang.langserver.common.utils.PackageResolver;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -64,7 +64,7 @@ public class ArchitectureModelBuilder {
 
         currentPackage.modules().forEach(module -> {
             PackageCompilation currentPackageCompilation = packageCompilation == null ?
-                    PackageUtil.getCompilation(currentPackage) : packageCompilation;
+                    PackageResolver.getCompilation(currentPackage) : packageCompilation;
             if (currentPackageCompilation.diagnosticResult().hasErrors() && !hasDiagnosticErrors.get()) {
                 hasDiagnosticErrors.set(true);
             }

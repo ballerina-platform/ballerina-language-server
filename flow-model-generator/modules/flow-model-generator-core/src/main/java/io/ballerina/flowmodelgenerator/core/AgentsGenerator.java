@@ -62,7 +62,6 @@ import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.FunctionData;
 import io.ballerina.modelgenerator.commons.FunctionDataBuilder;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
-import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.modelgenerator.commons.ParameterData;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.Project;
@@ -73,6 +72,7 @@ import io.ballerina.tools.text.TextDocument;
 import io.ballerina.tools.text.TextDocumentChange;
 import io.ballerina.tools.text.TextRange;
 import org.ballerinalang.langserver.common.utils.CommonUtil;
+import org.ballerinalang.langserver.common.utils.PackageResolver;
 import org.ballerinalang.langserver.commons.eventsync.exceptions.EventSyncException;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceDocumentException;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
@@ -133,7 +133,8 @@ public class AgentsGenerator {
             throws WorkspaceDocumentException, EventSyncException {
         Path projectPath = Path.of(path);
         Project project = workspaceManager.loadProject(projectPath);
-        BLangPackage bLangPackage = PackageUtil.getCompilation(project.currentPackage()).defaultModuleBLangPackage();
+        BLangPackage bLangPackage = PackageResolver.getCompilation(project.currentPackage())
+                .defaultModuleBLangPackage();
         return importExists(bLangPackage, BALLERINAX, AI) ? BALLERINAX : BALLERINA;
     }
 
@@ -763,7 +764,7 @@ public class AgentsGenerator {
                         .document(document.documentId()).modify().withContent(String.join(System.lineSeparator(),
                                 modifiedTextDoc.textLines())).apply();
 
-        SemanticModel newSemanticModel = PackageUtil.getCompilation(modifiedDoc.module().packageInstance())
+        SemanticModel newSemanticModel = PackageResolver.getCompilation(modifiedDoc.module().packageInstance())
                 .getSemanticModel(modifiedDoc.module().moduleId());
         Optional<Property> property = flowNode.getProperty(Property.VARIABLE_KEY);
         if (property.isEmpty()) {

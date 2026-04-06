@@ -39,12 +39,12 @@ import io.ballerina.flowmodelgenerator.core.model.Item;
 import io.ballerina.flowmodelgenerator.core.model.Metadata;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.modelgenerator.commons.CommonUtils;
-import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.modelgenerator.commons.SearchResult;
 import io.ballerina.projects.Package;
 import io.ballerina.projects.Project;
 import io.ballerina.tools.diagnostics.Location;
 import io.ballerina.tools.text.LineRange;
+import org.ballerinalang.langserver.common.utils.PackageResolver;
 import org.ballerinalang.langserver.common.utils.PositionUtil;
 
 import java.util.ArrayList;
@@ -121,7 +121,7 @@ public class AgentToolSearchCommand extends SearchCommand {
 
     private List<Item> buildAgentToolNodes() {
         Package currentPackage = project.currentPackage();
-        List<Symbol> functionSymbols = PackageUtil.getCompilation(currentPackage)
+        List<Symbol> functionSymbols = PackageResolver.getCompilation(currentPackage)
                 .getSemanticModel(currentPackage.getDefaultModule().moduleId())
                 .moduleSymbols().stream()
                 .filter(symbol -> symbol.kind().equals(SymbolKind.FUNCTION))
@@ -238,7 +238,7 @@ public class AgentToolSearchCommand extends SearchCommand {
 
     private boolean isValidAgentToolSignature(FunctionSymbol functionSymbol) {
         FunctionTypeSymbol functionTypeSymbol = functionSymbol.typeDescriptor();
-        TypeSymbol anydata = PackageUtil.getCompilation(project.currentPackage())
+        TypeSymbol anydata = PackageResolver.getCompilation(project.currentPackage())
                 .getSemanticModel(project.currentPackage().getDefaultModule().moduleId())
                 .types().ANYDATA;
 

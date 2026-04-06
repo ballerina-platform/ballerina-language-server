@@ -42,7 +42,6 @@ import io.ballerina.flowmodelgenerator.core.model.PropertyType;
 import io.ballerina.flowmodelgenerator.core.model.SourceBuilder;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
-import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.projects.DependenciesToml;
 import io.ballerina.projects.PackageDescriptor;
 import io.ballerina.projects.PackageName;
@@ -50,10 +49,10 @@ import io.ballerina.projects.PackageOrg;
 import io.ballerina.projects.Project;
 import io.ballerina.projects.TomlDocument;
 import io.ballerina.projects.environment.PackageMetadataResponse;
-import io.ballerina.projects.environment.PackageResolver;
 import io.ballerina.projects.environment.ResolutionOptions;
 import io.ballerina.projects.environment.ResolutionRequest;
 import io.ballerina.projects.environment.ResolutionResponse;
+import org.ballerinalang.langserver.common.utils.PackageResolver;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -513,8 +512,8 @@ public class AiUtils {
 
     public static Optional<String> resolvePackageVersion(String org, String packageName) {
         try {
-            PackageResolver resolver = PackageUtil.getSampleProject()
-                    .projectEnvironmentContext().getService(PackageResolver.class);
+            io.ballerina.projects.environment.PackageResolver resolver = PackageResolver.getSampleProject()
+                    .projectEnvironmentContext().getService(io.ballerina.projects.environment.PackageResolver.class);
             ResolutionRequest resolutionRequest = ResolutionRequest.from(
                     PackageDescriptor.from(PackageOrg.from(org), PackageName.from(packageName)));
             Collection<PackageMetadataResponse> metadataResponses = resolver.resolvePackageMetadata(
@@ -679,8 +678,9 @@ public class AiUtils {
     }
 
     private static Optional<SemanticModel> getSemanticModel(ModuleInfo module) {
-        return module.version() == null ? PackageUtil.getSemanticModel(module.org(), module.moduleName())
-                : PackageUtil.getSemanticModel(module);
+        return module.version() == null ? PackageResolver.getSemanticModel(module.org(), module.moduleName())
+                : PackageResolver.getSemanticModel(module.org(), module.packageName(), module.moduleName(),
+                module.version());
     }
 
     private static boolean isModelProviderClass(ClassSymbol classSymbol) {

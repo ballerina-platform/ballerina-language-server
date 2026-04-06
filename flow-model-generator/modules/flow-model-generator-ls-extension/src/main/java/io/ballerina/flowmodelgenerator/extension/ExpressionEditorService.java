@@ -46,12 +46,12 @@ import io.ballerina.flowmodelgenerator.extension.response.ImportModuleResponse;
 import io.ballerina.flowmodelgenerator.extension.response.VisibleVariableTypesResponse;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
-import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.projects.CompilationOptions;
 import io.ballerina.projects.Document;
 import io.ballerina.tools.text.TextEdit;
 import org.ballerinalang.annotation.JavaSPIService;
 import org.ballerinalang.langserver.LSClientLogger;
+import org.ballerinalang.langserver.common.utils.PackageResolver;
 import org.ballerinalang.langserver.commons.LanguageServerContext;
 import org.ballerinalang.langserver.commons.service.spi.ExtendedLanguageServerService;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManagerProxy;
@@ -293,8 +293,11 @@ public class ExpressionEditorService implements ExtendedLanguageServerService {
                 filePath,
                 null);
         Optional<TextEdit> importTextEdit = expressionEditorContext.getImport(importStatement);
-        importTextEdit.ifPresent(textEdit ->
-                PackageUtil.pullModuleAndNotify(lsClientLogger, ModuleInfo.from(moduleId)));
+        importTextEdit.ifPresent(textEdit -> {
+            ModuleInfo moduleInfo = ModuleInfo.from(moduleId);
+            PackageResolver.pullModuleAndNotify(lsClientLogger, moduleInfo.org(), moduleInfo.packageName(),
+                    moduleInfo.moduleName(), moduleInfo.version());
+        });
         response.setPrefix(CommonUtils.getPackageName(importStatement));
         response.setModuleId(moduleId);
     }

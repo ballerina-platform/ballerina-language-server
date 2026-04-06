@@ -58,11 +58,11 @@ import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.FunctionData;
 import io.ballerina.modelgenerator.commons.FunctionDataBuilder;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
-import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.Package;
 import io.ballerina.tools.text.LinePosition;
 import io.ballerina.tools.text.TextRange;
+import org.ballerinalang.langserver.common.utils.PackageResolver;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -481,7 +481,8 @@ public class AvailableNodesGenerator {
 
             // Create and set the resolved package for the function
             Optional<Package> resolvedPackage = moduleInfo != null ?
-                    PackageUtil.resolveModulePackage(moduleInfo.org(), moduleInfo.packageName(), moduleInfo.version()) :
+                    PackageResolver.resolveModulePackage(moduleInfo.org(), moduleInfo.packageName(),
+                            moduleInfo.version()) :
                     Optional.empty();
 
             FunctionDataBuilder functionDataBuilder = new FunctionDataBuilder()

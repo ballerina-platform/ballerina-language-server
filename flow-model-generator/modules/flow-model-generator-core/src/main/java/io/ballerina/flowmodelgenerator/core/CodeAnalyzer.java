@@ -170,7 +170,6 @@ import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.FunctionData;
 import io.ballerina.modelgenerator.commons.FunctionDataBuilder;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
-import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.modelgenerator.commons.ParameterData;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.Module;
@@ -181,6 +180,7 @@ import io.ballerina.tools.text.LinePosition;
 import io.ballerina.tools.text.LineRange;
 import io.ballerina.tools.text.TextDocument;
 import org.ballerinalang.langserver.common.utils.CommonUtil;
+import org.ballerinalang.langserver.common.utils.PackageResolver;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 
 import java.nio.file.Path;
@@ -783,7 +783,7 @@ public class CodeAnalyzer extends NodeVisitor {
                                        MethodSymbol functionSymbol, String objName,
                                        Map<String, Object> metadataData) {
         Optional<Package> resolvedPackage = moduleInfo != null ?
-                PackageUtil.resolveModulePackage(moduleInfo.org(), moduleInfo.packageName(), moduleInfo.version()) :
+                PackageResolver.resolveModulePackage(moduleInfo.org(), moduleInfo.packageName(), moduleInfo.version()) :
                 Optional.empty();
 
         FunctionDataBuilder functionDataBuilder = new FunctionDataBuilder()

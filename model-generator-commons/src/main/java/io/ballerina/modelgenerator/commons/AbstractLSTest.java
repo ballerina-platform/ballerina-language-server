@@ -82,6 +82,7 @@ public abstract class AbstractLSTest {
         }
         log = LoggerFactory.getLogger(clazz());
         this.languageServer = new BallerinaLanguageServer();
+        this.languageServer.setPackageUtilOffline(true);
         TestUtil.LanguageServerBuilder builder = TestUtil.newLanguageServer().withLanguageServer(languageServer);
         this.serviceEndpoint = builder.build();
     }

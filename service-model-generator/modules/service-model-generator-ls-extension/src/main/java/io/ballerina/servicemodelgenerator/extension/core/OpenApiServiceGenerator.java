@@ -30,7 +30,6 @@ import io.ballerina.compiler.api.symbols.TypeDescKind;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
-import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.openapi.core.generators.common.GeneratorUtils;
 import io.ballerina.openapi.core.generators.common.SingleFileGenerator;
 import io.ballerina.openapi.core.generators.common.TypeHandler;
@@ -59,6 +58,7 @@ import io.ballerina.tools.text.TextDocuments;
 import io.swagger.v3.oas.models.OpenAPI;
 import org.ballerinalang.formatter.core.Formatter;
 import org.ballerinalang.formatter.core.FormatterException;
+import org.ballerinalang.langserver.common.utils.PackageResolver;
 import org.ballerinalang.langserver.commons.eventsync.exceptions.EventSyncException;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceDocumentException;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
@@ -241,7 +241,7 @@ public class OpenApiServiceGenerator {
         DocumentConfig documentConfig = DocumentConfig.from(serviceObjDocId, serviceTypeContent, fileName);
         module.modify().addDocument(documentConfig).apply();
 
-        SemanticModel semanticModel = PackageUtil.getCompilation(project).getSemanticModel(moduleId);
+        SemanticModel semanticModel = PackageResolver.getCompilation(project).getSemanticModel(moduleId);
         TypeDefinitionSymbol symbol = getServiceTypeSymbol(semanticModel.moduleSymbols(), typeName);
         if (symbol == null) {
             throw new BallerinaOpenApiException("Cannot find service type definition");

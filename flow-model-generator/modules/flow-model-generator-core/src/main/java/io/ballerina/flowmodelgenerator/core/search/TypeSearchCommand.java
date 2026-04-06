@@ -40,7 +40,6 @@ import io.ballerina.flowmodelgenerator.core.model.Item;
 import io.ballerina.flowmodelgenerator.core.model.Metadata;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.modelgenerator.commons.CommonUtils;
-import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.modelgenerator.commons.SearchResult;
 import io.ballerina.projects.Module;
 import io.ballerina.projects.ModuleName;
@@ -50,6 +49,7 @@ import io.ballerina.projects.Project;
 import io.ballerina.projects.directory.BuildProject;
 import io.ballerina.projects.directory.WorkspaceProject;
 import io.ballerina.tools.text.LineRange;
+import org.ballerinalang.langserver.common.utils.PackageResolver;
 import org.ballerinalang.langserver.common.utils.SymbolUtil;
 
 import java.util.ArrayList;
@@ -89,7 +89,7 @@ class TypeSearchCommand extends SearchCommand {
 
         // Obtain the imported project names
         Package currentPackage = project.currentPackage();
-        PackageUtil.getCompilation(currentPackage);
+        PackageResolver.getCompilation(currentPackage);
         moduleNames = currentPackage.getDefaultModule().moduleDependencies().stream()
                 .map(moduleDependency -> {
                     ModuleName name = moduleDependency.descriptor().name();
@@ -178,7 +178,7 @@ class TypeSearchCommand extends SearchCommand {
 
     private List<Symbol> getTypes(Project project) {
         Package currentPackage = project.currentPackage();
-        return PackageUtil.getCompilation(currentPackage)
+        return PackageResolver.getCompilation(currentPackage)
                 .getSemanticModel(currentPackage.getDefaultModule().moduleId())
                 .moduleSymbols().stream()
                 .filter(symbol -> symbol instanceof TypeDefinitionSymbol || symbol instanceof ClassSymbol)
@@ -335,7 +335,7 @@ class TypeSearchCommand extends SearchCommand {
             if (module.isDefaultModule()) {
                 continue;
             }
-            SemanticModel semanticModel = PackageUtil.getCompilation(module.packageInstance())
+            SemanticModel semanticModel = PackageResolver.getCompilation(module.packageInstance())
                     .getSemanticModel(module.moduleId());
             if (semanticModel == null) {
                 continue;

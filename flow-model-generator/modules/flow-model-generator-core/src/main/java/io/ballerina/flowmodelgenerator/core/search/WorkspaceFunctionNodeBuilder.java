@@ -34,7 +34,6 @@ import io.ballerina.flowmodelgenerator.core.model.Metadata;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.flowmodelgenerator.core.model.node.AutomationBuilder;
 import io.ballerina.modelgenerator.commons.CommonUtils;
-import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.Package;
 import io.ballerina.projects.PackageName;
@@ -43,6 +42,7 @@ import io.ballerina.projects.directory.BuildProject;
 import io.ballerina.projects.directory.WorkspaceProject;
 import io.ballerina.tools.diagnostics.Location;
 import io.ballerina.tools.text.LineRange;
+import org.ballerinalang.langserver.common.utils.PackageResolver;
 import org.ballerinalang.langserver.common.utils.PositionUtil;
 
 import java.util.ArrayList;
@@ -171,7 +171,7 @@ class WorkspaceFunctionNodeBuilder {
     static List<FunctionSymbol> getFunctions(Project project) {
         Package currentPackage = project.currentPackage();
 
-        return PackageUtil.getCompilation(currentPackage)
+        return PackageResolver.getCompilation(currentPackage)
                 .getSemanticModel(currentPackage.getDefaultModule().moduleId())
                 .moduleSymbols().stream()
                 .filter(symbol -> symbol.kind().equals(SymbolKind.FUNCTION) &&
