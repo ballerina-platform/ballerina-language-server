@@ -167,12 +167,12 @@ public class WorkflowBuilder extends FunctionDefinitionBuilder {
                 .keyword(SyntaxKind.OPEN_PAREN_TOKEN);
 
         Optional<Property> contextProp = sourceBuilder.getProperty(CONTEXT_PARAM_KEY);
-        String contextParamText = contextProp.map(p -> p.value().toString()).orElse("");
+        String contextParamText = contextProp.map(p -> p.value().toString().trim()).orElse("");
 
         Optional<Property> inputProperty = sourceBuilder.getProperty(INPUT_KEY);
-        String inputTypeName = inputProperty.map(p -> p.value().toString()).orElse("");
+        String inputTypeName = inputProperty.map(p -> p.value().toString().trim()).orElse("");
 
-        if (!contextParamText.isEmpty() && !inputTypeName.isEmpty()) {
+        if (!contextParamText.isBlank() && !inputTypeName.isBlank()) {
             sourceBuilder.token()
                     .name(contextParamText)
                     .keyword(SyntaxKind.COMMA_TOKEN)
@@ -180,9 +180,9 @@ public class WorkflowBuilder extends FunctionDefinitionBuilder {
                     .name(inputTypeName)
                     .whiteSpace()
                     .name(DEFAULT_INPUT_PARAM_NAME);
-        } else if (!contextParamText.isEmpty()) {
+        } else if (!contextParamText.isBlank()) {
             sourceBuilder.token().name(contextParamText);
-        } else if (!inputTypeName.isEmpty()) {
+        } else if (!inputTypeName.isBlank()) {
             sourceBuilder.token()
                     .name(inputTypeName)
                     .whiteSpace()
