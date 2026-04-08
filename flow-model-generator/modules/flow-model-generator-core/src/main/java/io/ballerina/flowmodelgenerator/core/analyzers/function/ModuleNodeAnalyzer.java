@@ -50,10 +50,12 @@ import io.ballerina.flowmodelgenerator.core.Constants;
 import io.ballerina.flowmodelgenerator.core.model.NodeBuilder;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.flowmodelgenerator.core.model.Property;
+import io.ballerina.flowmodelgenerator.core.model.node.ActivityBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.AutomationBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.DataMapperDefinitionBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.FunctionDefinitionBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.NPFunctionDefinitionBuilder;
+import io.ballerina.flowmodelgenerator.core.model.node.WorkflowBuilder;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
 import io.ballerina.modelgenerator.commons.ParameterData;
@@ -64,6 +66,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import static io.ballerina.flowmodelgenerator.core.utils.WorkflowUtil.isActivityFunction;
+import static io.ballerina.flowmodelgenerator.core.utils.WorkflowUtil.isWorkflowFunction;
 import static io.ballerina.modelgenerator.commons.ParameterData.Kind.REQUIRED;
 
 /**
@@ -112,7 +116,14 @@ public class ModuleNodeAnalyzer extends NodeVisitor {
         } else if (functionDefinitionNode.functionName().text().equals(AutomationBuilder.MAIN_FUNCTION_NAME)) {
             nodeKind = NodeKind.AUTOMATION;
         } else {
-            nodeKind = NodeKind.FUNCTION_DEFINITION;
+            Optional<Symbol> symbol = this.semanticModel.symbol(functionDefinitionNode);
+            if (symbol.isPresent() && isWorkflowFunction(symbol.get())) {
+                nodeKind = NodeKind.WORKFLOW;
+            } else if (symbol.isPresent() && isActivityFunction(symbol.get())) {
+                nodeKind = NodeKind.ACTIVITY;
+            } else {
+                nodeKind = NodeKind.FUNCTION_DEFINITION;
+            }
         }
 
         NodeBuilder nodeBuilder = NodeBuilder.getNodeFromKind(nodeKind)
@@ -138,10 +149,41 @@ public class ModuleNodeAnalyzer extends NodeVisitor {
             nodeBuilder.properties().functionName(functionDefinitionNode.functionName());
         }
         // TODO: Check how we can do this using FunctionDefinitionBuilder as the super class
+        // For WORKFLOW functions, extract the input data parameter type and context parameter.
+        // WorkflowBuilder.toSource uses a single inputType property rather than a parameters list.
+        // The context parameter (workflow:Context ...) is preserved verbatim as a hidden property
+        // so it is re-emitted unchanged on save; it is not exposed in the edit form.
+        String workflowInputType = "";
+        String workflowContextParam = "";
+        if (nodeKind == NodeKind.WORKFLOW) {
+            for (ParameterNode parameter : functionDefinitionNode.functionSignature().parameters()) {
+                if (parameter.kind() == SyntaxKind.REQUIRED_PARAM) {
+                    RequiredParameterNode reqParam = (RequiredParameterNode) parameter;
+                    String paramType = getNodeValue(reqParam.typeName());
+                    String paramName = reqParam.paramName().map(Token::text).orElse("");
+                    if (paramType.contains(Constants.Workflow.CONTEXT_CLASS_NAME)) {
+                        workflowContextParam = paramName.isEmpty() ? paramType : paramType + " " + paramName;
+                    } else if (workflowInputType.isEmpty()) {
+                        workflowInputType = paramType;
+                    }
+                } else if (parameter.kind() == SyntaxKind.DEFAULTABLE_PARAM && workflowInputType.isEmpty()) {
+                    DefaultableParameterNode defParam = (DefaultableParameterNode) parameter;
+                    String paramType = getNodeValue(defParam.typeName());
+                    if (!paramType.contains(Constants.Workflow.CONTEXT_CLASS_NAME)) {
+                        workflowInputType = paramType;
+                    }
+                }
+            }
+        }
+
         switch (nodeKind) {
             case DATA_MAPPER_DEFINITION -> DataMapperDefinitionBuilder.setMandatoryProperties(nodeBuilder, returnType);
             case AUTOMATION -> AutomationBuilder.sendMandatoryProperties(nodeBuilder);
             case NP_FUNCTION_DEFINITION -> NPFunctionDefinitionBuilder.setMandatoryProperties(nodeBuilder, returnType);
+            case WORKFLOW -> WorkflowBuilder.setMandatoryProperties(nodeBuilder, returnType,
+                    documentation == null ? "" : documentation.description(),
+                    documentation == null ? "" : documentation.returnDescription(),
+                    workflowInputType, workflowContextParam);
             default -> FunctionDefinitionBuilder.setMandatoryProperties(nodeBuilder, returnType,
                     documentation == null ? "" : documentation.description(),
                     documentation == null ? "" : documentation.returnDescription());
@@ -149,7 +191,9 @@ public class ModuleNodeAnalyzer extends NodeVisitor {
 
         boolean isModelParamAvailable = false;
 
-        // Set the function parameters
+        // Set the function parameters. WORKFLOW functions use a single inputType property
+        // (already set above) instead of a parameters list, so skip the loop for them.
+        if (nodeKind != NodeKind.WORKFLOW) {
         for (ParameterNode parameter : functionDefinitionNode.functionSignature().parameters()) {
             String paramType;
             Optional<Token> paramName;
@@ -198,6 +242,7 @@ public class ModuleNodeAnalyzer extends NodeVisitor {
                 }
             }
         }
+        } // end if (nodeKind != NodeKind.WORKFLOW)
 
         switch (nodeKind) {
             case DATA_MAPPER_DEFINITION -> DataMapperDefinitionBuilder.setOptionalProperties(nodeBuilder);
@@ -209,9 +254,12 @@ public class ModuleNodeAnalyzer extends NodeVisitor {
                 processNaturalFunctionDefProperties(nodeBuilder,
                         ((NaturalExpressionNode) expressionFunctionBodyNode.expression()), isModelParamAvailable);
             }
+            case WORKFLOW -> { /* WorkflowBuilder uses inputType, not a parameters list; nothing to finalize */ }
             default -> FunctionDefinitionBuilder.setOptionalProperties(nodeBuilder);
         }
 
+        // WORKFLOW annotations and qualifiers are hardcoded by WorkflowBuilder.toSource; skip them here.
+        if (nodeKind != NodeKind.WORKFLOW) {
         Optional<MetadataNode> optMetadata = functionDefinitionNode.metadata();
         if (optMetadata.isPresent()) {
             StringBuilder annot = new StringBuilder();
@@ -231,6 +279,7 @@ public class ModuleNodeAnalyzer extends NodeVisitor {
                 nodeBuilder.properties().isPublic(true, false, true, false);
             }
         }
+        } // end if (nodeKind != NodeKind.WORKFLOW)
 
         // Build the definition node
         this.node = gson.toJsonTree(nodeBuilder.build());
