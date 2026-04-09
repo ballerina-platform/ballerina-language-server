@@ -427,7 +427,7 @@
           "metadata": {
             "label": "FTP",
             "description": "FTP client for connecting to and managing FTP/SFTP servers.\nSupports reading files in various formats (text, JSON, XML, CSV, bytes) and writing files with overwrite or append options.",
-            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ftp_2.16.1.png"
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ftp_2.16.0.png"
           },
           "codedata": {
             "node": "NEW_CONNECTION",
@@ -436,7 +436,7 @@
             "packageName": "ftp",
             "object": "Client",
             "symbol": "init",
-            "version": "2.16.1"
+            "version": "2.16.0"
           },
           "enabled": true
         },
