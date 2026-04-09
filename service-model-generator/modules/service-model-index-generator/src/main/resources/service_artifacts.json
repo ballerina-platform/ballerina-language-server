@@ -2135,7 +2135,7 @@
               "description": "Triggers when an error occurs during event processing before mandatory functions are invoked",
               "accessor": "",
               "kind": "REMOTE",
-              "returnType": "",
+              "returnType": "error?",
               "returnError": 1,
               "returnTypeEditable": 0,
               "enable": 0,
