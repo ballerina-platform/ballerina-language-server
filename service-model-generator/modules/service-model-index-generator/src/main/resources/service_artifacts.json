@@ -2136,7 +2136,7 @@
               "accessor": "",
               "kind": "REMOTE",
               "returnType": "",
-              "returnError": 0,
+              "returnError": 1,
               "returnTypeEditable": 0,
               "enable": 0,
               "optional": 1,
