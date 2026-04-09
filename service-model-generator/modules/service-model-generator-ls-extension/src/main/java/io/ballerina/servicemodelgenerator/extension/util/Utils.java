@@ -1092,6 +1092,18 @@ public final class Utils {
                     .append(NEW_LINE)
                     .append("\t}")
                     .append(NEW_LINE);
+        } else {
+            builder.append("\tdo {").append(NEW_LINE)
+                    .append("\t} on fail error err {")
+                    .append(NEW_LINE)
+                    .append("\t\t// log error")
+                    .append(NEW_LINE)
+                    .append("\t\tlog:printError(\"Error occurred\", 'error = err);")
+                    .append(NEW_LINE)
+                    .append("\t}")
+                    .append(NEW_LINE);
+
+            imports.put("log", "ballerina/log");
         }
         builder.append("}");
         return builder.toString();
