@@ -573,7 +573,7 @@
               "metadata": {
                 "label": "ClientConfiguration",
                 "description": "Configuration for FTP client.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ftp_2.16.0.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ftp_2.16.1.png"
               },
               "codedata": {
                 "node": "TYPEDESC",
@@ -581,7 +581,7 @@
                 "module": "ftp",
                 "packageName": "ftp",
                 "symbol": "ClientConfiguration",
-                "version": "2.16.0"
+                "version": "2.16.1"
               },
               "enabled": true
             }
