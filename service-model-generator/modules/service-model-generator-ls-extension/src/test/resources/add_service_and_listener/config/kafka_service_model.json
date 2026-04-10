@@ -21,8 +21,11 @@
           "argType": "LISTENER_PARAM_REQUIRED"
         },
         "placeholder": "\"localhost:9092\"",
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "string|string[]",
         "value": "\"localhost:9092\"",
         "items": [],
+        "typeMembers": [],
         "enabled": true,
         "editable": true,
         "optional": false,
@@ -37,8 +40,11 @@
           "argType": "LISTENER_PARAM_INCLUDED_FIELD"
         },
         "placeholder": "\"myTopic\"",
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "string|string[]",
         "value": "\"sales-data\"",
         "items": [],
+        "typeMembers": [],
         "enabled": true,
         "editable": true,
         "optional": false,
@@ -52,6 +58,8 @@
         "codedata": {
           "type": "LISTENER_VAR_NAME"
         },
+        "valueType": "IDENTIFIER",
+        "valueTypeConstraint": "Global",
         "value": "kafkaListener",
         "enabled": true,
         "editable": true,
