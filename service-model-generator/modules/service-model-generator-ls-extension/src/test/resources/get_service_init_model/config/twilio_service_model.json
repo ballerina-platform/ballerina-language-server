@@ -6,7 +6,7 @@
   "moduleName": "trigger.twilio",
   "response": {
     "serviceInitModel": {
-      "id": "14",
+      "id": "15",
       "displayName": "Twilio Event Integration",
       "description": "Create a service to handle events from Twilio",
       "orgName": "ballerinax",

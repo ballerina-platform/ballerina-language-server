@@ -73,7 +73,10 @@
           "type": "READONLY"
         },
         "placeholder": "false",
-        "value": {},
+        "value": {
+          "Path": [],
+          "Protocol": []
+        },
         "types": [
           {
             "fieldType": "SINGLE_SELECT",
