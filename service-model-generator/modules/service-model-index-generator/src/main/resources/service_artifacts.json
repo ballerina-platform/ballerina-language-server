@@ -272,6 +272,7 @@
               "returnType": "",
               "returnError": 0,
               "returnTypeEditable": 0,
+              "addErrorHandler": 1,
               "enable": 0,
               "optional": 1,
               "parameters": [
@@ -296,6 +297,7 @@
               "returnType": "",
               "returnError": 0,
               "returnTypeEditable": 0,
+              "addErrorHandler": 1,
               "enable": 0,
               "optional": 1,
               "parameters": [
@@ -320,6 +322,7 @@
               "returnType": "",
               "returnError": 0,
               "returnTypeEditable": 0,
+              "addErrorHandler": 1,
               "enable": 0,
               "optional": 1,
               "parameters": [

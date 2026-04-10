@@ -294,6 +294,7 @@
     "optional": false,
     "editable": true,
     "canAddParameters": false,
+    "addErrorHandler": false,
     "codedata": {
       "orgName": "ballerina",
       "moduleName": "graphql"

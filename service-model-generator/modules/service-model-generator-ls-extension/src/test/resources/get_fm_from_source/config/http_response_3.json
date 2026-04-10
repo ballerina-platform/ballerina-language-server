@@ -601,6 +601,7 @@
     "optional": true,
     "editable": true,
     "canAddParameters": true,
+    "addErrorHandler": false,
     "codedata": {
       "lineRange": {
         "fileName": "response_types.bal",

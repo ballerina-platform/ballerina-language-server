@@ -6,7 +6,7 @@
   "moduleName": "mcp",
   "response": {
     "serviceInitModel": {
-      "id": "8",
+      "id": "7",
       "displayName": "MCP Service",
       "description": "Create MCP service",
       "orgName": "ballerina",

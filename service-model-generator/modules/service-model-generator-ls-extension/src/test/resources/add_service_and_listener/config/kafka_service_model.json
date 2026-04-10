@@ -21,11 +21,8 @@
           "argType": "LISTENER_PARAM_REQUIRED"
         },
         "placeholder": "\"localhost:9092\"",
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "string|string[]",
         "value": "\"localhost:9092\"",
         "items": [],
-        "typeMembers": [],
         "enabled": true,
         "editable": true,
         "optional": false,
@@ -40,11 +37,8 @@
           "argType": "LISTENER_PARAM_INCLUDED_FIELD"
         },
         "placeholder": "\"myTopic\"",
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "string|string[]",
         "value": "\"sales-data\"",
         "items": [],
-        "typeMembers": [],
         "enabled": true,
         "editable": true,
         "optional": false,
@@ -58,8 +52,6 @@
         "codedata": {
           "type": "LISTENER_VAR_NAME"
         },
-        "valueType": "IDENTIFIER",
-        "valueTypeConstraint": "Global",
         "value": "kafkaListener",
         "enabled": true,
         "editable": true,
@@ -94,7 +86,7 @@
             "character": 3
           }
         },
-        "newText": "\nlistener kafka:Listener kafkaListener = new (\"localhost:9092\", topics = \"sales-data\");\nservice kafka:Service on kafkaListener {\n\n}\n"
+        "newText": "\nlistener kafka:Listener kafkaListener = new (\"localhost:9092\", topics = \"sales-data\");\nservice kafka:Service on kafkaListener {\n\tremote function onCreate(salesforce:EventData payload) returns error|() {\n\t\tdo {\n\t\t} on fail error err {\n\t\t\t// handle error\n\t\t\treturn error(\"unhandled error\", err);\n\t\t}\n\t}\n\n\tremote function onUpdate(salesforce:EventData payload) returns error|() {\n\t\tdo {\n\t\t} on fail error err {\n\t\t\t// handle error\n\t\t\treturn error(\"unhandled error\", err);\n\t\t}\n\t}\n\n\tremote function onDelete(salesforce:EventData payload) returns error|() {\n\t\tdo {\n\t\t} on fail error err {\n\t\t\t// handle error\n\t\t\treturn error(\"unhandled error\", err);\n\t\t}\n\t}\n\n\tremote function onRestore(salesforce:EventData payload) returns error|() {\n\t\tdo {\n\t\t} on fail error err {\n\t\t\t// handle error\n\t\t\treturn error(\"unhandled error\", err);\n\t\t}\n\t}\n}\n"
       }
     ]
   }

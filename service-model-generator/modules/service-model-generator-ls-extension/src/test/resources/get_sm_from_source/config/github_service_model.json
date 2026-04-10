@@ -10,7 +10,7 @@
     "offset": 0
   },
   "response": {
-    "id": "13",
+    "id": "12",
     "name": "GitHub Event Integration",
     "type": "trigger.github",
     "displayName": "GitHub Event Integration",
@@ -312,6 +312,7 @@
         "optional": false,
         "editable": false,
         "canAddParameters": false,
+        "addErrorHandler": false,
         "codedata": {
           "lineRange": {
             "fileName": "main.bal",
@@ -443,6 +444,7 @@
         "optional": false,
         "editable": false,
         "canAddParameters": false,
+        "addErrorHandler": false,
         "codedata": {
           "lineRange": {
             "fileName": "main.bal",
@@ -574,6 +576,7 @@
         "optional": false,
         "editable": false,
         "canAddParameters": false,
+        "addErrorHandler": false,
         "codedata": {
           "lineRange": {
             "fileName": "main.bal",
@@ -705,6 +708,7 @@
         "optional": false,
         "editable": false,
         "canAddParameters": false,
+        "addErrorHandler": false,
         "codedata": {
           "lineRange": {
             "fileName": "main.bal",
@@ -836,6 +840,7 @@
         "optional": false,
         "editable": false,
         "canAddParameters": false,
+        "addErrorHandler": false,
         "codedata": {
           "lineRange": {
             "fileName": "main.bal",
@@ -967,6 +972,7 @@
         "optional": false,
         "editable": false,
         "canAddParameters": false,
+        "addErrorHandler": false,
         "codedata": {
           "lineRange": {
             "fileName": "main.bal",
@@ -1098,6 +1104,7 @@
         "optional": false,
         "editable": false,
         "canAddParameters": false,
+        "addErrorHandler": false,
         "codedata": {
           "lineRange": {
             "fileName": "main.bal",

@@ -73,9 +73,7 @@
           "type": "READONLY"
         },
         "placeholder": "false",
-        "value": {
-          "Protocol": []
-        },
+        "value": {},
         "types": [
           {
             "fieldType": "SINGLE_SELECT",
@@ -230,6 +228,7 @@
         "optional": true,
         "editable": true,
         "canAddParameters": false,
+        "addErrorHandler": false,
         "codedata": {
           "moduleName": "ftp"
         },
@@ -552,6 +551,7 @@
         "optional": true,
         "editable": true,
         "canAddParameters": false,
+        "addErrorHandler": false,
         "codedata": {
           "moduleName": "ftp"
         },
@@ -852,6 +852,7 @@
         "optional": true,
         "editable": true,
         "canAddParameters": false,
+        "addErrorHandler": false,
         "codedata": {
           "moduleName": "ftp"
         },
@@ -1152,6 +1153,7 @@
         "optional": true,
         "editable": true,
         "canAddParameters": false,
+        "addErrorHandler": false,
         "codedata": {
           "moduleName": "ftp"
         },
@@ -1441,6 +1443,7 @@
         "optional": true,
         "editable": true,
         "canAddParameters": false,
+        "addErrorHandler": false,
         "codedata": {
           "moduleName": "ftp"
         },
@@ -1712,6 +1715,7 @@
         "optional": true,
         "editable": true,
         "canAddParameters": false,
+        "addErrorHandler": false,
         "codedata": {
           "moduleName": "ftp"
         },
@@ -1814,6 +1818,7 @@
         "optional": true,
         "editable": true,
         "canAddParameters": false,
+        "addErrorHandler": false,
         "codedata": {
           "moduleName": "ftp"
         },
@@ -2194,6 +2199,7 @@
         "optional": true,
         "editable": false,
         "canAddParameters": true,
+        "addErrorHandler": false,
         "codedata": {
           "lineRange": {
             "fileName": "main.bal",

@@ -58,6 +58,7 @@ public class Function {
     private boolean optional;
     private boolean editable;
     private boolean canAddParameters;
+    private boolean addErrorHandler;
     private Codedata codedata;
     private Map<String, Value> properties;
 
@@ -382,6 +383,14 @@ public class Function {
 
     public void setCanAddParameters(boolean canAddParameters) {
         this.canAddParameters = canAddParameters;
+    }
+
+    public boolean isAddErrorHandler() {
+        return addErrorHandler;
+    }
+
+    public void setAddErrorHandler(boolean addErrorHandler) {
+        this.addErrorHandler = addErrorHandler;
     }
 
     public static class FunctionBuilder {

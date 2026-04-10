@@ -436,6 +436,7 @@ public class ServiceDatabaseManager {
         sql.append("f.return_type, ");
         sql.append("f.return_error, ");
         sql.append("f.return_type_editable, ");
+        sql.append("f.add_error_handler, ");
         sql.append("f.import_statements, ");
         sql.append("f.enable, ");
         sql.append("f.optional ");
@@ -468,6 +469,7 @@ public class ServiceDatabaseManager {
                         rs.getString("return_type"),
                         rs.getInt("return_error"),
                         rs.getInt("return_type_editable"),
+                        rs.getInt("add_error_handler"),
                         rs.getString("import_statements"),
                         rs.getInt("enable"),
                         rs.getInt("optional"),
@@ -495,6 +497,7 @@ public class ServiceDatabaseManager {
                 "f.return_type, " +
                 "f.return_error, " +
                 "f.return_type_editable, " +
+                "f.add_error_handler, " +
                 "f.import_statements, " +
                 "f.enable, " +
                 "f.optional " +
@@ -521,6 +524,7 @@ public class ServiceDatabaseManager {
                         rs.getString("return_type"),
                         rs.getInt("return_error"),
                         rs.getInt("return_type_editable"),
+                        rs.getInt("add_error_handler"),
                         rs.getString("import_statements"),
                         rs.getInt("enable"),
                         rs.getInt("optional"),

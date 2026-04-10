@@ -6,7 +6,7 @@
   "moduleName": "kafka",
   "response": {
     "serviceInitModel": {
-      "id": "11",
+      "id": "10",
       "displayName": "Kafka Event Integration",
       "description": "Create a service to handle messages from Kafka topic(s)",
       "orgName": "ballerinax",

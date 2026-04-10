@@ -208,7 +208,9 @@ public class ServiceModelUtils {
 
         configureAccessorForResourceFunction(functionBuilder, function);
 
-        return functionBuilder.build();
+        Function functionModel = functionBuilder.build();
+        functionModel.setAddErrorHandler(function.addErrorHandler() == 1);
+        return functionModel;
     }
 
     /**

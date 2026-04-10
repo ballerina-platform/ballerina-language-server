@@ -111,6 +111,7 @@ CREATE TABLE ServiceTypeFunction (
     return_type JSON, -- JSON type for return type information
     return_type_editable INTEGER CHECK(return_type_editable IN (0, 1)),
     return_error INTEGER CHECK(return_error IN (0, 1)),
+    add_error_handler INTEGER CHECK(add_error_handler IN (0, 1)) DEFAULT 0,
     import_statements TEXT, -- Import statements for the return type
     enable INT CHECK(enable IN (0, 1)),
     optional INT CHECK(enable IN (0, 1)),

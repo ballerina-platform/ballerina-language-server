@@ -10,7 +10,7 @@
     "offset": 1
   },
   "response": {
-    "id": "16",
+    "id": "15",
     "name": "Solace Event Integration",
     "type": "solace",
     "displayName": "Solace Event Integration",
@@ -416,6 +416,7 @@
         "optional": false,
         "editable": false,
         "canAddParameters": false,
+        "addErrorHandler": false,
         "codedata": {
           "lineRange": {
             "fileName": "main.bal",
@@ -570,7 +571,8 @@
         "enabled": false,
         "optional": true,
         "editable": false,
-        "canAddParameters": false
+        "canAddParameters": false,
+        "addErrorHandler": false
       }
     ]
   }

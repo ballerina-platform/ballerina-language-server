@@ -1092,7 +1092,7 @@ public final class Utils {
                     .append(NEW_LINE)
                     .append("\t}")
                     .append(NEW_LINE);
-        } else {
+        } else if (function.isAddErrorHandler()) {
             builder.append("\tdo {").append(NEW_LINE)
                     .append("\t} on fail error err {")
                     .append(NEW_LINE)

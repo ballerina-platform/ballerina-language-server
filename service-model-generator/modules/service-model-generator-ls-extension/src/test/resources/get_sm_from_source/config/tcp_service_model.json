@@ -274,6 +274,7 @@
         "optional": false,
         "editable": false,
         "canAddParameters": false,
+        "addErrorHandler": false,
         "codedata": {
           "lineRange": {
             "fileName": "tcp.bal",

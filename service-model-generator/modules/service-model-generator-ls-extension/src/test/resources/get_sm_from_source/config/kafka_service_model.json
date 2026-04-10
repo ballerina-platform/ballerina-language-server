@@ -10,7 +10,7 @@
     "offset": 0
   },
   "response": {
-    "id": "11",
+    "id": "10",
     "name": "Kafka Event Integration",
     "type": "kafka",
     "displayName": "Kafka Event Integration",
@@ -380,6 +380,7 @@
         "optional": false,
         "editable": false,
         "canAddParameters": false,
+        "addErrorHandler": false,
         "codedata": {
           "lineRange": {
             "fileName": "main.bal",
@@ -534,7 +535,8 @@
         "enabled": false,
         "optional": true,
         "editable": false,
-        "canAddParameters": false
+        "canAddParameters": false,
+        "addErrorHandler": false
       }
     ]
   }

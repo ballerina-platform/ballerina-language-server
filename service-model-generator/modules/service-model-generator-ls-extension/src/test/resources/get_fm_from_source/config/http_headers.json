@@ -935,6 +935,7 @@
     "optional": true,
     "editable": true,
     "canAddParameters": true,
+    "addErrorHandler": false,
     "codedata": {
       "lineRange": {
         "fileName": "request_headers.bal",

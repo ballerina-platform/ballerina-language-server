@@ -709,6 +709,7 @@
     "optional": true,
     "editable": true,
     "canAddParameters": true,
+    "addErrorHandler": false,
     "codedata": {
       "lineRange": {
         "fileName": "query_parameters.bal",

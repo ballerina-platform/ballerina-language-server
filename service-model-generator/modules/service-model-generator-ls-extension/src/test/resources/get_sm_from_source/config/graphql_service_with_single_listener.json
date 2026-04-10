@@ -351,6 +351,7 @@
         "optional": true,
         "editable": true,
         "canAddParameters": true,
+        "addErrorHandler": false,
         "codedata": {
           "lineRange": {
             "fileName": "main.bal",
@@ -774,6 +775,7 @@
         "optional": true,
         "editable": true,
         "canAddParameters": false,
+        "addErrorHandler": false,
         "codedata": {
           "lineRange": {
             "fileName": "main.bal",
@@ -1326,6 +1328,7 @@
         "optional": true,
         "editable": true,
         "canAddParameters": false,
+        "addErrorHandler": false,
         "codedata": {
           "lineRange": {
             "fileName": "main.bal",
@@ -1720,6 +1723,7 @@
         "optional": true,
         "editable": true,
         "canAddParameters": false,
+        "addErrorHandler": false,
         "codedata": {
           "lineRange": {
             "fileName": "main.bal",

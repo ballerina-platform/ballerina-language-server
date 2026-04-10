@@ -31,6 +31,7 @@ import java.util.List;
  * @param returnType The return type of the function
  * @param returnError Whether the return type has an error
  * @param returnTypeEditable Whether the return type is editable
+ * @param addErrorHandler Whether to wrap the function body in a do/on fail error handler
  * @param importStatements The import statements of the function
  * @param enable Whether the function is enabled
  * @param optional Whether the function is optional
@@ -47,6 +48,7 @@ public record ServiceTypeFunction(
         String returnType,
         int returnError,
         int returnTypeEditable,
+        int addErrorHandler,
         String importStatements,
         int enable,
         int optional,

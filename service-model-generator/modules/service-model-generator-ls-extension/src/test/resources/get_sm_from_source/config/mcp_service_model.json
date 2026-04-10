@@ -10,7 +10,7 @@
     "offset": 0
   },
   "response": {
-    "id": "8",
+    "id": "7",
     "name": "MCP Service",
     "type": "mcp",
     "displayName": "MCP Service",
@@ -427,6 +427,7 @@
         "optional": true,
         "editable": false,
         "canAddParameters": true,
+        "addErrorHandler": false,
         "codedata": {
           "lineRange": {
             "fileName": "main.bal",
@@ -770,6 +771,7 @@
         "optional": true,
         "editable": false,
         "canAddParameters": true,
+        "addErrorHandler": false,
         "codedata": {
           "lineRange": {
             "fileName": "main.bal",

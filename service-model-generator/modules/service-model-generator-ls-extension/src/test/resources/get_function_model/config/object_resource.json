@@ -186,6 +186,7 @@
     "enabled": true,
     "optional": false,
     "editable": true,
-    "canAddParameters": false
+    "canAddParameters": false,
+    "addErrorHandler": false
   }
 }

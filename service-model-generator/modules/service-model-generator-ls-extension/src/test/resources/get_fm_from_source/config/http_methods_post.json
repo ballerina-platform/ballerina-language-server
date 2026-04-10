@@ -783,6 +783,7 @@
     "optional": true,
     "editable": true,
     "canAddParameters": true,
+    "addErrorHandler": false,
     "codedata": {
       "lineRange": {
         "fileName": "basic_http_methods.bal",

@@ -386,6 +386,7 @@
     "optional": false,
     "editable": true,
     "canAddParameters": false,
+    "addErrorHandler": false,
     "codedata": {
       "lineRange": {
         "fileName": "main.bal",
