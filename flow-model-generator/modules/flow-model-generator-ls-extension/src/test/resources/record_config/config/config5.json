@@ -1,0 +1,49 @@
+{
+  "filePath": "proj",
+  "description": "Returns a flat record for a `readonly & record{}` intersection type.",
+  "codedata": {
+    "org": "org",
+    "module": "source",
+    "packageName": "source",
+    "version": "0.3.0"
+  },
+  "typeConstraint": "ServerConfig",
+  "output": {
+    "fields": [
+      {
+        "name": "host",
+        "typeName": "string",
+        "optional": false,
+        "defaultable": false,
+        "documentation": "",
+        "isRestType": false,
+        "selected": false
+      },
+      {
+        "name": "port",
+        "typeName": "int",
+        "optional": false,
+        "defaultable": false,
+        "documentation": "",
+        "isRestType": false,
+        "selected": false
+      },
+      {
+        "name": "apiKey",
+        "typeName": "string",
+        "optional": false,
+        "defaultable": false,
+        "documentation": "",
+        "isRestType": false,
+        "selected": false
+      }
+    ],
+    "hasRestType": false,
+    "typeName": "record",
+    "optional": false,
+    "defaultable": false,
+    "documentation": "Immutable server configuration used to connect to a remote endpoint.\nCredentials are shared across callers and must not be mutated.",
+    "isRestType": false,
+    "selected": false
+  }
+}

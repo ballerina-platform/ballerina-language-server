@@ -22,8 +22,11 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.ballerina.compiler.api.SemanticModel;
+import io.ballerina.compiler.api.symbols.Documentation;
+import io.ballerina.compiler.api.symbols.IntersectionTypeSymbol;
 import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.api.symbols.SymbolKind;
+import io.ballerina.compiler.api.symbols.TypeDefinitionSymbol;
 import io.ballerina.compiler.api.symbols.TypeDescKind;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
@@ -459,11 +462,34 @@ public class TypesManagerService implements ExtendedLanguageServerService {
                             packageName,
                             versionName));
                 }
-                if (typeSymbol.get() instanceof TypeSymbol tSymbol && tSymbol.typeKind() != TypeDescKind.RECORD) {
+                Symbol resolvedSymbol = typeSymbol.get();
+                TypeSymbol effectiveRecordSymbol = null;
+                String typeDefDocumentation = null;
+                if (resolvedSymbol instanceof TypeDefinitionSymbol typeDefinitionSymbol) {
+                    TypeSymbol descriptor = typeDefinitionSymbol.typeDescriptor();
+                    if (descriptor instanceof IntersectionTypeSymbol intersectionTypeSymbol
+                            && intersectionTypeSymbol.effectiveTypeDescriptor().typeKind() == TypeDescKind.RECORD) {
+                        effectiveRecordSymbol = intersectionTypeSymbol.effectiveTypeDescriptor();
+                        typeDefDocumentation = typeDefinitionSymbol.documentation()
+                                .flatMap(Documentation::description).orElse(null);
+                    } else if (descriptor.typeKind() != TypeDescKind.RECORD) {
+                        throw new IllegalArgumentException(
+                                String.format("Type '%s' is not a record", request.typeConstraint()));
+                    }
+                } else if (resolvedSymbol instanceof TypeSymbol tSymbol && tSymbol.typeKind() != TypeDescKind.RECORD) {
                     throw new IllegalArgumentException(
                             String.format("Type '%s' is not a record", request.typeConstraint()));
                 }
-                response.setRecordConfig(Type.fromSemanticSymbol(typeSymbol.get(), semanticModel.get(), packageName));
+                Type recordConfig;
+                if (effectiveRecordSymbol != null) {
+                    recordConfig = Type.fromSemanticSymbol(effectiveRecordSymbol, semanticModel.get(), packageName);
+                    if (recordConfig != null && typeDefDocumentation != null) {
+                        recordConfig.documentation = typeDefDocumentation;
+                    }
+                } else {
+                    recordConfig = Type.fromSemanticSymbol(resolvedSymbol, semanticModel.get(), packageName);
+                }
+                response.setRecordConfig(recordConfig);
             } catch (Throwable e) {
                 response.setError(e);
             }
