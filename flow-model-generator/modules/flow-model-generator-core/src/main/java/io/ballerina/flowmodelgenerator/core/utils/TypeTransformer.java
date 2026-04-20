@@ -70,7 +70,13 @@ import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.Module;
+import io.ballerina.projects.ModuleName;
+import io.ballerina.projects.ProjectKind;
+import io.ballerina.projects.util.ProjectConstants;
+import io.ballerina.tools.text.LineRange;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -109,7 +115,7 @@ public class TypeTransformer {
                     .stepOut()
                 .codedata()
                     .node(NodeKind.SERVICE_DECLARATION)
-                    .lineRange(serviceDeclarationSymbol.getLocation().get().lineRange())
+                    .lineRange(resolveProjectRelativeLineRange(serviceDeclarationSymbol))
                     .stepOut()
                 .properties()
                     .name(attachPoint, false, false, false)
@@ -149,7 +155,7 @@ public class TypeTransformer {
                     .stepOut()
                 .codedata()
                     .node(NodeKind.CLASS)
-                    .lineRange(classSymbol.getLocation().get().lineRange())
+                    .lineRange(resolveProjectRelativeLineRange(classSymbol))
                     .stepOut()
                 .properties()
                     .name(typeName, false, false, false)
@@ -226,7 +232,7 @@ public class TypeTransformer {
                     .label(typeName)
                     .stepOut()
                 .codedata()
-                    .lineRange(typeDef.getLocation().get().lineRange())
+                    .lineRange(resolveProjectRelativeLineRange(typeDef))
                     .stepOut()
                 .properties()
                     .name(typeName, false, false, false)
@@ -265,7 +271,7 @@ public class TypeTransformer {
                     .stepOut()
                 .codedata()
                     .node(NodeKind.ENUM)
-                    .lineRange(enumSymbol.getLocation().get().lineRange())
+                    .lineRange(resolveProjectRelativeLineRange(enumSymbol))
                     .stepOut()
                 .properties()
                     .name(typeName, false, false, false)
@@ -541,6 +547,52 @@ public class TypeTransformer {
     }
 
     // Utils
+
+    /**
+     * Resolves the {@link LineRange} of a symbol's location with a project-root-relative file path,
+     * mirroring the transformation {@code PackageDiagnostic} applies to module-level diagnostics.
+     *
+     * <p>The underlying {@code symbol.getLocation().get().lineRange()} carries only the bare file
+     * name (e.g. {@code "foo.bal"}), which is ambiguous when types span submodules or live under
+     * {@code generated/}. This helper rewrites the file path to be relative to the project root so
+     * consumers can resolve the file unambiguously.
+     *
+     * <p>Only applied when the symbol belongs to {@link #module}; for foreign-package symbols the
+     * original line range is returned unchanged, because the current project's filesystem cannot be
+     * used to disambiguate their locations.
+     */
+    private LineRange resolveProjectRelativeLineRange(Symbol symbol) {
+        LineRange originalLineRange = symbol.getLocation().get().lineRange();
+        if (!CommonUtils.isWithinPackageModule(symbol, moduleInfo)) {
+            return originalLineRange;
+        }
+        String diagnosticPath = originalLineRange.fileName();
+        ModuleName moduleName = module.descriptor().name();
+        Path sourceRoot = module.project().sourceRoot();
+        Path modulesRoot = Path.of(ProjectConstants.MODULES_ROOT);
+        String resolvedPath;
+        if (module.project().kind() == ProjectKind.BALA_PROJECT) {
+            resolvedPath = modulesRoot.resolve(moduleName.toString()).resolve(diagnosticPath).toString();
+        } else {
+            Path generatedRoot = Path.of(ProjectConstants.GENERATED_MODULES_ROOT);
+            if (!moduleName.isDefaultModuleName()) {
+                Path generatedPath = generatedRoot.resolve(moduleName.moduleNamePart());
+                if (Files.exists(sourceRoot.resolve(generatedPath).resolve(diagnosticPath).toAbsolutePath())) {
+                    resolvedPath = generatedPath.resolve(diagnosticPath).toString();
+                } else {
+                    resolvedPath = modulesRoot.resolve(moduleName.moduleNamePart())
+                            .resolve(diagnosticPath).toString();
+                }
+            } else {
+                resolvedPath = Files.exists(sourceRoot.resolve(generatedRoot).resolve(diagnosticPath).toAbsolutePath())
+                        ? generatedRoot.resolve(diagnosticPath).toString()
+                        : diagnosticPath;
+            }
+        }
+        String resoursePath = sourceRoot.resolve(resolvedPath).toString();
+        return LineRange.from(resoursePath, originalLineRange.startLine(), originalLineRange.endLine());
+    }
+
     private Map<String, RecordTypeDescriptorNode> getRecordTypeDescNodes() {
         if (this.recordTypeDescNodes != null) {
             return this.recordTypeDescNodes;
@@ -777,7 +829,7 @@ public class TypeTransformer {
 
         Codedata codedata = new Codedata.Builder<AbstractBuilder>(builder)
                 .node(NodeKind.ANNOTATION_ATTACHMENT)
-                .lineRange(annotAttachmentSymbol.getLocation().get().lineRange())
+                .lineRange(resolveProjectRelativeLineRange(annotAttachmentSymbol))
                 .module(moduleId.moduleName())
                 .org(moduleId.orgName())
                 .version(moduleId.version())
