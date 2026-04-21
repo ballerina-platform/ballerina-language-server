@@ -561,32 +561,33 @@ public class TypeTransformer {
      * original line range is returned unchanged, because the current project's filesystem cannot be
      * used to disambiguate their locations.
      */
+    //TODO: Remove once this is supported from the compiler
     private LineRange resolveProjectRelativeLineRange(Symbol symbol) {
         LineRange originalLineRange = symbol.getLocation().get().lineRange();
         if (!CommonUtils.isWithinPackageModule(symbol, moduleInfo)) {
             return originalLineRange;
         }
-        String diagnosticPath = originalLineRange.fileName();
+        String fileName = originalLineRange.fileName();
         ModuleName moduleName = module.descriptor().name();
         Path sourceRoot = module.project().sourceRoot();
         Path modulesRoot = Path.of(ProjectConstants.MODULES_ROOT);
         String resolvedPath;
         if (module.project().kind() == ProjectKind.BALA_PROJECT) {
-            resolvedPath = modulesRoot.resolve(moduleName.toString()).resolve(diagnosticPath).toString();
+            resolvedPath = modulesRoot.resolve(moduleName.toString()).resolve(fileName).toString();
         } else {
             Path generatedRoot = Path.of(ProjectConstants.GENERATED_MODULES_ROOT);
             if (!moduleName.isDefaultModuleName()) {
                 Path generatedPath = generatedRoot.resolve(moduleName.moduleNamePart());
-                if (Files.exists(sourceRoot.resolve(generatedPath).resolve(diagnosticPath).toAbsolutePath())) {
-                    resolvedPath = generatedPath.resolve(diagnosticPath).toString();
+                if (Files.exists(sourceRoot.resolve(generatedPath).resolve(fileName).toAbsolutePath())) {
+                    resolvedPath = generatedPath.resolve(fileName).toString();
                 } else {
                     resolvedPath = modulesRoot.resolve(moduleName.moduleNamePart())
-                            .resolve(diagnosticPath).toString();
+                            .resolve(fileName).toString();
                 }
             } else {
-                resolvedPath = Files.exists(sourceRoot.resolve(generatedRoot).resolve(diagnosticPath).toAbsolutePath())
-                        ? generatedRoot.resolve(diagnosticPath).toString()
-                        : diagnosticPath;
+                resolvedPath = Files.exists(sourceRoot.resolve(generatedRoot).resolve(fileName).toAbsolutePath())
+                        ? generatedRoot.resolve(fileName).toString()
+                        : fileName;
             }
         }
         return LineRange.from(resolvedPath, originalLineRange.startLine(), originalLineRange.endLine());
