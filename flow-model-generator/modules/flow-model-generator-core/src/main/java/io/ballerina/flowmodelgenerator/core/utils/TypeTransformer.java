@@ -589,8 +589,8 @@ public class TypeTransformer {
                         : diagnosticPath;
             }
         }
-        String resoursePath = sourceRoot.resolve(resolvedPath).toString();
-        return LineRange.from(resoursePath, originalLineRange.startLine(), originalLineRange.endLine());
+        String resourcePath = sourceRoot.resolve(resolvedPath).toString();
+        return LineRange.from(resourcePath, originalLineRange.startLine(), originalLineRange.endLine());
     }
 
     private Map<String, RecordTypeDescriptorNode> getRecordTypeDescNodes() {
