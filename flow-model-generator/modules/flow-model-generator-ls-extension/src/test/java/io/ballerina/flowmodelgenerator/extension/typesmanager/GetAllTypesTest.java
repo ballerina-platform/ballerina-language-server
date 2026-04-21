@@ -46,7 +46,7 @@ public class GetAllTypesTest extends AbstractLSTest {
         JsonArray response = getResponse(request).getAsJsonArray("types");
         if (!response.equals(testConfig.types())) {
             TestConfig updateConfig = new TestConfig(testConfig.filePath(), testConfig.description(), response);
-//            updateConfig(configJsonPath, updateConfig);
+            updateConfig(configJsonPath, updateConfig);
             compareJsonElements(response, testConfig.types());
             Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.description(), configJsonPath));
         }
