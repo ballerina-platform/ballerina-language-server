@@ -73,6 +73,7 @@ import io.ballerina.projects.Module;
 import io.ballerina.projects.ModuleName;
 import io.ballerina.projects.ProjectKind;
 import io.ballerina.projects.util.ProjectConstants;
+import io.ballerina.tools.diagnostics.Location;
 import io.ballerina.tools.text.LineRange;
 
 import java.nio.file.Files;
@@ -563,7 +564,11 @@ public class TypeTransformer {
      */
     //TODO: Remove once this is supported from the compiler
     private LineRange resolveProjectRelativeLineRange(Symbol symbol) {
-        LineRange originalLineRange = symbol.getLocation().get().lineRange();
+        Optional<Location> location =  symbol.getLocation();
+        if (location.isEmpty()) {
+            return null;
+        }
+        LineRange originalLineRange = location.get().lineRange();
         if (!CommonUtils.isWithinPackageModule(symbol, moduleInfo)) {
             return originalLineRange;
         }
@@ -573,7 +578,8 @@ public class TypeTransformer {
         Path modulesRoot = Path.of(ProjectConstants.MODULES_ROOT);
         String resolvedPath;
         if (module.project().kind() == ProjectKind.BALA_PROJECT) {
-            resolvedPath = modulesRoot.resolve(moduleName.toString()).resolve(fileName).toString();
+            Path modulePath = modulesRoot.resolve(moduleName.toString());
+            resolvedPath = sourceRoot.resolve(modulePath).resolve(fileName).toString();
         } else {
             Path generatedRoot = Path.of(ProjectConstants.GENERATED_MODULES_ROOT);
             if (!moduleName.isDefaultModuleName()) {
