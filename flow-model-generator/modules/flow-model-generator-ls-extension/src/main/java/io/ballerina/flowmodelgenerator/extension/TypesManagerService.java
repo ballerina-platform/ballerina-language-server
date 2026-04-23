@@ -485,15 +485,25 @@ public class TypesManagerService implements ExtendedLanguageServerService {
             descriptor = typeSymbol;
         }
 
-        TypeSymbol recordSymbol = descriptor == null ? null : resolveRecordTypeSymbol(descriptor);
+        if (descriptor == null) {
+            throw new IllegalArgumentException(
+                    String.format("Type '%s' is not a record", typeConstraint));
+        }
+
+        // Direct record: pass the original symbol so Type.fromSemanticSymbol can read
+        // field/type-def documentation from the TypeDefinitionSymbol.
+        if (descriptor.typeKind() == TypeDescKind.RECORD) {
+            return Type.fromSemanticSymbol(symbol, semanticModel, packageName);
+        }
+
+        TypeSymbol recordSymbol = resolveRecordTypeSymbol(descriptor);
         if (recordSymbol == null) {
             throw new IllegalArgumentException(
                     String.format("Type '%s' is not a record", typeConstraint));
         }
 
         Type recordConfig = Type.fromSemanticSymbol(recordSymbol, semanticModel, packageName);
-        if (recordConfig != null && aliasDocumentation != null
-                && descriptor.typeKind() != TypeDescKind.RECORD) {
+        if (recordConfig != null && aliasDocumentation != null) {
             recordConfig.documentation = aliasDocumentation;
         }
         return recordConfig;
