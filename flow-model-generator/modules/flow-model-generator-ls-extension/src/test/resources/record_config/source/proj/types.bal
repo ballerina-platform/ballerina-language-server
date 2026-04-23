@@ -22,6 +22,10 @@ type Employee record {|
 
 # Immutable server configuration used to connect to a remote endpoint.
 # Credentials are shared across callers and must not be mutated.
+type SpecializedConfig readonly & ServerConfig;
+
+# Immutable server configuration used to connect to a remote endpoint.
+# Credentials are shared across callers and must not be mutated.
 type ServerConfig readonly & record {|
     string host;
     int port;

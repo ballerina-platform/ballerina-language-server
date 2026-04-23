@@ -28,6 +28,7 @@ import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.api.symbols.SymbolKind;
 import io.ballerina.compiler.api.symbols.TypeDefinitionSymbol;
 import io.ballerina.compiler.api.symbols.TypeDescKind;
+import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.NonTerminalNode;
@@ -462,39 +463,57 @@ public class TypesManagerService implements ExtendedLanguageServerService {
                             packageName,
                             versionName));
                 }
-                Symbol resolvedSymbol = typeSymbol.get();
-                TypeSymbol effectiveRecordSymbol = null;
-                String typeDefDocumentation = null;
-                if (resolvedSymbol instanceof TypeDefinitionSymbol typeDefinitionSymbol) {
-                    TypeSymbol descriptor = typeDefinitionSymbol.typeDescriptor();
-                    if (descriptor instanceof IntersectionTypeSymbol intersectionTypeSymbol
-                            && intersectionTypeSymbol.effectiveTypeDescriptor().typeKind() == TypeDescKind.RECORD) {
-                        effectiveRecordSymbol = intersectionTypeSymbol.effectiveTypeDescriptor();
-                        typeDefDocumentation = typeDefinitionSymbol.documentation()
-                                .flatMap(Documentation::description).orElse(null);
-                    } else if (descriptor.typeKind() != TypeDescKind.RECORD) {
-                        throw new IllegalArgumentException(
-                                String.format("Type '%s' is not a record", request.typeConstraint()));
-                    }
-                } else if (resolvedSymbol instanceof TypeSymbol tSymbol && tSymbol.typeKind() != TypeDescKind.RECORD) {
-                    throw new IllegalArgumentException(
-                            String.format("Type '%s' is not a record", request.typeConstraint()));
-                }
-                Type recordConfig;
-                if (effectiveRecordSymbol != null) {
-                    recordConfig = Type.fromSemanticSymbol(effectiveRecordSymbol, semanticModel.get(), packageName);
-                    if (recordConfig != null && typeDefDocumentation != null) {
-                        recordConfig.documentation = typeDefDocumentation;
-                    }
-                } else {
-                    recordConfig = Type.fromSemanticSymbol(resolvedSymbol, semanticModel.get(), packageName);
-                }
+                Type recordConfig = buildRecordConfig(
+                        typeSymbol.get(), semanticModel.get(), packageName, request.typeConstraint());
                 response.setRecordConfig(recordConfig);
             } catch (Throwable e) {
                 response.setError(e);
             }
             return response;
         });
+    }
+
+    private static Type buildRecordConfig(Symbol symbol, SemanticModel semanticModel, String packageName,
+                                          String typeConstraint) {
+        String aliasDocumentation = null;
+        TypeSymbol descriptor = null;
+        if (symbol instanceof TypeDefinitionSymbol typeDefinitionSymbol) {
+            aliasDocumentation = typeDefinitionSymbol.documentation()
+                    .flatMap(Documentation::description).orElse(null);
+            descriptor = typeDefinitionSymbol.typeDescriptor();
+        } else if (symbol instanceof TypeSymbol typeSymbol) {
+            descriptor = typeSymbol;
+        }
+
+        TypeSymbol recordSymbol = descriptor == null ? null : resolveRecordTypeSymbol(descriptor);
+        if (recordSymbol == null) {
+            throw new IllegalArgumentException(
+                    String.format("Type '%s' is not a record", typeConstraint));
+        }
+
+        Type recordConfig = Type.fromSemanticSymbol(recordSymbol, semanticModel, packageName);
+        if (recordConfig != null && aliasDocumentation != null
+                && descriptor.typeKind() != TypeDescKind.RECORD) {
+            recordConfig.documentation = aliasDocumentation;
+        }
+        return recordConfig;
+    }
+
+    private static TypeSymbol resolveRecordTypeSymbol(TypeSymbol typeSymbol) {
+        TypeSymbol current = typeSymbol;
+        while (current != null) {
+            if (current.typeKind() == TypeDescKind.RECORD) {
+                return current;
+            }
+            if (current instanceof TypeReferenceTypeSymbol typeRef) {
+                current = typeRef.typeDescriptor();
+            } else if (current instanceof IntersectionTypeSymbol intersection) {
+                current = intersection.effectiveTypeDescriptor();
+            } else {
+                return null;
+            }
+        }
+        return null;
     }
 
     @JsonRequest
