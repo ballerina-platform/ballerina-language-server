@@ -84,10 +84,12 @@ import org.eclipse.lsp4j.services.LanguageServer;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -511,7 +513,8 @@ public class TypesManagerService implements ExtendedLanguageServerService {
 
     private static TypeSymbol resolveRecordTypeSymbol(TypeSymbol typeSymbol) {
         TypeSymbol current = typeSymbol;
-        while (current != null) {
+        Set<TypeSymbol> visited = new HashSet<>();
+        while (current != null && visited.add(current)) {
             if (current.typeKind() == TypeDescKind.RECORD) {
                 return current;
             }
