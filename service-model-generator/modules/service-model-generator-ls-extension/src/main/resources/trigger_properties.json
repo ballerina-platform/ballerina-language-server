@@ -88,6 +88,18 @@
       "event"
     ]
   },
+  "14": {
+    "name": "smb",
+    "orgName": "ballerina",
+    "packageName": "smb",
+    "keywords": [
+      "SMB",
+      "network share",
+      "remote file",
+      "file",
+      "event"
+    ]
+  },
   "9": {
     "name": "file",
     "orgName": "ballerina",

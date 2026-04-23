@@ -35,6 +35,7 @@ import io.ballerina.servicemodelgenerator.extension.builder.function.McpFunction
 import io.ballerina.servicemodelgenerator.extension.builder.function.MssqlCdcFunctionBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.function.PostgresqlCdcFunctionBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.function.RabbitMQFunctionBuilder;
+import io.ballerina.servicemodelgenerator.extension.builder.function.SMBFunctionBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.function.SolaceFunctionBuilder;
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
@@ -55,6 +56,7 @@ import java.util.function.Supplier;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.DEFAULT;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.FTP;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.GRAPHQL;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.SMB;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.HTTP;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.KAFKA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.MCP;
@@ -81,6 +83,7 @@ public class FunctionBuilderRouter {
         put(MSSQL, MssqlCdcFunctionBuilder::new);
         put(POSTGRESQL, PostgresqlCdcFunctionBuilder::new);
         put(FTP, FTPFunctionBuilder::new);
+        put(SMB, SMBFunctionBuilder::new);
     }};
 
     private static NodeBuilder<Function> getFunctionBuilder(String protocol) {

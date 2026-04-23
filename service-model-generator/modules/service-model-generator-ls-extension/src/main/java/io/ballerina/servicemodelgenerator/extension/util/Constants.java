@@ -70,6 +70,7 @@ public class Constants {
     public static final String POSTGRESQL = "postgresql";
 
     public static final String FTP = "ftp";
+    public static final String SMB = "smb";
     public static final String FILE = "file";
 
     public static final String PROPERTY_REQUIRED_FUNCTIONS = "requiredFunctions";
@@ -162,6 +163,7 @@ public class Constants {
 
     // file listeners
     public static final String FTP_DEFAULT_LISTENER_EXPR = "new ()";
+    public static final String SMB_DEFAULT_LISTENER_EXPR = "new (share = \"\")";
     public static final String FILE_DEFAULT_LISTENER_EXPR = "new (path = \"\")";
 
     public static final MetaData SERCVICE_CLASS_NAME_METADATA = new MetaData("Class Name",

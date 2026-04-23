@@ -1,0 +1,284 @@
+{
+  "id": "0",
+  "displayName": "SMB Integration",
+  "description": "Create a service to listen for file actions on an SMB share",
+  "orgName": "ballerina",
+  "packageName": "smb",
+  "moduleName": "smb",
+  "version": "1.0.2",
+  "type": "smb",
+  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_smb_1.0.2.png",
+  "properties": {
+    "host": {
+      "metadata": {
+        "label": "Host",
+        "description": "Hostname or IP address of the SMB server (e.g., smb.example.com)"
+      },
+      "enabled": true,
+      "editable": true,
+      "value": "\"localhost\"",
+      "types": [
+        {
+          "fieldType": "TEXT",
+          "ballerinaType": "string",
+          "selected": true
+        },
+        {
+          "fieldType": "EXPRESSION",
+          "ballerinaType": "string",
+          "selected": false
+        }
+      ],
+      "valueType": "EXPRESSION",
+      "valueTypeConstraint": "string",
+      "placeholder": "localhost",
+      "optional": false,
+      "advanced": false,
+      "codedata": {
+        "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
+      }
+    },
+    "portNumber": {
+      "metadata": {
+        "label": "Port Number",
+        "description": "Port to connect on"
+      },
+      "enabled": true,
+      "editable": true,
+      "value": "445",
+      "types": [
+        {
+          "fieldType": "NUMBER",
+          "ballerinaType": "int",
+          "selected": true
+        },
+        {
+          "fieldType": "EXPRESSION",
+          "ballerinaType": "int",
+          "selected": false
+        }
+      ],
+      "valueType": "EXPRESSION",
+      "valueTypeConstraint": "int",
+      "placeholder": "445",
+      "optional": false,
+      "advanced": false,
+      "codedata": {
+        "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
+      }
+    },
+    "share": {
+      "metadata": {
+        "label": "Share",
+        "description": "SMB share name to connect to (e.g., shared)"
+      },
+      "enabled": true,
+      "editable": true,
+      "value": "\"\"",
+      "types": [
+        {
+          "fieldType": "TEXT",
+          "ballerinaType": "string",
+          "selected": true
+        },
+        {
+          "fieldType": "EXPRESSION",
+          "ballerinaType": "string",
+          "selected": false
+        }
+      ],
+      "valueType": "EXPRESSION",
+      "valueTypeConstraint": "string",
+      "placeholder": "shared",
+      "optional": false,
+      "advanced": false,
+      "codedata": {
+        "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
+      }
+    },
+    "authentication": {
+      "metadata": {
+        "label": "Authentication",
+        "description": "Select the authentication method"
+      },
+      "enabled": true,
+      "editable": true,
+      "value": "",
+      "types": [
+        {
+          "fieldType": "CHOICE",
+          "selected": true
+        }
+      ],
+      "isType": false,
+      "placeholder": "",
+      "optional": false,
+      "advanced": false,
+      "choices": [
+        {
+          "metadata": {
+            "label": "No Authentication",
+            "description": ""
+          },
+          "enabled": true,
+          "editable": true,
+          "value": "true",
+          "valueType": "FORM",
+          "isType": false,
+          "placeholder": "true",
+          "optional": false,
+          "advanced": false
+        },
+        {
+          "metadata": {
+            "label": "Basic Authentication",
+            "description": ""
+          },
+          "enabled": false,
+          "editable": true,
+          "value": "true",
+          "valueType": "FORM",
+          "isType": false,
+          "placeholder": "true",
+          "optional": false,
+          "advanced": false,
+          "properties": {
+            "userName": {
+              "metadata": {
+                "label": "Username",
+                "description": "SMB server username for authentication"
+              },
+              "enabled": true,
+              "editable": true,
+              "value": "\"default\"",
+              "types": [
+                {
+                  "fieldType": "IDENTIFIER",
+                  "ballerinaType": "string",
+                  "selected": true
+                },
+                {
+                  "fieldType": "EXPRESSION",
+                  "ballerinaType": "string",
+                  "selected": false
+                }
+              ],
+              "valueType": "IDENTIFIER",
+              "valueTypeConstraint": "string",
+              "isType": false,
+              "placeholder": "default",
+              "optional": true,
+              "advanced": false
+            },
+            "password": {
+              "metadata": {
+                "label": "Password",
+                "description": "SMB server password for authentication"
+              },
+              "enabled": true,
+              "editable": true,
+              "value": "\"default\"",
+              "types": [
+                {
+                  "fieldType": "IDENTIFIER",
+                  "ballerinaType": "string",
+                  "selected": true
+                },
+                {
+                  "fieldType": "EXPRESSION",
+                  "ballerinaType": "string",
+                  "selected": false
+                }
+              ],
+              "valueType": "IDENTIFIER",
+              "valueTypeConstraint": "string",
+              "isType": false,
+              "placeholder": "default",
+              "optional": true,
+              "advanced": false
+            },
+            "domain": {
+              "metadata": {
+                "label": "Domain",
+                "description": "Windows domain for NTLM authentication (default: WORKGROUP)"
+              },
+              "enabled": true,
+              "editable": true,
+              "value": "\"WORKGROUP\"",
+              "types": [
+                {
+                  "fieldType": "IDENTIFIER",
+                  "ballerinaType": "string",
+                  "selected": true
+                },
+                {
+                  "fieldType": "EXPRESSION",
+                  "ballerinaType": "string",
+                  "selected": false
+                }
+              ],
+              "valueType": "IDENTIFIER",
+              "valueTypeConstraint": "string",
+              "isType": false,
+              "placeholder": "WORKGROUP",
+              "optional": true,
+              "advanced": false
+            }
+          }
+        }
+      ]
+    },
+    "path": {
+      "metadata": {
+        "label": "Monitoring Path",
+        "description": "The folder on the SMB share to monitor for file actions (e.g., /uploads or /incoming)"
+      },
+      "enabled": true,
+      "editable": true,
+      "value": "\"/\"",
+      "types": [
+        {
+          "fieldType": "TEXT",
+          "ballerinaType": "string",
+          "selected": true
+        },
+        {
+          "fieldType": "EXPRESSION",
+          "ballerinaType": "string",
+          "selected": false
+        }
+      ],
+      "valueType": "EXPRESSION",
+      "valueTypeConstraint": "string",
+      "isType": false,
+      "placeholder": "/",
+      "optional": false,
+      "advanced": false,
+      "codedata": {
+        "type": "SERVICE_ANNOTATION",
+        "originalName": "ServiceConfig",
+        "moduleName": "smb"
+      }
+    },
+    "listenerVarName": {
+      "metadata": {
+        "label": "Listener Name",
+        "description": "Provide a name for the listener being created"
+      },
+      "codedata": {
+        "type": "LISTENER_VAR_NAME"
+      },
+      "types": [
+        {
+          "fieldType": "IDENTIFIER",
+          "selected": true
+        }
+      ],
+      "value": "smbListener",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": true
+    }
+  }
+}

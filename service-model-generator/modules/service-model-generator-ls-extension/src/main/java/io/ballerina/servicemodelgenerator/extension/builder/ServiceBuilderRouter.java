@@ -36,6 +36,7 @@ import io.ballerina.servicemodelgenerator.extension.builder.service.McpServiceBu
 import io.ballerina.servicemodelgenerator.extension.builder.service.MssqlCdcServiceBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.service.PostgresqlCdcServiceBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.service.RabbitMQServiceBuilder;
+import io.ballerina.servicemodelgenerator.extension.builder.service.SMBServiceBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.service.SolaceServiceBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.service.TCPServiceBuilder;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
@@ -69,6 +70,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.MCP;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.MSSQL;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.POSTGRESQL;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.RABBITMQ;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.SMB;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SOLACE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.TCP;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.TRIGGER_GITHUB;
@@ -95,6 +97,7 @@ public class ServiceBuilderRouter {
         put(POSTGRESQL, PostgresqlCdcServiceBuilder::new);
         put(FTP, FTPServiceBuilder::new);
         put(TRIGGER_GITHUB, GithubTriggerServiceBuilder::new);
+        put(SMB, SMBServiceBuilder::new);
     }};
 
     public static ServiceNodeBuilder getServiceBuilder(String protocol) {

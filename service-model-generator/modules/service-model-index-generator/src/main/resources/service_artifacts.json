@@ -56,8 +56,7 @@
           "typeConstraint": "http:HttpResourceConfig"
         }
       },
-      "initForm": {
-      },
+      "initForm": {},
       "readOnlyMetadata": [
         {
           "key": "basePath",
@@ -828,6 +827,417 @@
       ]
     },
     {
+      "name": "smb",
+      "version": "1.0.2",
+      "serviceTypeSkipList": [
+        "Service"
+      ],
+      "serviceDeclaration": {
+        "displayName": "SMB",
+        "description": "Create a service to monitor a directory in an SMB share for file events",
+        "optionalTypeDescriptor": 1,
+        "typeDescriptorLabel": "Service Type",
+        "typeDescriptorDescription": "The name of the service contract type",
+        "typeDescriptorDefaultValue": "Service",
+        "addDefaultTypeDescriptor": 0,
+        "optionalAbsoluteResourcePath": 1,
+        "absoluteResourcePathLabel": "Service Base Path",
+        "absoluteResourcePathDescription": "",
+        "absoluteResourcePathDefaultValue": "",
+        "optionalStringLiteral": 1,
+        "stringLiteralLabel": "Service Base Path",
+        "stringLiteralDescription": "",
+        "stringLiteralDefaultValue": "",
+        "listenerKind": "MULTIPLE_SELECT_LISTENER",
+        "kind": "file"
+      },
+      "serviceTypes": {
+        "Service": {
+          "name": "Service",
+          "description": "",
+          "functions": [
+            {
+              "name": "onFileCsv",
+              "description": "The `onFileCsv` remote method will be triggered when a CSV file is created on the SMB share",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 0,
+              "optional": 1,
+              "parameters": [
+                {
+                  "name": "content",
+                  "label": "Content",
+                  "description": "CSV file content",
+                  "kind": "DATA_BINDING",
+                  "type": "string[][]",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                },
+                {
+                  "name": "fileInfo",
+                  "label": "File Metadata",
+                  "description": "Additional file properties",
+                  "kind": "OPTIONAL",
+                  "type": "smb:FileInfo",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                },
+                {
+                  "name": "caller",
+                  "label": "Caller",
+                  "description": "The SMB caller object to execute file operations",
+                  "kind": "OPTIONAL",
+                  "type": "smb:Caller",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onFileJson",
+              "description": "The `onFileJson` remote method will be triggered when a JSON file is created on the SMB share",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 0,
+              "optional": 1,
+              "parameters": [
+                {
+                  "name": "content",
+                  "label": "Content",
+                  "description": "Parsed JSON file content",
+                  "kind": "DATA_BINDING",
+                  "type": "json",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                },
+                {
+                  "name": "fileInfo",
+                  "label": "File Metadata",
+                  "description": "Additional file properties",
+                  "kind": "OPTIONAL",
+                  "type": "smb:FileInfo",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                },
+                {
+                  "name": "caller",
+                  "label": "Caller",
+                  "description": "The SMB caller object to execute file operations",
+                  "kind": "OPTIONAL",
+                  "type": "smb:Caller",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onFileXml",
+              "description": "The `onFileXml` remote method will be triggered when an XML file is created on the SMB share",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 0,
+              "optional": 1,
+              "parameters": [
+                {
+                  "name": "content",
+                  "label": "Content",
+                  "description": "Parsed XML file content",
+                  "kind": "DATA_BINDING",
+                  "type": "xml",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                },
+                {
+                  "name": "fileInfo",
+                  "label": "File Metadata",
+                  "description": "Additional file properties",
+                  "kind": "OPTIONAL",
+                  "type": "smb:FileInfo",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                },
+                {
+                  "name": "caller",
+                  "label": "Caller",
+                  "description": "The SMB caller object to execute file operations",
+                  "kind": "OPTIONAL",
+                  "type": "smb:Caller",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onFileText",
+              "description": "The `onFileText` remote method will be triggered when a text file is created on the SMB share",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 0,
+              "optional": 1,
+              "parameters": [
+                {
+                  "name": "content",
+                  "label": "Content",
+                  "description": "Text file content",
+                  "kind": "REQUIRED",
+                  "type": "string",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                },
+                {
+                  "name": "fileInfo",
+                  "label": "File Metadata",
+                  "description": "Additional file properties",
+                  "kind": "OPTIONAL",
+                  "type": "smb:FileInfo",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                },
+                {
+                  "name": "caller",
+                  "label": "Caller",
+                  "description": "The SMB caller object to execute file operations",
+                  "kind": "OPTIONAL",
+                  "type": "smb:Caller",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onFile",
+              "description": "The `onFile` remote method will be triggered when a file is created on the SMB share",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 0,
+              "optional": 1,
+              "parameters": [
+                {
+                  "name": "content",
+                  "label": "Content",
+                  "description": "Raw file content as byte array",
+                  "kind": "REQUIRED",
+                  "type": "byte[]",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                },
+                {
+                  "name": "fileInfo",
+                  "label": "File Metadata",
+                  "description": "Additional file properties",
+                  "kind": "OPTIONAL",
+                  "type": "smb:FileInfo",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                },
+                {
+                  "name": "caller",
+                  "label": "Caller",
+                  "description": "The SMB caller object to execute file operations",
+                  "kind": "OPTIONAL",
+                  "type": "smb:Caller",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onFileDelete",
+              "description": "The `onFileDelete` remote method will be triggered when a file is deleted on the SMB share",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 0,
+              "optional": 1,
+              "parameters": [
+                {
+                  "name": "deleteFiles",
+                  "label": "Deleted Files",
+                  "description": "The deleted file name",
+                  "kind": "REQUIRED",
+                  "type": "string",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                },
+                {
+                  "name": "caller",
+                  "label": "Caller",
+                  "description": "The SMB caller object to execute file operations",
+                  "kind": "OPTIONAL",
+                  "type": "smb:Caller",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onError",
+              "description": "The `onError` remote method will be triggered when an error occurs during file processing",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 0,
+              "optional": 1,
+              "parameters": [
+                {
+                  "name": "err",
+                  "label": "Error",
+                  "description": "The error that occurred during file processing",
+                  "kind": "REQUIRED",
+                  "type": "smb:Error",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                },
+                {
+                  "name": "caller",
+                  "label": "Caller",
+                  "description": "The SMB caller object to execute file operations",
+                  "kind": "OPTIONAL",
+                  "type": "smb:Caller",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "initForm": {
+        "host": {
+          "label": "Host",
+          "description": "Target SMB server url",
+          "defaultValue": "\"localhost\"",
+          "placeholder": "\"localhost\"",
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "ballerinaType": "string"
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "string"
+            }
+          ],
+          "sourceKind": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
+        },
+        "port": {
+          "label": "Port",
+          "description": "Target SMB server port",
+          "defaultValue": "445",
+          "placeholder": "445",
+          "types": [
+            {
+              "fieldType": "NUMBER",
+              "ballerinaType": "int"
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "int"
+            }
+          ],
+          "sourceKind": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
+        },
+        "share": {
+          "label": "Share",
+          "description": "The SMB share name to connect to",
+          "defaultValue": "\"\"",
+          "placeholder": "\"shared\"",
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "ballerinaType": "string"
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "string"
+            }
+          ],
+          "sourceKind": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
+        },
+        "path": {
+          "label": "Path",
+          "description": "The path within the SMB share to be monitored",
+          "defaultValue": "\"/\"",
+          "placeholder": "\"/\"",
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "ballerinaType": "string"
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "string"
+            }
+          ],
+          "sourceKind": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
+        }
+      },
+      "readOnlyMetadata": [
+        {
+          "key": "share",
+          "displayName": "Share",
+          "kind": "LISTENER_PARAM"
+        }
+      ]
+    },
+    {
       "name": "mqtt",
       "version": "1.4.0",
       "serviceTypeSkipList": [],
@@ -988,8 +1398,7 @@
         "listenerKind": "MULTIPLE_SELECT_LISTENER",
         "kind": "agent"
       },
-      "serviceTypes": {
-      }
+      "serviceTypes": {}
     },
     {
       "name": "mcp",
@@ -1016,8 +1425,7 @@
         "listenerKind": "MULTIPLE_SELECT_LISTENER",
         "kind": "mcp"
       },
-      "serviceTypes": {
-      },
+      "serviceTypes": {},
       "annotations": {
         "ServiceConfig": {
           "attachmentPoints": [
@@ -1640,8 +2048,7 @@
         "listenerKind": "MULTIPLE_SELECT_LISTENER",
         "kind": "event"
       },
-      "serviceTypes": {
-      },
+      "serviceTypes": {},
       "initForm": {
         "basePath": {
           "label": "Event Channel",
@@ -1705,8 +2112,7 @@
         "listenerKind": "MULTIPLE_SELECT_LISTENER",
         "kind": "event"
       },
-      "serviceTypes": {
-      },
+      "serviceTypes": {},
       "initForm": {
         "basePath": {
           "label": "Event Channel",
@@ -1795,8 +2201,7 @@
         "listenerKind": "MULTIPLE_SELECT_LISTENER",
         "kind": "agent"
       },
-      "serviceTypes": {
-      }
+      "serviceTypes": {}
     },
     {
       "name": "trigger.twilio",
@@ -1821,8 +2226,7 @@
         "listenerKind": "MULTIPLE_SELECT_LISTENER",
         "kind": "event"
       },
-      "serviceTypes": {
-      },
+      "serviceTypes": {},
       "initForm": {
         "basePath": {
           "label": "Event Channel",

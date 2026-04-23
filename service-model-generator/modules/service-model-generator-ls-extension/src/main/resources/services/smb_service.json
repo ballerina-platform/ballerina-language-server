@@ -1,0 +1,1224 @@
+{
+  "id": "0",
+  "name": "SMB Integration",
+  "description": "Implement an SMB service to handle file events from an SMB share",
+  "orgName": "ballerina",
+  "packageName": "smb",
+  "moduleName": "smb",
+  "version": "1.0.2",
+  "type": "smb",
+  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_smb_1.0.2.png",
+  "properties": {
+    "listener": {
+      "metadata": {
+        "label": "Listeners",
+        "description": ""
+      },
+      "codedata": {
+        "type": "LISTENER"
+      },
+      "enabled": true,
+      "editable": false,
+      "value": "",
+      "values": [],
+      "types": [
+        {
+          "fieldType": "MULTIPLE_SELECT_LISTENER",
+          "selected": true,
+          "options": []
+        }
+      ],
+      "valueTypeConstraint": "smb:Listener",
+      "isType": false,
+      "placeholder": "",
+      "optional": false,
+      "advanced": false,
+      "addNewButton": true
+    },
+    "annotServiceConfig": {
+      "metadata": {
+        "label": "Service Configuration",
+        "description": "Define service-level configuration such as monitoring path"
+      },
+      "enabled": true,
+      "editable": true,
+      "value": "{\n    path: \"/\"\n}",
+      "types": [
+        {
+          "fieldType": "RECORD_MAP_EXPRESSION",
+          "ballerinaType": "smb:SmbServiceConfig",
+          "selected": true,
+          "typeMembers": [
+            {
+              "type": "SmbServiceConfig",
+              "packageInfo": "ballerina:smb:1.0.2",
+              "packageName": "smb",
+              "kind": "RECORD_TYPE",
+              "selected": true
+            }
+          ]
+        }
+      ],
+      "isType": false,
+      "placeholder": "{}",
+      "optional": false,
+      "advanced": false,
+      "codedata": {
+        "type": "ANNOTATION_ATTACHMENT",
+        "originalName": "ServiceConfig",
+        "moduleName": "smb"
+      },
+      "imports": {
+        "smb": "ballerina/smb:1.0.2"
+      }
+    }
+  },
+  "functions": [
+    {
+      "metadata": {
+        "label": "onCreate",
+        "description": "onCreate Category"
+      },
+      "kind": "REMOTE",
+      "enabled": false,
+      "optional": true,
+      "editable": true,
+      "codedata": {
+        "moduleName": "smb"
+      },
+      "name": {
+        "metadata": {
+          "label": "CSV",
+          "description": "CSV file creation handler"
+        },
+        "enabled": true,
+        "editable": false,
+        "value": "onFileCsv",
+        "valueType": "IDENTIFIER",
+        "valueTypeConstraint": "",
+        "isType": false,
+        "placeholder": "",
+        "optional": false,
+        "advanced": false
+      },
+      "properties": {
+        "stream": {
+          "value": "true",
+          "enabled": false,
+          "editable": false,
+          "optional": false,
+          "advanced": false
+        },
+        "canDataBind": {
+          "value": "true",
+          "enabled": false,
+          "editable": false,
+          "optional": false,
+          "advanced": false
+        },
+        "fileNamePattern": {
+          "metadata": {
+            "label": "File Name Pattern",
+            "description": "Regular expression pattern to match file names for this handler (overrides listener-level pattern)"
+          },
+          "enabled": false,
+          "editable": true,
+          "value": "",
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "ballerinaType": "string",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "string",
+              "selected": false
+            }
+          ],
+          "valueType": "EXPRESSION",
+          "valueTypeConstraint": "string",
+          "optional": true,
+          "advanced": false,
+          "codedata": {
+            "type": "ANNOTATION_ATTACHMENT",
+            "originalName": "FunctionConfig",
+            "moduleName": "smb"
+          }
+        }
+      },
+      "parameters": [
+        {
+          "metadata": {
+            "label": "Content",
+            "description": "CSV file content"
+          },
+          "kind": "DATA_BINDING",
+          "type": {
+            "enabled": true,
+            "editable": false,
+            "value": "string[][]",
+            "valueType": "TYPE",
+            "valueTypeConstraint": "string[]",
+            "isType": true,
+            "placeholder": "string[][]",
+            "optional": false,
+            "advanced": false
+          },
+          "name": {
+            "enabled": true,
+            "editable": true,
+            "value": "content",
+            "valueType": "IDENTIFIER",
+            "valueTypeConstraint": "string",
+            "isType": false,
+            "placeholder": "request",
+            "optional": false,
+            "advanced": false
+          },
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        {
+          "metadata": {
+            "label": "File Metadata (fileInfo)",
+            "description": "Additional file properties"
+          },
+          "kind": "REQUIRED",
+          "type": {
+            "enabled": true,
+            "editable": false,
+            "value": "smb:FileInfo",
+            "valueType": "CHECKBOX",
+            "valueTypeConstraint": "smb:FileInfo",
+            "isType": true,
+            "placeholder": "string",
+            "optional": false,
+            "advanced": false
+          },
+          "name": {
+            "enabled": true,
+            "editable": true,
+            "value": "fileInfo",
+            "valueType": "IDENTIFIER",
+            "valueTypeConstraint": "string",
+            "isType": false,
+            "placeholder": "request",
+            "optional": false,
+            "advanced": false
+          },
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        {
+          "metadata": {
+            "label": "SMB Connection (caller)",
+            "description": "SMB connection for further operations"
+          },
+          "kind": "REQUIRED",
+          "type": {
+            "enabled": true,
+            "editable": false,
+            "value": "smb:Caller",
+            "valueType": "CHECKBOX",
+            "valueTypeConstraint": "smb:Caller",
+            "isType": true,
+            "placeholder": "string",
+            "optional": false,
+            "advanced": false
+          },
+          "name": {
+            "enabled": true,
+            "editable": true,
+            "value": "caller",
+            "valueType": "IDENTIFIER",
+            "valueTypeConstraint": "string",
+            "isType": false,
+            "placeholder": "request",
+            "optional": false,
+            "advanced": false
+          },
+          "enabled": false,
+          "editable": true,
+          "optional": true,
+          "advanced": true
+        }
+      ],
+      "returnType": {
+        "metadata": {
+          "label": "Return type",
+          "description": "Return type of the function"
+        },
+        "enabled": true,
+        "editable": true,
+        "value": "error?",
+        "valueType": "TYPE",
+        "valueTypeConstraint": "anydata",
+        "isType": true,
+        "placeholder": "json",
+        "optional": true,
+        "advanced": false
+      }
+    },
+    {
+      "metadata": {
+        "label": "onCreate",
+        "description": "onCreate Category"
+      },
+      "kind": "REMOTE",
+      "enabled": false,
+      "optional": true,
+      "editable": true,
+      "codedata": {
+        "moduleName": "smb"
+      },
+      "name": {
+        "metadata": {
+          "label": "JSON",
+          "description": "JSON file creation handler"
+        },
+        "enabled": true,
+        "editable": false,
+        "value": "onFileJson",
+        "valueType": "IDENTIFIER",
+        "valueTypeConstraint": "json",
+        "isType": false,
+        "placeholder": "",
+        "optional": false,
+        "advanced": false
+      },
+      "properties": {
+        "canDataBind": {
+          "value": "true",
+          "enabled": false,
+          "editable": false,
+          "optional": false,
+          "advanced": false
+        },
+        "fileNamePattern": {
+          "metadata": {
+            "label": "File Name Pattern",
+            "description": "Regular expression pattern to match file names for this handler (overrides listener-level pattern)"
+          },
+          "enabled": false,
+          "editable": true,
+          "value": "",
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "ballerinaType": "string",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "string",
+              "selected": false
+            }
+          ],
+          "valueType": "EXPRESSION",
+          "valueTypeConstraint": "string",
+          "optional": true,
+          "advanced": false,
+          "codedata": {
+            "type": "ANNOTATION_ATTACHMENT",
+            "originalName": "FunctionConfig",
+            "moduleName": "smb"
+          }
+        }
+      },
+      "parameters": [
+        {
+          "metadata": {
+            "label": "Content",
+            "description": "Parsed JSON file content"
+          },
+          "kind": "DATA_BINDING",
+          "type": {
+            "enabled": true,
+            "editable": false,
+            "value": "json",
+            "valueType": "TYPE",
+            "valueTypeConstraint": "json",
+            "isType": true,
+            "placeholder": "json",
+            "optional": false,
+            "advanced": false
+          },
+          "name": {
+            "enabled": true,
+            "editable": true,
+            "value": "content",
+            "valueType": "IDENTIFIER",
+            "valueTypeConstraint": "string",
+            "isType": false,
+            "placeholder": "request",
+            "optional": false,
+            "advanced": false
+          },
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        {
+          "metadata": {
+            "label": "File Metadata (fileInfo)",
+            "description": "Additional file properties"
+          },
+          "kind": "REQUIRED",
+          "type": {
+            "enabled": true,
+            "editable": false,
+            "value": "smb:FileInfo",
+            "valueType": "TYPE",
+            "valueTypeConstraint": "",
+            "isType": true,
+            "placeholder": "string",
+            "optional": false,
+            "advanced": false
+          },
+          "name": {
+            "enabled": true,
+            "editable": true,
+            "value": "fileInfo",
+            "valueType": "IDENTIFIER",
+            "valueTypeConstraint": "string",
+            "isType": false,
+            "placeholder": "request",
+            "optional": false,
+            "advanced": false
+          },
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        {
+          "metadata": {
+            "label": "SMB Connection (caller)",
+            "description": "SMB connection for further operations"
+          },
+          "kind": "REQUIRED",
+          "type": {
+            "enabled": true,
+            "editable": false,
+            "value": "smb:Caller",
+            "valueType": "TYPE",
+            "valueTypeConstraint": "",
+            "isType": true,
+            "placeholder": "string",
+            "optional": false,
+            "advanced": false
+          },
+          "name": {
+            "enabled": true,
+            "editable": true,
+            "value": "caller",
+            "valueType": "IDENTIFIER",
+            "valueTypeConstraint": "string",
+            "isType": false,
+            "placeholder": "request",
+            "optional": false,
+            "advanced": false
+          },
+          "enabled": false,
+          "editable": true,
+          "optional": true,
+          "advanced": true
+        }
+      ],
+      "returnType": {
+        "metadata": {
+          "label": "Return type",
+          "description": "Return type of the function"
+        },
+        "enabled": true,
+        "editable": true,
+        "value": "error?",
+        "valueType": "TYPE",
+        "valueTypeConstraint": "anydata",
+        "isType": true,
+        "placeholder": "json",
+        "optional": true,
+        "advanced": false
+      }
+    },
+    {
+      "metadata": {
+        "label": "onCreate",
+        "description": "onCreate Category"
+      },
+      "kind": "REMOTE",
+      "enabled": false,
+      "optional": true,
+      "editable": true,
+      "codedata": {
+        "moduleName": "smb"
+      },
+      "name": {
+        "metadata": {
+          "label": "XML",
+          "description": "XML file creation handler"
+        },
+        "enabled": true,
+        "editable": false,
+        "value": "onFileXml",
+        "valueType": "IDENTIFIER",
+        "valueTypeConstraint": "xml",
+        "isType": false,
+        "placeholder": "xml",
+        "optional": false,
+        "advanced": false
+      },
+      "properties": {
+        "canDataBind": {
+          "value": "true",
+          "enabled": false,
+          "editable": false,
+          "optional": false,
+          "advanced": false
+        },
+        "fileNamePattern": {
+          "metadata": {
+            "label": "File Name Pattern",
+            "description": "Regular expression pattern to match file names for this handler (overrides listener-level pattern)"
+          },
+          "enabled": false,
+          "editable": true,
+          "value": "",
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "ballerinaType": "string",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "string",
+              "selected": false
+            }
+          ],
+          "valueType": "EXPRESSION",
+          "valueTypeConstraint": "string",
+          "optional": true,
+          "advanced": false,
+          "codedata": {
+            "type": "ANNOTATION_ATTACHMENT",
+            "originalName": "FunctionConfig",
+            "moduleName": "smb"
+          }
+        }
+      },
+      "parameters": [
+        {
+          "metadata": {
+            "label": "Content",
+            "description": "Parsed XML file content"
+          },
+          "kind": "DATA_BINDING",
+          "type": {
+            "enabled": true,
+            "editable": false,
+            "value": "xml",
+            "valueType": "TYPE",
+            "valueTypeConstraint": "xml",
+            "isType": true,
+            "placeholder": "xml",
+            "optional": false,
+            "advanced": false
+          },
+          "name": {
+            "enabled": true,
+            "editable": true,
+            "value": "content",
+            "valueType": "IDENTIFIER",
+            "valueTypeConstraint": "string",
+            "isType": false,
+            "placeholder": "request",
+            "optional": false,
+            "advanced": false
+          },
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        {
+          "metadata": {
+            "label": "File Metadata (fileInfo)",
+            "description": "Additional file properties"
+          },
+          "kind": "REQUIRED",
+          "type": {
+            "enabled": true,
+            "editable": false,
+            "value": "smb:FileInfo",
+            "valueType": "TYPE",
+            "valueTypeConstraint": "",
+            "isType": true,
+            "placeholder": "string",
+            "optional": false,
+            "advanced": false
+          },
+          "name": {
+            "enabled": true,
+            "editable": true,
+            "value": "fileInfo",
+            "valueType": "IDENTIFIER",
+            "valueTypeConstraint": "string",
+            "isType": false,
+            "placeholder": "request",
+            "optional": false,
+            "advanced": false
+          },
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        {
+          "metadata": {
+            "label": "SMB Connection (caller)",
+            "description": "SMB connection for further operations"
+          },
+          "kind": "REQUIRED",
+          "type": {
+            "enabled": true,
+            "editable": false,
+            "value": "smb:Caller",
+            "valueType": "TYPE",
+            "valueTypeConstraint": "",
+            "isType": true,
+            "placeholder": "string",
+            "optional": false,
+            "advanced": false
+          },
+          "name": {
+            "enabled": true,
+            "editable": true,
+            "value": "caller",
+            "valueType": "IDENTIFIER",
+            "valueTypeConstraint": "string",
+            "isType": false,
+            "placeholder": "request",
+            "optional": false,
+            "advanced": false
+          },
+          "enabled": false,
+          "editable": true,
+          "optional": true,
+          "advanced": true
+        }
+      ],
+      "returnType": {
+        "metadata": {
+          "label": "Return type",
+          "description": "Return type of the function"
+        },
+        "enabled": true,
+        "editable": true,
+        "value": "error?",
+        "valueType": "TYPE",
+        "valueTypeConstraint": "anydata",
+        "isType": true,
+        "placeholder": "json",
+        "optional": true,
+        "advanced": false
+      }
+    },
+    {
+      "metadata": {
+        "label": "onCreate",
+        "description": "onCreate Category"
+      },
+      "kind": "REMOTE",
+      "enabled": false,
+      "optional": true,
+      "editable": true,
+      "codedata": {
+        "moduleName": "smb"
+      },
+      "name": {
+        "metadata": {
+          "label": "Text",
+          "description": "Text file creation handler"
+        },
+        "enabled": true,
+        "editable": false,
+        "value": "onFileText",
+        "valueType": "IDENTIFIER",
+        "valueTypeConstraint": "string",
+        "isType": false,
+        "placeholder": "",
+        "optional": false,
+        "advanced": false
+      },
+      "properties": {
+        "canDataBind": {
+          "value": "true",
+          "enabled": false,
+          "editable": false,
+          "optional": false,
+          "advanced": false
+        },
+        "fileNamePattern": {
+          "metadata": {
+            "label": "File Name Pattern",
+            "description": "Regular expression pattern to match file names for this handler (overrides listener-level pattern)"
+          },
+          "enabled": false,
+          "editable": true,
+          "value": "",
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "ballerinaType": "string",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "string",
+              "selected": false
+            }
+          ],
+          "valueType": "EXPRESSION",
+          "valueTypeConstraint": "string",
+          "optional": true,
+          "advanced": false,
+          "codedata": {
+            "type": "ANNOTATION_ATTACHMENT",
+            "originalName": "FunctionConfig",
+            "moduleName": "smb"
+          }
+        }
+      },
+      "parameters": [
+        {
+          "metadata": {
+            "label": "Content",
+            "description": "Text file content"
+          },
+          "kind": "REQUIRED",
+          "type": {
+            "enabled": true,
+            "editable": false,
+            "value": "string",
+            "valueType": "TYPE",
+            "valueTypeConstraint": "string",
+            "isType": true,
+            "placeholder": "string",
+            "optional": false,
+            "advanced": false
+          },
+          "name": {
+            "enabled": true,
+            "editable": true,
+            "value": "content",
+            "valueType": "IDENTIFIER",
+            "valueTypeConstraint": "string",
+            "isType": false,
+            "placeholder": "request",
+            "optional": false,
+            "advanced": false
+          },
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        {
+          "metadata": {
+            "label": "File Metadata (fileInfo)",
+            "description": "Additional file properties"
+          },
+          "kind": "REQUIRED",
+          "type": {
+            "enabled": true,
+            "editable": false,
+            "value": "smb:FileInfo",
+            "valueType": "TYPE",
+            "valueTypeConstraint": "",
+            "isType": true,
+            "placeholder": "string",
+            "optional": false,
+            "advanced": false
+          },
+          "name": {
+            "enabled": true,
+            "editable": true,
+            "value": "fileInfo",
+            "valueType": "IDENTIFIER",
+            "valueTypeConstraint": "string",
+            "isType": false,
+            "placeholder": "request",
+            "optional": false,
+            "advanced": false
+          },
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        {
+          "metadata": {
+            "label": "SMB Connection (caller)",
+            "description": "SMB connection for further operations"
+          },
+          "kind": "REQUIRED",
+          "type": {
+            "enabled": true,
+            "editable": false,
+            "value": "smb:Caller",
+            "valueType": "TYPE",
+            "valueTypeConstraint": "",
+            "isType": true,
+            "placeholder": "string",
+            "optional": false,
+            "advanced": false
+          },
+          "name": {
+            "enabled": true,
+            "editable": true,
+            "value": "caller",
+            "valueType": "IDENTIFIER",
+            "valueTypeConstraint": "string",
+            "isType": false,
+            "placeholder": "request",
+            "optional": false,
+            "advanced": false
+          },
+          "enabled": false,
+          "editable": true,
+          "optional": true,
+          "advanced": true
+        }
+      ],
+      "returnType": {
+        "metadata": {
+          "label": "Return type",
+          "description": "Return type of the function"
+        },
+        "enabled": true,
+        "editable": true,
+        "value": "error?",
+        "valueType": "TYPE",
+        "valueTypeConstraint": "anydata",
+        "isType": true,
+        "placeholder": "json",
+        "optional": true,
+        "advanced": false
+      }
+    },
+    {
+      "metadata": {
+        "label": "onCreate",
+        "description": "onCreate Category"
+      },
+      "kind": "REMOTE",
+      "enabled": false,
+      "optional": true,
+      "editable": true,
+      "codedata": {
+        "moduleName": "smb"
+      },
+      "name": {
+        "metadata": {
+          "label": "RAW",
+          "description": "Raw file creation handler"
+        },
+        "enabled": true,
+        "editable": false,
+        "value": "onFile",
+        "valueType": "IDENTIFIER",
+        "valueTypeConstraint": "",
+        "isType": false,
+        "placeholder": "",
+        "optional": false,
+        "advanced": false
+      },
+      "properties": {
+        "stream": {
+          "value": "true",
+          "enabled": false,
+          "editable": false,
+          "optional": false,
+          "advanced": false
+        },
+        "fileNamePattern": {
+          "metadata": {
+            "label": "File Name Pattern",
+            "description": "Regular expression pattern to match file names for this handler (overrides listener-level pattern)"
+          },
+          "enabled": false,
+          "editable": true,
+          "value": "",
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "ballerinaType": "string",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "string",
+              "selected": false
+            }
+          ],
+          "valueType": "EXPRESSION",
+          "valueTypeConstraint": "string",
+          "optional": true,
+          "advanced": false,
+          "codedata": {
+            "type": "ANNOTATION_ATTACHMENT",
+            "originalName": "FunctionConfig",
+            "moduleName": "smb"
+          }
+        }
+      },
+      "parameters": [
+        {
+          "metadata": {
+            "label": "Content",
+            "description": "Raw file content as byte array"
+          },
+          "kind": "REQUIRED",
+          "type": {
+            "enabled": true,
+            "editable": false,
+            "value": "byte[]",
+            "valueType": "TYPE",
+            "valueTypeConstraint": "byte[]",
+            "isType": true,
+            "placeholder": "byte[]",
+            "optional": false,
+            "advanced": false
+          },
+          "name": {
+            "enabled": true,
+            "editable": true,
+            "value": "content",
+            "valueType": "IDENTIFIER",
+            "valueTypeConstraint": "string",
+            "isType": false,
+            "placeholder": "request",
+            "optional": false,
+            "advanced": false
+          },
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        {
+          "metadata": {
+            "label": "File Metadata (fileInfo)",
+            "description": "Additional file properties"
+          },
+          "kind": "REQUIRED",
+          "type": {
+            "enabled": true,
+            "editable": false,
+            "value": "smb:FileInfo",
+            "valueType": "TYPE",
+            "valueTypeConstraint": "smb:FileInfo",
+            "isType": true,
+            "placeholder": "string",
+            "optional": false,
+            "advanced": false
+          },
+          "name": {
+            "enabled": true,
+            "editable": true,
+            "value": "fileInfo",
+            "valueType": "IDENTIFIER",
+            "valueTypeConstraint": "string",
+            "isType": false,
+            "placeholder": "request",
+            "optional": false,
+            "advanced": false
+          },
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        {
+          "metadata": {
+            "label": "SMB Connection (caller)",
+            "description": "SMB connection for further operations"
+          },
+          "kind": "REQUIRED",
+          "type": {
+            "enabled": true,
+            "editable": false,
+            "value": "smb:Caller",
+            "valueType": "TYPE",
+            "valueTypeConstraint": "smb:Caller",
+            "isType": true,
+            "placeholder": "string",
+            "optional": false,
+            "advanced": false
+          },
+          "name": {
+            "enabled": true,
+            "editable": true,
+            "value": "caller",
+            "valueType": "IDENTIFIER",
+            "valueTypeConstraint": "string",
+            "isType": false,
+            "placeholder": "request",
+            "optional": false,
+            "advanced": false
+          },
+          "enabled": false,
+          "editable": true,
+          "optional": true,
+          "advanced": true
+        }
+      ],
+      "returnType": {
+        "metadata": {
+          "label": "Return type",
+          "description": "Return type of the function"
+        },
+        "enabled": true,
+        "editable": true,
+        "value": "error?",
+        "valueType": "TYPE",
+        "valueTypeConstraint": "anydata",
+        "isType": true,
+        "placeholder": "json",
+        "optional": true,
+        "advanced": false
+      }
+    },
+    {
+      "metadata": {
+        "label": "onDelete",
+        "description": "Handle file deletion on SMB share"
+      },
+      "kind": "REMOTE",
+      "enabled": false,
+      "optional": true,
+      "editable": true,
+      "codedata": {
+        "moduleName": "smb"
+      },
+      "name": {
+        "metadata": {
+          "label": "onFileDelete",
+          "description": "Handle file deletion events"
+        },
+        "enabled": true,
+        "editable": false,
+        "value": "onFileDelete",
+        "valueType": "IDENTIFIER",
+        "valueTypeConstraint": "",
+        "isType": false,
+        "placeholder": "",
+        "optional": false,
+        "advanced": false
+      },
+      "parameters": [
+        {
+          "metadata": {
+            "label": "deleteFiles",
+            "description": "The SMB Payload"
+          },
+          "kind": "REQUIRED",
+          "type": {
+            "enabled": true,
+            "editable": false,
+            "value": "string",
+            "valueType": "TYPE",
+            "valueTypeConstraint": "string",
+            "isType": true,
+            "placeholder": "string",
+            "optional": false,
+            "advanced": false
+          },
+          "name": {
+            "enabled": true,
+            "editable": true,
+            "value": "deleteFiles",
+            "valueType": "IDENTIFIER",
+            "valueTypeConstraint": "string",
+            "isType": false,
+            "placeholder": "",
+            "optional": false,
+            "advanced": false
+          },
+          "enabled": true,
+          "editable": false,
+          "optional": false,
+          "advanced": false
+        },
+        {
+          "metadata": {
+            "label": "SMB Connection (caller)",
+            "description": "SMB connection for further operations"
+          },
+          "kind": "REQUIRED",
+          "type": {
+            "enabled": true,
+            "editable": false,
+            "value": "smb:Caller",
+            "valueType": "TYPE",
+            "valueTypeConstraint": "",
+            "isType": true,
+            "placeholder": "",
+            "optional": false,
+            "advanced": false
+          },
+          "name": {
+            "enabled": true,
+            "editable": true,
+            "value": "caller",
+            "valueType": "IDENTIFIER",
+            "valueTypeConstraint": "string",
+            "isType": false,
+            "placeholder": "request",
+            "optional": false,
+            "advanced": false
+          },
+          "enabled": false,
+          "editable": true,
+          "optional": true,
+          "advanced": true
+        }
+      ],
+      "returnType": {
+        "metadata": {
+          "label": "Return type",
+          "description": "Return type of the function"
+        },
+        "enabled": true,
+        "editable": true,
+        "value": "error?",
+        "valueType": "TYPE",
+        "valueTypeConstraint": "anydata",
+        "isType": true,
+        "placeholder": "json",
+        "optional": true,
+        "advanced": false
+      },
+      "properties": {}
+    },
+    {
+      "metadata": {
+        "label": "onError",
+        "description": "Handle file processing errors"
+      },
+      "kind": "REMOTE",
+      "enabled": false,
+      "optional": true,
+      "editable": true,
+      "codedata": {
+        "moduleName": "smb"
+      },
+      "name": {
+        "metadata": {
+          "label": "onError",
+          "description": "Error handling function"
+        },
+        "enabled": true,
+        "editable": false,
+        "value": "onError",
+        "valueType": "IDENTIFIER",
+        "valueTypeConstraint": "",
+        "isType": false,
+        "placeholder": "",
+        "optional": false,
+        "advanced": false
+      },
+      "properties": {},
+      "parameters": [
+        {
+          "metadata": {
+            "label": "Error",
+            "description": "The error that occurred during file processing"
+          },
+          "kind": "REQUIRED",
+          "type": {
+            "enabled": true,
+            "editable": false,
+            "value": "smb:Error",
+            "valueType": "TYPE",
+            "valueTypeConstraint": "smb:Error",
+            "isType": true,
+            "placeholder": "smb:Error",
+            "optional": false,
+            "advanced": false
+          },
+          "name": {
+            "enabled": true,
+            "editable": true,
+            "value": "err",
+            "valueType": "IDENTIFIER",
+            "valueTypeConstraint": "string",
+            "isType": false,
+            "placeholder": "err",
+            "optional": false,
+            "advanced": false
+          },
+          "enabled": true,
+          "editable": false,
+          "optional": false,
+          "advanced": false
+        },
+        {
+          "metadata": {
+            "label": "SMB Connection (caller)",
+            "description": "SMB connection for further operations"
+          },
+          "kind": "REQUIRED",
+          "type": {
+            "enabled": true,
+            "editable": false,
+            "value": "smb:Caller",
+            "valueType": "CHECKBOX",
+            "valueTypeConstraint": "smb:Caller",
+            "isType": true,
+            "placeholder": "smb:Caller",
+            "optional": false,
+            "advanced": false
+          },
+          "name": {
+            "enabled": true,
+            "editable": true,
+            "value": "caller",
+            "valueType": "IDENTIFIER",
+            "valueTypeConstraint": "string",
+            "isType": false,
+            "placeholder": "caller",
+            "optional": false,
+            "advanced": false
+          },
+          "enabled": false,
+          "editable": true,
+          "optional": true,
+          "advanced": true
+        }
+      ],
+      "returnType": {
+        "metadata": {
+          "label": "Return type",
+          "description": "Return type of the function"
+        },
+        "enabled": true,
+        "editable": true,
+        "value": "error?",
+        "valueType": "TYPE",
+        "valueTypeConstraint": "anydata",
+        "isType": true,
+        "placeholder": "json",
+        "optional": true,
+        "advanced": false
+      }
+    }
+  ]
+}
