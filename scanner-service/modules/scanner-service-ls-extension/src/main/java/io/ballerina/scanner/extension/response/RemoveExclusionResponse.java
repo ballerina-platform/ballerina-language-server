@@ -18,23 +18,13 @@
 
 package io.ballerina.scanner.extension.response;
 
-public class RemoveExclusionResponse {
+public class RemoveExclusionResponse extends BaseResponse {
 
-    private boolean success;
     private String filePath;
     private String ruleId;
     private String message;
-    private String error;
 
     public RemoveExclusionResponse() {
-    }
-
-    public boolean isSuccess() {
-        return success;
-    }
-
-    public void setSuccess(boolean success) {
-        this.success = success;
     }
 
     public String getFilePath() {
@@ -59,13 +49,5 @@ public class RemoveExclusionResponse {
 
     public void setMessage(String message) {
         this.message = message;
-    }
-
-    public String getError() {
-        return error;
-    }
-
-    public void setError(String error) {
-        this.error = error;
     }
 }

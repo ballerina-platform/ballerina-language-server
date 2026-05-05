@@ -18,22 +18,12 @@
 
 package io.ballerina.scanner.extension.response;
 
-public class RemoveGlobalExclusionResponse {
+public class RemoveGlobalExclusionResponse extends BaseResponse {
 
-    private boolean success;
     private String ruleId;
     private String message;
-    private String error;
 
     public RemoveGlobalExclusionResponse() {
-    }
-
-    public boolean isSuccess() {
-        return success;
-    }
-
-    public void setSuccess(boolean success) {
-        this.success = success;
     }
 
     public String getRuleId() {
@@ -50,13 +40,5 @@ public class RemoveGlobalExclusionResponse {
 
     public void setMessage(String message) {
         this.message = message;
-    }
-
-    public String getError() {
-        return error;
-    }
-
-    public void setError(String error) {
-        this.error = error;
     }
 }

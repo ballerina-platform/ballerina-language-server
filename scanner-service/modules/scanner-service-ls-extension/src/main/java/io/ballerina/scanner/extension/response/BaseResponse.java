@@ -25,9 +25,10 @@ import java.util.Arrays;
  */
 public abstract class BaseResponse {
 
+    private boolean success = true;
     private String errorMsg;
     private String error;
-    private String stacktrace;
+    private String stackTrace;
 
     public void setError(Throwable e) {
         this.errorMsg = e.getLocalizedMessage();
@@ -36,12 +37,21 @@ public abstract class BaseResponse {
             this.errorMsg = e.getClass().getName();
         }
         this.error = this.errorMsg;
-        this.stacktrace = Arrays.toString(e.getStackTrace());
+        this.stackTrace = Arrays.toString(e.getStackTrace());
+    }
+
+    public void setSuccess(boolean state) {
+        this.success = state;
+    }
+
+    public boolean isSuccess() {
+        return success;
     }
 
     public void setError(String message) {
         this.errorMsg = message;
         this.error = message;
+        this.success = true;
     }
 
     public String errorMsg() {
@@ -56,11 +66,11 @@ public abstract class BaseResponse {
         return error;
     }
 
-    public String stackTrace() {
-        return stacktrace;
+    public void setStackTrace(String stackTrace) {
+        this.stackTrace = stackTrace;
     }
 
     public String getStackTrace() {
-        return stacktrace;
+        return stackTrace;
     }
 }

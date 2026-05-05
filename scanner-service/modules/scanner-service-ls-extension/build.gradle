@@ -36,7 +36,7 @@ configurations {
 
 dependencies {
     // Standard Dependencies
-    implementation "com.google.code.gson:gson:${gsonVersion}"
+    compileOnly "com.google.code.gson:gson:${gsonVersion}"
 
     compileOnly "org.ballerinalang:ballerina-lang:${ballerinaLangVersion}"
     compileOnly "org.ballerinalang:ballerina-parser:${ballerinaLangVersion}"

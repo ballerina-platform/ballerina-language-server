@@ -51,14 +51,6 @@ public class ScanRequest {
     private boolean saveProject = true;
 
     /**
-     * If true, runs a lightweight "Development" scan.
-     * If false, runs a full "Production" scan (All rules).
-     * Default: false (Production Mode)
-     * NOT USING FOR NOW
-     */
-    private boolean developmentMode = false;
-
-    /**
      * If true, publish Diagnostics to the VS Code.
      * Default: true
      */
@@ -103,14 +95,6 @@ public class ScanRequest {
 
     public void setSaveProject(boolean saveProject) {
         this.saveProject = saveProject;
-    }
-
-    public boolean isDevelopmentMode() {
-        return developmentMode;
-    }
-
-    public void setDevelopmentMode(boolean developmentMode) {
-        this.developmentMode = developmentMode;
     }
 
     public boolean isPublishDiagnostics() {

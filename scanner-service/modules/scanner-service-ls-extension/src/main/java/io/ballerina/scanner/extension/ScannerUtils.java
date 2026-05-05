@@ -22,6 +22,7 @@ import org.ballerinalang.langserver.LSClientLogger;
 import org.ballerinalang.langserver.commons.client.ExtendedLanguageClient;
 import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.DiagnosticSeverity;
+import org.eclipse.lsp4j.MessageType;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.PublishDiagnosticsParams;
 import org.eclipse.lsp4j.Range;
@@ -45,36 +46,39 @@ import java.util.concurrent.TimeUnit;
  */
 public class ScannerUtils {
 
+    private static LSClientLogger clientLogger;
+
     private ScannerUtils() {
     }
 
+    public static void setClientLogger(LSClientLogger logger) {
+        clientLogger = logger;
+    }
+
     // Logging Helpers
-    public static void logInfo(LSClientLogger logger, String msg) {
-        if (logger != null) {
-            logger.logMessage("[Scanner INFO] " + msg);
+    public static void logInfo(String msg) {
+        if (clientLogger != null) {
+            clientLogger.logMessage("[Scanner INFO] " + msg);
         }
     }
 
-    public static void logError(LSClientLogger logger, String msg) {
-        if (logger != null) {
-            logger.logMessage("[Scanner ERROR] " + msg);
+    public static void logError(String msg) {
+        if (clientLogger != null) {
+            clientLogger.logMessage("[Scanner ERROR] " + msg);
+        }
+    }
+
+    public static void notifyError(String msg) {
+        if (clientLogger != null) {
+            clientLogger.notifyClient(MessageType.Error, "[Scanner] " + msg);
         }
     }
 
     /**
-     * Searches ~/.ballerina/repositories/ for the scan-command JAR.
+     * Resolve ~/.ballerina/repositories/ for the scanner JAR.
      * Checks central. Picks the latest version found.
      */
     public static File resolveScannerJar() {
-        File scannerJar = resolveScannerJarFromToolLocation();
-        if (scannerJar != null) {
-            return scannerJar;
-        }
-
-        return resolveScannerJarFromRepository();
-    }
-
-    private static File resolveScannerJarFromToolLocation() {
         Process process = null;
         try {
             process = new ProcessBuilder("bal", "tool", "location", "scan", "--lib")
@@ -137,55 +141,6 @@ public class ScannerUtils {
             return anyJars[0];
         }
 
-        return null;
-    }
-
-    private static File resolveScannerJarFromRepository() {
-        Path balHome = Paths.get(System.getProperty("user.home"), ".ballerina", "repositories");
-
-        // Search central repo
-        String[] repos = {"central.ballerina.io"};
-        Path toolBase = Paths.get("bala", "ballerina", "tool_scan");
-
-        for (String repo : repos) {
-            Path toolDir = balHome.resolve(repo).resolve(toolBase);
-            File toolDirFile = toolDir.toFile();
-            if (!toolDirFile.isDirectory()) {
-                continue;
-            }
-
-            // List version directories and pick the latest
-            File[] versionDirs = toolDirFile.listFiles(File::isDirectory);
-            if (versionDirs == null || versionDirs.length == 0) {
-                continue;
-            }
-
-            // Sort descending to get latest version first
-            Arrays.sort(versionDirs, (a, b) -> b.getName().compareTo(a.getName()));
-
-            for (File versionDir : versionDirs) {
-                // Search all platform directories
-                File[] platformDirs = versionDir.listFiles(File::isDirectory);
-                if (platformDirs == null) {
-                    continue;
-                }
-
-                for (File platformDir : platformDirs) {
-                    Path libsDir = platformDir.toPath().resolve("tool").resolve("libs");
-                    File libsDirFile = libsDir.toFile();
-                    if (!libsDirFile.isDirectory()) {
-                        continue;
-                    }
-
-                    File scannerJar = findScannerJarInLibPath(libsDir.toString());
-                    if (scannerJar != null) {
-                        return scannerJar;
-                    }
-                }
-            }
-        }
-
-        // Return null if not found
         return null;
     }
 
