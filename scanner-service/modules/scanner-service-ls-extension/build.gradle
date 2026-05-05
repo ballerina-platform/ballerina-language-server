@@ -73,16 +73,6 @@ jar {
 }
 
 
-// Test Configuration
-tasks.test {
-    useTestNG() {
-        suites 'src/test/resources/testng.xml'
-    }
-    maxParallelForks = 1
-    maxHeapSize = '384m'
-    jvmArgs '-XX:MaxMetaspaceSize=256m'
-}
-
 tasks.withType(Checkstyle).configureEach {
     minHeapSize = '64m'
     maxHeapSize = '256m'
