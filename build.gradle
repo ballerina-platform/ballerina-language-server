@@ -385,7 +385,7 @@ task buildCommons {
 }
 
 task buildScanner {
-    dependsOn(":scanner-service:modules:scanner-service-ls-extension:build")
+    dependsOn(":scanner-service:scanner-service-ls-extension:build")
 }
 
 publishing {

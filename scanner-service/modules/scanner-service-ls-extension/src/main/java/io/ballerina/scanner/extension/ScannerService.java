@@ -106,7 +106,7 @@ public class ScannerService implements ExtendedLanguageServerService {
             URL[] urls = {scannerJar.toURI().toURL()};
             this.scannerLoader = new URLClassLoader(urls, this.getClass().getClassLoader());
 
-            Class<?> scanToolClass = scannerLoader.loadClass("io.ballerina.scan.internal.ScanTool");
+            Class<?> scanToolClass = scannerLoader.loadClass("io.ballerina.scan.internal.ScanLanguageServerTool");
 
             this.scanMethod = scanToolClass.getMethod("runScan", String.class, Map.class);
             this.addGlobalExclusionMethod = scanToolClass.getMethod("addGlobalExclusion",

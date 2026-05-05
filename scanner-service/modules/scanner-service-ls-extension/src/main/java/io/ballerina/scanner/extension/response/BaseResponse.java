@@ -51,7 +51,7 @@ public abstract class BaseResponse {
     public void setError(String message) {
         this.errorMsg = message;
         this.error = message;
-        this.success = true;
+        this.success = false;
     }
 
     public String errorMsg() {
