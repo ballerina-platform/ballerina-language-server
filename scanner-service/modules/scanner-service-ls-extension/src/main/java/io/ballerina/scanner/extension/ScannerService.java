@@ -92,7 +92,8 @@ public class ScannerService implements ExtendedLanguageServerService {
 
     /**
      * Loads the scanner JAR and resolves the ScanTool methods once.
-     * * @return true if successfully loaded, false otherwise
+     *
+     * @return true if successfully loaded, false otherwise
      */
     private boolean loadScanner() {
         try {
@@ -146,13 +147,9 @@ public class ScannerService implements ExtendedLanguageServerService {
             }
 
             try {
-                // Resolve file path and project root
+                // Resolve file path and use its containing directory as the project root.
                 Path filePath = getPathFromURI(request.getDocumentUri());
-                Path projectRoot = findProjectRoot(filePath);
-
-                if (projectRoot == null) {
-                    throw new RuntimeException("Unable to determine project root for: " + filePath);
-                }
+                Path projectRoot = resolveProjectRoot(filePath);
 
                 // Prepare Build Options Map
                 Map<String, Boolean> buildOptionsMap = new java.util.HashMap<>();
@@ -275,13 +272,9 @@ public class ScannerService implements ExtendedLanguageServerService {
             }
 
             try {
-                // Resolve file path and project root
+                // Resolve file path and use its containing directory as the project root.
                 Path filePath = getPathFromURI(request.getDocumentUri());
-                Path projectRoot = findProjectRoot(filePath);
-
-                if (projectRoot == null) {
-                    throw new RuntimeException("Unable to determine project root for: " + filePath);
-                }
+                Path projectRoot = resolveProjectRoot(filePath);
 
                 // Invoke with context classloader
                 ClassLoader originalCL = Thread.currentThread().getContextClassLoader();
@@ -345,11 +338,7 @@ public class ScannerService implements ExtendedLanguageServerService {
 
             try {
                 Path filePath = getPathFromURI(request.getDocumentUri());
-                Path projectRoot = findProjectRoot(filePath);
-
-                if (projectRoot == null) {
-                    throw new RuntimeException("Unable to determine project root for: " + filePath);
-                }
+                Path projectRoot = resolveProjectRoot(filePath);
 
                 ClassLoader originalCL = Thread.currentThread().getContextClassLoader();
                 Object result;
@@ -393,23 +382,17 @@ public class ScannerService implements ExtendedLanguageServerService {
     // ===================================================================================
 
     /**
-     * Walks up the directory tree from the given file path looking for a
-     * {@code Ballerina.toml} file. Returns the directory that contains it,
-     * which is the Ballerina package root. Returns {@code null} if none is found.
+     * Resolves the project root from the given file path.
+     *
+     * @param filePath file or directory path from the request URI
+     * @return the containing directory for a file path, or the directory itself
      */
-    private static Path findProjectRoot(Path filePath) {
-        Path dir = filePath.toAbsolutePath().normalize();
-        // Start from the file's parent directory
-        if (!java.nio.file.Files.isDirectory(dir)) {
-            dir = dir.getParent();
+    private static Path resolveProjectRoot(Path filePath) {
+        Path normalizedPath = filePath.toAbsolutePath().normalize();
+        if (java.nio.file.Files.isDirectory(normalizedPath)) {
+            return normalizedPath;
         }
-        while (dir != null) {
-            if (java.nio.file.Files.exists(dir.resolve("Ballerina.toml"))) {
-                return dir;
-            }
-            dir = dir.getParent();
-        }
-        return null;
+        return normalizedPath.getParent();
     }
 
     private Path getPathFromURI(String uri) {
