@@ -86,7 +86,6 @@ public class ScannerService implements ExtendedLanguageServerService {
             return null;
         };
 
-        // Load scanner JAR and resolve methods once
         loadScanner();
     }
 
@@ -147,18 +146,15 @@ public class ScannerService implements ExtendedLanguageServerService {
             }
 
             try {
-                // Resolve file path and use its containing directory as the project root.
                 Path filePath = getPathFromURI(request.getDocumentUri());
                 Path projectRoot = resolveProjectRoot(filePath);
 
-                // Prepare Build Options Map
                 Map<String, Boolean> buildOptionsMap = new java.util.HashMap<>();
                 buildOptionsMap.put("offline", request.isOffline());
                 buildOptionsMap.put("sticky", request.isSticky());
                 buildOptionsMap.put("skipTests", request.isSkipTests());
                 buildOptionsMap.put("applyUnsavedChanges", false);
 
-                // Invoke scanner with context classloader for compiler plugins
                 ScannerUtils.logInfo("Invoking scanner...");
 
                 ClassLoader originalCL = Thread.currentThread().getContextClassLoader();
@@ -170,7 +166,6 @@ public class ScannerService implements ExtendedLanguageServerService {
                     Thread.currentThread().setContextClassLoader(originalCL);
                 }
 
-                // Handle result
                 String jsonResult;
                 if (result instanceof String) {
                     jsonResult = (String) result;
@@ -180,7 +175,6 @@ public class ScannerService implements ExtendedLanguageServerService {
                     return response;
                 }
 
-                // Parse JSON into ScannerIssueContext list
                 Type listType = new TypeToken<List<ScannerIssueContext>>() { }.getType();
                 Type exclusionListType = new TypeToken<List<ScannerExclusionContext>>() { }.getType();
 
@@ -192,7 +186,6 @@ public class ScannerService implements ExtendedLanguageServerService {
                     if (element.isJsonObject()) {
                         JsonObject resultObj = element.getAsJsonObject();
 
-                        // Check for scanner-side execution errors
                         if (resultObj.has("success") && !resultObj.get("success").getAsBoolean()) {
                             String errorMsg = resultObj.has("error") ? resultObj.get("error")
                                                                             .getAsString() : "Unknown scanner error";
@@ -222,7 +215,6 @@ public class ScannerService implements ExtendedLanguageServerService {
                     excludedIssues = List.of();
                 }
 
-                // Publish Diagnostics
                 if (request.isPublishDiagnostics()) {
                     ExtendedLanguageClient languageClient =
                             languageClientSupplier != null ? languageClientSupplier.get() : null;
@@ -272,11 +264,9 @@ public class ScannerService implements ExtendedLanguageServerService {
             }
 
             try {
-                // Resolve file path and use its containing directory as the project root.
                 Path filePath = getPathFromURI(request.getDocumentUri());
                 Path projectRoot = resolveProjectRoot(filePath);
 
-                // Invoke with context classloader
                 ClassLoader originalCL = Thread.currentThread().getContextClassLoader();
                 Object result;
                 try {

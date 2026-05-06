@@ -32,7 +32,7 @@ public abstract class BaseResponse {
 
     public void setError(Throwable e) {
         this.errorMsg = e.getLocalizedMessage();
-        // Fallback if message is null
+        // Use the exception class name when no message is available.
         if (this.errorMsg == null) {
             this.errorMsg = e.getClass().getName();
         }

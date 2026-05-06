@@ -18,6 +18,10 @@
 
 package io.ballerina.scanner.extension.response;
 
+/**
+ * Response object confirming a global exclusion has been removed for a scanner rule.
+ * Contains the rule ID and a confirmation message.
+ */
 public class RemoveGlobalExclusionResponse extends BaseResponse {
 
     private String ruleId;

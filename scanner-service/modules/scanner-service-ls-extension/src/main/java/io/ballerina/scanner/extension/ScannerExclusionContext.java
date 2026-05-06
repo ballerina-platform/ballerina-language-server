@@ -20,6 +20,11 @@ package io.ballerina.scanner.extension;
 
 import com.google.gson.annotations.SerializedName;
 
+/**
+ * Data Transfer Object for scanner issue exclusions.
+ * Tracks excluded security issues with their exclusion scope (global or line-based)
+ * and associated metadata for filtering.
+ */
 public class ScannerExclusionContext {
     private String filePath;
     private String lineHash;

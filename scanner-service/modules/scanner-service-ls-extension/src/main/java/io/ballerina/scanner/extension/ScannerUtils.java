@@ -55,7 +55,6 @@ public class ScannerUtils {
         clientLogger = logger;
     }
 
-    // Logging Helpers
     public static void logInfo(String msg) {
         if (clientLogger != null) {
             clientLogger.logMessage("[Scanner INFO] " + msg);
@@ -76,7 +75,10 @@ public class ScannerUtils {
 
     /**
      * Resolve ~/.ballerina/repositories/ for the scanner JAR.
-     * Checks central. Picks the latest version found.
+     * Invokes the Ballerina tool to locate the scanner library, checking central and
+     * picking the latest version found.
+     *
+     * @return the scanner JAR file if found, null otherwise
      */
     public static File resolveScannerJar() {
         Process process = null;
@@ -114,6 +116,13 @@ public class ScannerUtils {
         }
     }
 
+    /**
+     * Locates the scanner JAR file within a given library path.
+     * Prefers scan-command JAR files; falls back to any JAR in the directory.
+     *
+     * @param libPath the library path to search
+     * @return the scanner JAR file if found, null otherwise
+     */
     private static File findScannerJarInLibPath(String libPath) {
         Path libsPath;
         try {
@@ -134,7 +143,7 @@ public class ScannerUtils {
             return preferredJars[0];
         }
 
-        // Fallback to any jar in the libs path to tolerate future scanner jar name changes.
+        // Accept any JAR in the directory if the preferred scanner JAR name is not present.
         File[] anyJars = libsDirFile.listFiles((dir, name) -> name.endsWith(".jar"));
         if (anyJars != null && anyJars.length > 0) {
             Arrays.sort(anyJars, (a, b) -> b.getName().compareTo(a.getName()));
@@ -145,7 +154,11 @@ public class ScannerUtils {
     }
 
     /**
-     * Publishes diagnostics from parsed ScannerIssueContext list.
+     * Publishes diagnostics from parsed scanner issues to the language client.
+     * Groups diagnostics by file URI and publishes them to VS Code.
+     *
+     * @param issues list of scanner issue contexts to publish
+     * @param client the extended language client to send diagnostics to
      */
     public static void publishDiagnostics(
             List<ScannerIssueContext> issues,

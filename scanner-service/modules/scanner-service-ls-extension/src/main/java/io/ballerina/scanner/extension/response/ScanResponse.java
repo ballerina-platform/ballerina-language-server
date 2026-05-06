@@ -24,6 +24,10 @@ import io.ballerina.scanner.extension.ScannerIssueContext;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Response object containing scanner vulnerability scan results.
+ * Includes both active issues found and previously excluded issues.
+ */
 public class ScanResponse extends BaseResponse {
 
     private List<ScannerIssueContext> activeIssues;

@@ -19,19 +19,29 @@
 package io.ballerina.scanner.extension;
 
 /**
- * Data Transfer Object for sending scanner issues to the Language Client.
+ * Data Transfer Object for sending scanner security issues to the Language Client.
+ * Contains issue metadata (rule, severity, kind) and location information.
  */
 public class ScannerIssueContext {
+    /** Unique identifier for the security rule. */
     public String ruleId;
+    /** Human-readable message describing the issue. */
     public String message;
+    /** Severity level of the issue (e.g., ERROR, WARNING). */
     public String severity;
+    /** Type/category of the rule (e.g., SEMANTIC, STYLE). */
     public String ruleKind;
+    /** File path where the issue is located. */
     public String filePath;
 
     // Location Data
+    /** Starting line number (0-based). */
     public int startLine;
+    /** Starting column number (0-based). */
     public int startColumn;
+    /** Ending line number (0-based). */
     public int endLine;
+    /** Ending column number (0-based). */
     public int endColumn;
 
     @Override

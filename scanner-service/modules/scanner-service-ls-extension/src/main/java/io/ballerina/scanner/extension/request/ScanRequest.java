@@ -18,11 +18,14 @@
 
 package io.ballerina.scanner.extension.request;
 
+/**
+ * Request object for scanner service vulnerability scan operations.
+ * Contains the document URI and build configuration options.
+ */
 public class ScanRequest {
 
     private String documentUri;
 
-    // Build Options
     /**
      * If true, the build will not attempt to download dependencies from the internet.
      * Default: false
@@ -56,7 +59,6 @@ public class ScanRequest {
      */
     private boolean publishDiagnostics = true;
 
-    // Getters and Setters
     public String getDocumentUri() {
         return documentUri;
     }

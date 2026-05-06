@@ -18,12 +18,14 @@
 
 package io.ballerina.scanner.extension.request;
 
+/**
+ * Request object to add a global exclusion for a scanner rule.
+ * Specifies the document context and the rule ID to exclude.
+ */
 public class AddGlobalExclusionRequest {
 
     private String documentUri;
     private String ruleId;
-
-    // Getters and Setters
 
     public String getDocumentUri() {
         return documentUri;
