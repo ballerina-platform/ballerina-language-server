@@ -91,6 +91,10 @@ public class ScannerUtils {
                     .redirectErrorStream(true)
                     .start();
 
+            if (!process.waitFor(10, TimeUnit.SECONDS) || process.exitValue() != 0) {
+                return null;
+            }
+
             String lastNonEmptyLine = null;
             try (BufferedReader reader = new BufferedReader(
                     new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
@@ -103,7 +107,7 @@ public class ScannerUtils {
                 }
             }
 
-            if (!process.waitFor(10, TimeUnit.SECONDS) || process.exitValue() != 0 || lastNonEmptyLine == null) {
+            if (lastNonEmptyLine == null) {
                 return null;
             }
 
