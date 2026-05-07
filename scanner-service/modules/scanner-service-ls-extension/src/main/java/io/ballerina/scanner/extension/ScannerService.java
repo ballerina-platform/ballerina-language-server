@@ -51,6 +51,7 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 
 @JavaSPIService("org.ballerinalang.langserver.commons.service.spi.ExtendedLanguageServerService")
@@ -68,6 +69,7 @@ public class ScannerService implements ExtendedLanguageServerService {
     private Method addGlobalExclusionMethod;
     private Method removeGlobalExclusionMethod;
     private boolean scannerAvailable;
+    private final ReentrantLock scannerLoadLock = new ReentrantLock();
 
     @Override
     public void init(LanguageServer langServer,
@@ -95,7 +97,12 @@ public class ScannerService implements ExtendedLanguageServerService {
      * @return true if successfully loaded, false otherwise
      */
     private boolean loadScanner() {
+        scannerLoadLock.lock();
         try {
+            if (this.scannerAvailable) {
+                return true;
+            }
+
             File scannerJar = ScannerUtils.resolveScannerJar();
             if (scannerJar == null || !scannerJar.exists()) {
                 ScannerUtils.logError("Scanner JAR not found. Scanner aborted.");
@@ -104,9 +111,19 @@ public class ScannerService implements ExtendedLanguageServerService {
             }
 
             URL[] urls = {scannerJar.toURI().toURL()};
-            this.scannerLoader = new URLClassLoader(urls, this.getClass().getClassLoader());
+            URLClassLoader newScannerLoader = new URLClassLoader(urls, this.getClass().getClassLoader());
 
-            Class<?> scanToolClass = scannerLoader.loadClass("io.ballerina.scan.internal.ScanLanguageServerTool");
+            if (this.scannerLoader != null) {
+                try {
+                    this.scannerLoader.close();
+                } catch (IOException e) {
+                    ScannerUtils.logError("Failed to close previous scanner loader: " + e.getMessage());
+                }
+            }
+
+            this.scannerLoader = newScannerLoader;
+
+            Class<?> scanToolClass = this.scannerLoader.loadClass("io.ballerina.scan.internal.ScanLanguageServerTool");
 
             this.scanMethod = scanToolClass.getMethod("runScan", String.class, Map.class);
             this.addGlobalExclusionMethod = scanToolClass.getMethod("addGlobalExclusion",
@@ -122,7 +139,42 @@ public class ScannerService implements ExtendedLanguageServerService {
         } catch (ReflectiveOperationException | IOException e) {
             ScannerUtils.logError("Failed to initialize scanner: " + e.getMessage());
             this.scannerAvailable = false;
+            this.scanMethod = null;
+            this.addGlobalExclusionMethod = null;
+            this.removeGlobalExclusionMethod = null;
+            if (this.scannerLoader != null) {
+                try {
+                    this.scannerLoader.close();
+                } catch (IOException closeException) {
+                    ScannerUtils.logError("Failed to close scanner loader after initialization error: "
+                            + closeException.getMessage());
+                }
+                this.scannerLoader = null;
+            }
             return false;
+        } finally {
+            scannerLoadLock.unlock();
+        }
+    }
+
+    @Override
+    public void shutdown() {
+        scannerLoadLock.lock();
+        try {
+            if (this.scannerLoader != null) {
+                try {
+                    this.scannerLoader.close();
+                } catch (IOException e) {
+                    ScannerUtils.logError("Failed to close scanner loader on shutdown: " + e.getMessage());
+                }
+            }
+            this.scannerLoader = null;
+            this.scanMethod = null;
+            this.addGlobalExclusionMethod = null;
+            this.removeGlobalExclusionMethod = null;
+            this.scannerAvailable = false;
+        } finally {
+            scannerLoadLock.unlock();
         }
     }
 

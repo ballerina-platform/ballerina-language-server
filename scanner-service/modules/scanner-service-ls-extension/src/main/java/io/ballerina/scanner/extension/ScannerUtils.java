@@ -31,14 +31,17 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -47,6 +50,7 @@ import java.util.concurrent.TimeUnit;
 public class ScannerUtils {
 
     private static LSClientLogger clientLogger;
+    private static final Set<String> previousPublishedUris = new java.util.HashSet<>();
 
     private ScannerUtils() {
     }
@@ -139,18 +143,58 @@ public class ScannerUtils {
         File[] preferredJars = libsDirFile.listFiles(
                 (dir, name) -> name.startsWith("scan-command") && name.endsWith(".jar"));
         if (preferredJars != null && preferredJars.length > 0) {
-            Arrays.sort(preferredJars, (a, b) -> b.getName().compareTo(a.getName()));
+            Arrays.sort(preferredJars, (x, y) -> compareJarNamesByVersion(y.getName(), x.getName()));
             return preferredJars[0];
         }
 
         // Accept any JAR in the directory if the preferred scanner JAR name is not present.
         File[] anyJars = libsDirFile.listFiles((dir, name) -> name.endsWith(".jar"));
         if (anyJars != null && anyJars.length > 0) {
-            Arrays.sort(anyJars, (a, b) -> b.getName().compareTo(a.getName()));
+            Arrays.sort(anyJars, (x, y) -> compareJarNamesByVersion(y.getName(), x.getName()));
             return anyJars[0];
         }
 
         return null;
+    }
+
+    private static int compareJarNamesByVersion(String first, String second) {
+        int firstIndex = 0;
+        int secondIndex = 0;
+
+        while (firstIndex < first.length() && secondIndex < second.length()) {
+            String firstPart = nextPart(first, firstIndex);
+            String secondPart = nextPart(second, secondIndex);
+
+            firstIndex += firstPart.length();
+            secondIndex += secondPart.length();
+
+            boolean firstNumeric = Character.isDigit(firstPart.charAt(0));
+            boolean secondNumeric = Character.isDigit(secondPart.charAt(0));
+
+            int comparison;
+            if (firstNumeric && secondNumeric) {
+                comparison = new BigInteger(firstPart).compareTo(new BigInteger(secondPart));
+            } else {
+                comparison = firstPart.compareTo(secondPart);
+            }
+
+            if (comparison != 0) {
+                return comparison;
+            }
+        }
+
+        return Integer.compare(first.length(), second.length());
+    }
+
+    private static String nextPart(String value, int startIndex) {
+        int index = startIndex + 1;
+        boolean digitPart = Character.isDigit(value.charAt(startIndex));
+
+        while (index < value.length() && Character.isDigit(value.charAt(index)) == digitPart) {
+            index++;
+        }
+
+        return value.substring(startIndex, index);
     }
 
     /**
@@ -192,6 +236,10 @@ public class ScannerUtils {
                     .add(diagnostic);
         }
 
+        Set<String> currentUris = diagnosticMap.keySet();
+        Set<String> staleUris = new java.util.HashSet<>(previousPublishedUris);
+        staleUris.removeAll(currentUris);
+
         diagnosticMap.forEach((uri, diagnostics) -> {
             PublishDiagnosticsParams params =
                     new PublishDiagnosticsParams();
@@ -199,6 +247,16 @@ public class ScannerUtils {
             params.setDiagnostics(diagnostics);
             client.publishDiagnostics(params);
         });
+
+        staleUris.forEach(uri -> {
+            PublishDiagnosticsParams params = new PublishDiagnosticsParams();
+            params.setUri(uri);
+            params.setDiagnostics(Collections.emptyList());
+            client.publishDiagnostics(params);
+        });
+
+        previousPublishedUris.clear();
+        previousPublishedUris.addAll(currentUris);
     }
 
 }

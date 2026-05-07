@@ -38,6 +38,7 @@ public abstract class BaseResponse {
         }
         this.error = this.errorMsg;
         this.stackTrace = Arrays.toString(e.getStackTrace());
+        this.success = false;
     }
 
     public void setSuccess(boolean state) {
