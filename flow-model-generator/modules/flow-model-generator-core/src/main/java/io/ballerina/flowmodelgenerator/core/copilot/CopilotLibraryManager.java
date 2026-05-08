@@ -75,7 +75,8 @@ public class CopilotLibraryManager {
             "ballerinax/mysql",
             "ballerinax/postgresql",
             "ballerina/ftp",
-            "ballerina/file"
+            "ballerina/file",
+            "xlibb/pipeline"
     );
 
     /**
