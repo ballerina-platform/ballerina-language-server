@@ -48,6 +48,9 @@ public record Metadata(String label, String description, List<String> keywords, 
 
     /**
      * A connector that the CONNECTION field accepts, along with the label for its Add-new button.
+     *
+     * @param codedata               The codedata of the connector
+     * @param addNewConnectionLabel  The label for the "Add new connection" button
      */
     public record AllowedConnector(Codedata codedata, String addNewConnectionLabel) {
     }
