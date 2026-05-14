@@ -28,9 +28,13 @@ import io.ballerina.tools.text.LineRange;
  * @param originalName      The original name of the property
  * @param dependentProperty The property that is dependent for this property to be enabled
  * @param lineRange         The line range of the property
+ * @param searchNodesKind   For CONNECTION-typed properties: the node kind passed to searchNodes
+ *                          (e.g., "NEW_CONNECTION", "MODEL_PROVIDER") so the UI can list matching
+ *                          connections.
  * @since 1.0.0
  */
-public record PropertyCodedata(String kind, String originalName, String dependentProperty, LineRange lineRange) {
+public record PropertyCodedata(String kind, String originalName, String dependentProperty, LineRange lineRange,
+                               String searchNodesKind) {
 
     public static class Builder<T> extends FacetedBuilder<T> {
 
@@ -38,6 +42,7 @@ public record PropertyCodedata(String kind, String originalName, String dependen
         private String originalName;
         private String dependentProperty;
         private LineRange lineRange;
+        private String searchNodesKind;
 
         public Builder(T parentBuilder) {
             super(parentBuilder);
@@ -63,8 +68,13 @@ public record PropertyCodedata(String kind, String originalName, String dependen
             return this;
         }
 
+        public Builder<T> searchNodesKind(String searchNodesKind) {
+            this.searchNodesKind = searchNodesKind;
+            return this;
+        }
+
         public PropertyCodedata build() {
-            return new PropertyCodedata(kind, originalName, dependentProperty, lineRange);
+            return new PropertyCodedata(kind, originalName, dependentProperty, lineRange, searchNodesKind);
         }
     }
 }

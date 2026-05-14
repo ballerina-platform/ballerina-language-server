@@ -110,5 +110,6 @@ public enum NodeKind {
     ACTIVITY_CALL,
     ACTIVITY_CREATION,
     SEND_DATA,
-    WAIT_DATA
+    WAIT_DATA,
+    SAMPLE_CONNECTION
 }

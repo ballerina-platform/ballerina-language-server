@@ -367,7 +367,8 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
          * to choose from, generating a typed subset record on save.
          */
         RECORD_FIELD_SELECTOR,
-        ADVANCE_PARAM_LIST
+        ADVANCE_PARAM_LIST,
+        CONNECTION
     }
 
     public static class Builder<T> extends FacetedBuilder<T> implements DiagnosticHandler.DiagnosticCapable {

@@ -297,7 +297,8 @@ public class AiUtils {
                 original.metadata().keywords(),
                 original.metadata().icon(),
                 original.metadata().functionKind(),
-                original.metadata().data()
+                original.metadata().data(),
+                original.metadata().connectors()
         );
 
         return new Property(

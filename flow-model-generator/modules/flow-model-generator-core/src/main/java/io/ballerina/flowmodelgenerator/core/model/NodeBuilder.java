@@ -68,6 +68,7 @@ import io.ballerina.flowmodelgenerator.core.model.node.ModelProviderBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.NPFunctionCall;
 import io.ballerina.flowmodelgenerator.core.model.node.NPFunctionDefinitionBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.NewConnectionBuilder;
+import io.ballerina.flowmodelgenerator.core.model.node.SampleConnectionNodeBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.PanicBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.ParallelFlowBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.RemoteActionCallBuilder;
@@ -191,6 +192,7 @@ public abstract class NodeBuilder implements DiagnosticHandler.DiagnosticCapable
         put(NodeKind.WAIT_DATA, WaitDataBuilder::new);
         put(NodeKind.SEND_DATA, SendDataBuilder::new);
         put(NodeKind.WORKFLOW_RUN, WorkflowRunBuilder::new);
+        put(NodeKind.SAMPLE_CONNECTION, SampleConnectionNodeBuilder::new);
     }};
 
     public static NodeBuilder getNodeFromKind(NodeKind kind) {
