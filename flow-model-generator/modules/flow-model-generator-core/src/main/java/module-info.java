@@ -33,7 +33,6 @@ module io.ballerina.flow.model.generator {
     requires io.ballerina.openapi.core;
     requires io.swagger.v3.oas.models;
     requires jakarta.persistence;
-    requires org.xerial.sqlitejdbc;
     requires io.ballerina.toml;
     requires org.slf4j; // TODO: Remove this once the windows build issue is fixed
     requires com.fasterxml.jackson.databind;
@@ -57,11 +56,4 @@ module io.ballerina.flow.model.generator {
     exports io.ballerina.flowmodelgenerator.core.diagnostics;
     exports io.ballerina.flowmodelgenerator.core.analyzers.function;
     exports io.ballerina.flowmodelgenerator.core.expressioneditor.semantictokens;
-    exports io.ballerina.flowmodelgenerator.core.copilot.adapters;
-    exports io.ballerina.flowmodelgenerator.core.copilot.builder;
-    exports io.ballerina.flowmodelgenerator.core.copilot.database;
-    exports io.ballerina.flowmodelgenerator.core.copilot.model;
-    exports io.ballerina.flowmodelgenerator.core.copilot.service;
-    exports io.ballerina.flowmodelgenerator.core.copilot.util;
-    exports io.ballerina.flowmodelgenerator.core.copilot;
 }

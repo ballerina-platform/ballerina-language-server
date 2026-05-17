@@ -51,6 +51,7 @@ dependencies {
 
     testImplementation project(':flow-model-generator:flow-model-central-client')
     testImplementation "org.testng:testng:${testngVersion}"
+    testRuntimeOnly project(':copilot-service:copilot-library-core')
 
     balTools("org.ballerinalang:jballerina-tools:${ballerinaLangVersion}") {
         transitive = false
