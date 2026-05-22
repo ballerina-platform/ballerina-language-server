@@ -249,7 +249,7 @@
             "character": 0
           }
         },
-        "newText": "\nint result = check context->callActivity(sendNotification, {time: 10, input: {message: \"Hello\", recipient: \"user@example.com\"}}, retryOnError = true, maxRetries = 5);"
+        "newText": "\nint|error result = context->callActivity(sendNotification, {time: 10, input: {message: \"Hello\", recipient: \"user@example.com\"}}, retryOnError = true, maxRetries = 5);"
       }
     ]
   }

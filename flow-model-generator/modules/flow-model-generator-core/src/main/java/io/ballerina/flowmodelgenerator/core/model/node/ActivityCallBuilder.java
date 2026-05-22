@@ -33,6 +33,7 @@ import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.flowmodelgenerator.core.model.Property;
 import io.ballerina.flowmodelgenerator.core.model.SourceBuilder;
 import io.ballerina.flowmodelgenerator.core.utils.FileSystemUtils;
+import io.ballerina.flowmodelgenerator.core.utils.FlowNodeUtil;
 import io.ballerina.flowmodelgenerator.core.utils.WorkflowUtil;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.FunctionData;
@@ -92,6 +93,7 @@ public class ActivityCallBuilder extends CallBuilder {
 
     public static void addAdvancedParameters(TemplateContext context, ModuleInfo moduleInfo,
                                              CallBuilder builder) {
+        builder.properties().checkError(true, Property.CHECK_ERROR_DOC, true, false);
         ModuleInfo workflowModuleInfo = new ModuleInfo(WORKFLOW_ORG, WORKFLOW_MODULE, WORKFLOW_MODULE, null);
         FunctionData callActivityData = new FunctionDataBuilder()
                 .name(CALL_ACTIVITY_METHOD)
@@ -144,14 +146,20 @@ public class ActivityCallBuilder extends CallBuilder {
         // If from an imported module, use module-qualified name (modulePrefix:functionName)
         String qualifiedActivityFunction = getQualifiedActivityFunctionName(sourceBuilder, codedata);
 
-        // Generate: int result = check ctx->callActivity(myActivity, input);
+        // Generate: [int result = [check] ]ctx->callActivity(myActivity, input);
+        boolean checkError = FlowNodeUtil.hasCheckKeyFlagSet(flowNode);
         sourceBuilder.token()
-                .name(resultType)
+                .name(checkError? resultType : resultType + "|error")
                 .whiteSpace()
                 .name(variableName)
                 .whiteSpace()
-                .keyword(SyntaxKind.EQUAL_TOKEN)
-                .keyword(SyntaxKind.CHECK_KEYWORD)
+                .keyword(SyntaxKind.EQUAL_TOKEN);
+
+        if (checkError) {
+            sourceBuilder.token().keyword(SyntaxKind.CHECK_KEYWORD);
+        }
+
+        sourceBuilder.token()
                 .name(ctxParamName)
                 .keyword(SyntaxKind.RIGHT_ARROW_TOKEN)
                 .name(CALL_ACTIVITY_METHOD)

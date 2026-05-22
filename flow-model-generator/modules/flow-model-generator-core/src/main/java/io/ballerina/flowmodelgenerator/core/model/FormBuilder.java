@@ -522,13 +522,17 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
     }
 
     public FormBuilder<T> checkError(boolean checkError, String doc, boolean editable) {
+        return checkError(checkError, doc, editable, true);
+    }
+
+    public FormBuilder<T> checkError(boolean checkError, String doc, boolean editable, boolean hidden) {
         propertyBuilder
                 .metadata()
                     .label(Property.CHECK_ERROR_LABEL)
                     .description(doc)
                     .stepOut()
                 .value(checkError)
-                .hidden()
+                .hidden(hidden)
                 .advanced(true)
                 .type()
                     .fieldType(Property.ValueType.FLAG)

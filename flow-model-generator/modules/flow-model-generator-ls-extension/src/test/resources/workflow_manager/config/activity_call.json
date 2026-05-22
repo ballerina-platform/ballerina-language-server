@@ -141,7 +141,7 @@
         "optional": false,
         "editable": true,
         "advanced": true,
-        "hidden": true
+        "hidden": false
       },
       "advanced": {
         "metadata": {

@@ -91,7 +91,7 @@
             "character": 0
           }
         },
-        "newText": "\nint result = check ctx->callActivity(sendNotification, {time: 10, input: {message: \"Hello\", recipient: \"user@example.com\"}});"
+        "newText": "\nint|error result = ctx->callActivity(sendNotification, {time: 10, input: {message: \"Hello\", recipient: \"user@example.com\"}});"
       },
       {
         "range": {
