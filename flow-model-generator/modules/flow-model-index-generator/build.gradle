@@ -68,3 +68,13 @@ task runSearchListGenerator(type: JavaExec) {
     mainClass = 'io.ballerina.indexgenerator.SearchListGenerator'
     workingDir = rootProject.projectDir
 }
+
+task run(type: JavaExec) {
+    group = 'application'
+    description = 'Run IndexGenerator to regenerate central-index.sqlite'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'io.ballerina.indexgenerator.IndexGenerator'
+    workingDir = rootProject.projectDir
+    systemProperty 'ballerina.home', System.getenv('BALLERINA_HOME')
+        ?: "${System.getProperty('user.home')}/.ballerina/ballerina-home/distributions/ballerina-${ballerinaLangVersion}"
+}

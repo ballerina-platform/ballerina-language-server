@@ -33,6 +33,7 @@ import io.ballerina.servicemodelgenerator.extension.builder.function.HttpFunctio
 import io.ballerina.servicemodelgenerator.extension.builder.function.KafkaFunctionBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.function.McpFunctionBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.function.MssqlCdcFunctionBuilder;
+import io.ballerina.servicemodelgenerator.extension.builder.function.MysqlCdcFunctionBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.function.PostgresqlCdcFunctionBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.function.RabbitMQFunctionBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.function.SolaceFunctionBuilder;
@@ -59,6 +60,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.HTTP;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.KAFKA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.MCP;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.MSSQL;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.MYSQL;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.OBJECT_METHOD;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.POSTGRESQL;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.RABBITMQ;
@@ -80,6 +82,7 @@ public class FunctionBuilderRouter {
         put(SOLACE, SolaceFunctionBuilder::new);
         put(MSSQL, MssqlCdcFunctionBuilder::new);
         put(POSTGRESQL, PostgresqlCdcFunctionBuilder::new);
+        put(MYSQL, MysqlCdcFunctionBuilder::new);
         put(FTP, FTPFunctionBuilder::new);
     }};
 
