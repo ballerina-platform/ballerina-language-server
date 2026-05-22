@@ -205,7 +205,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
 
     public static final String CHECK_ERROR_KEY = "checkError";
     public static final String CHECK_ERROR_LABEL = "Check Error";
-    public static final String CHECK_ERROR_DOC = "Trigger error flow";
+    public static final String CHECK_ERROR_DOC = "Add 'check' to propagate errors. Uncheck to handle errors manually.";
 
     public static final String SCOPE_KEY = "scope";
     public static final String SCOPE_LABEL = "Connection Scope";

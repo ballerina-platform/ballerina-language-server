@@ -448,7 +448,7 @@
                   "checkError": {
                     "metadata": {
                       "label": "Check Error",
-                      "description": "Trigger error flow"
+                      "description": "Add 'check' to propagate errors. Uncheck to handle errors manually."
                     },
                     "types": [
                       {
@@ -2027,7 +2027,7 @@
                           "checkError": {
                             "metadata": {
                               "label": "Check Error",
-                              "description": "Trigger error flow"
+                              "description": "Add 'check' to propagate errors. Uncheck to handle errors manually."
                             },
                             "types": [
                               {
