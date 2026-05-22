@@ -196,6 +196,23 @@
         "advanced": false,
         "hidden": false
       },
+      "checkError": {
+        "metadata": {
+          "label": "Check Error",
+          "description": "Add 'check' to propagate errors. Uncheck to handle errors manually."
+        },
+        "types": [
+          {
+            "fieldType": "FLAG",
+            "selected": true
+          }
+        ],
+        "value": true,
+        "optional": false,
+        "editable": true,
+        "advanced": true,
+        "hidden": false
+      },
       "advanced": {
         "metadata": {
           "label": "Activity call configurations",

@@ -141,21 +141,6 @@
     "flags": 0
   },
   "output": {
-    "workflow_data/types.bal": [
-      {
-        "range": {
-          "start": {
-            "line": 15,
-            "character": 35
-          },
-          "end": {
-            "line": 15,
-            "character": 35
-          }
-        },
-        "newText": "\nfuture<ApprovalData> approvalReceived;\nfuture<string> shippingConfirmed;\n"
-      }
-    ],
     "workflow_data/functions.bal": [
       {
         "range": {
@@ -169,6 +154,21 @@
           }
         },
         "newText": "\n[ApprovalData, string] [approvalResult, shippingResult] = check ctx->await([events.approvalReceived, events.shippingConfirmed]);"
+      }
+    ],
+    "workflow_data/types.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 15,
+            "character": 35
+          },
+          "end": {
+            "line": 15,
+            "character": 35
+          }
+        },
+        "newText": "\nfuture<ApprovalData> approvalReceived;\nfuture<string> shippingConfirmed;\n"
       }
     ]
   }
