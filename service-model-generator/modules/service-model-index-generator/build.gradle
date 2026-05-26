@@ -60,13 +60,3 @@ compileJava {
         classpath = files()
     }
 }
-
-task run(type: JavaExec) {
-    group = 'application'
-    description = 'Run ServiceIndexGenerator to regenerate service-index.sqlite'
-    classpath = sourceSets.main.runtimeClasspath
-    mainClass = 'io.ballerina.indexgenerator.ServiceIndexGenerator'
-    workingDir = rootProject.projectDir
-    systemProperty 'ballerina.home', System.getenv('BALLERINA_HOME')
-        ?: "${System.getProperty('user.home')}/.ballerina/ballerina-home/distributions/ballerina-${ballerinaLangVersion}"
-}
