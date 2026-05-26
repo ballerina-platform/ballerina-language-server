@@ -55,7 +55,7 @@
           "packageName": "mysql",
           "object": "Client",
           "symbol": "query",
-          "version": "1.17.0",
+          "version": "1.18.0",
           "lineRange": {
             "fileName": "mysql.bal",
             "startLine": {
@@ -212,7 +212,7 @@
           "packageName": "mysql",
           "object": "Client",
           "symbol": "query",
-          "version": "1.17.0",
+          "version": "1.18.0",
           "lineRange": {
             "fileName": "mysql.bal",
             "startLine": {
