@@ -407,6 +407,52 @@ public class PackageUtil {
     }
 
     /**
+     * Resolves a package using only the local bala cache, without any network access. When the exact version is not
+     * available, the resolver returns the version available in the local cache for the given organization and package.
+     * This is intended as an offline fallback when the requested version cannot be pulled from the central repository.
+     *
+     * @param org  The organization name of the package
+     * @param name The name of the package
+     * @return An Optional containing the locally available Package if found, empty Optional otherwise
+     */
+    public static Optional<Package> resolveLocalPackage(String org, String name) {
+        try {
+            ResolutionRequest resolutionRequest = ResolutionRequest.from(
+                    PackageDescriptor.from(PackageOrg.from(org), PackageName.from(name)));
+            PackageResolver packageResolver =
+                    getSampleProject().projectEnvironmentContext().getService(PackageResolver.class);
+
+            // Resolve the metadata offline to obtain the concrete version available in the local cache
+            Optional<PackageMetadataResponse> pkgMetadata = packageResolver.resolvePackageMetadata(
+                            Collections.singletonList(resolutionRequest),
+                            ResolutionOptions.builder().setOffline(true).build()).stream()
+                    .filter(response -> response.resolutionStatus() == ResolutionResponse.ResolutionStatus.RESOLVED)
+                    .findFirst();
+            if (pkgMetadata.isEmpty()) {
+                return Optional.empty();
+            }
+
+            // Resolve the package offline using the concrete descriptor resolved above
+            Optional<ResolutionResponse> resolutionResponse = packageResolver.resolvePackages(
+                            Collections.singletonList(ResolutionRequest.from(pkgMetadata.get().resolvedDescriptor())),
+                            ResolutionOptions.builder().setOffline(true).build()).stream()
+                    .filter(response -> response.resolutionStatus() == ResolutionResponse.ResolutionStatus.RESOLVED)
+                    .findFirst();
+            if (resolutionResponse.isEmpty()) {
+                return Optional.empty();
+            }
+
+            Path balaPath = resolutionResponse.get().resolvedPackage().project().sourceRoot();
+            ProjectEnvironmentBuilder defaultBuilder = ProjectEnvironmentBuilder.getDefaultBuilder();
+            defaultBuilder.addCompilationCacheFactory(TempDirCompilationCache::from);
+            BalaProject balaProject = BalaProject.loadProject(defaultBuilder, balaPath);
+            return Optional.ofNullable(balaProject.currentPackage());
+        } catch (Exception e) {
+            return Optional.empty();
+        }
+    }
+
+    /**
      * Determines if a function is local to the current workspace project.
      *
      * @param workspaceManager The workspace manager

@@ -394,8 +394,22 @@ public class FunctionDataBuilder {
             if (moduleInfo.isComplete() &&
                     PackageUtil.isModuleUnresolved(moduleInfo.org(), moduleInfo.packageName(), moduleInfo.version())) {
                 notifyClient(MessageType.Info, PULLING_THE_MODULE_MESSAGE);
+                try {
+                    if (semanticModel == null) {
+                        deriveSemanticModel();
+                    }
+                } catch (Exception e) {
+                    // Pulling the requested version from the central failed (e.g., no network access). Fall back to a
+                    // locally available version of the package below before reporting a failure.
+                }
                 if (semanticModel == null) {
-                    deriveSemanticModel();
+                    // Fallback: resolve whatever version of the package is available in the local bala cache.
+                    Package localPackage = PackageUtil.resolveLocalPackage(
+                            moduleInfo.org(), moduleInfo.packageName()).orElse(null);
+                    if (localPackage != null) {
+                        resolvedPackage(localPackage);
+                        updateModuleInfo();
+                    }
                 }
                 if (semanticModel == null) {
                     notifyClient(MessageType.Error, MODULE_PULLING_FAILED_MESSAGE);
