@@ -137,6 +137,8 @@ public class FunctionDataBuilder {
     private static final String PULLING_THE_MODULE_MESSAGE = "Pulling the module '%s' from the central";
     private static final String MODULE_PULLING_FAILED_MESSAGE = "Failed to pull the module: %s";
     private static final String MODULE_PULLING_SUCCESS_MESSAGE = "Successfully pulled the module: %s";
+    private static final String MODULE_FALLBACK_MESSAGE =
+            "Could not pull the module '%s' from the central. Using the locally available version '%s'";
 
     private static final String CLIENT_SYMBOL = "Client";
 
@@ -394,14 +396,17 @@ public class FunctionDataBuilder {
             if (moduleInfo.isComplete() &&
                     PackageUtil.isModuleUnresolved(moduleInfo.org(), moduleInfo.packageName(), moduleInfo.version())) {
                 notifyClient(MessageType.Info, PULLING_THE_MODULE_MESSAGE);
+                boolean pulled = false;
                 try {
                     if (semanticModel == null) {
                         deriveSemanticModel();
+                        pulled = semanticModel != null;
                     }
                 } catch (Exception e) {
                     // Pulling the requested version from the central failed (e.g., no network access). Fall back to a
                     // locally available version of the package below before reporting a failure.
                 }
+                String requestedVersion = moduleInfo.version();
                 if (semanticModel == null) {
                     // Fallback: resolve whatever version of the package is available in the local bala cache.
                     Package localPackage = PackageUtil.resolveLocalPackage(
@@ -413,8 +418,10 @@ public class FunctionDataBuilder {
                 }
                 if (semanticModel == null) {
                     notifyClient(MessageType.Error, MODULE_PULLING_FAILED_MESSAGE);
-                } else {
+                } else if (pulled) {
                     notifyClient(MessageType.Info, MODULE_PULLING_SUCCESS_MESSAGE);
+                } else {
+                    notifyFallback(requestedVersion);
                 }
             }
         }
@@ -1194,6 +1201,17 @@ public class FunctionDataBuilder {
             String signature =
                     String.format("%s/%s:%s", moduleInfo.org(), moduleInfo.packageName(), moduleInfo.version());
             lsClientLogger.notifyClient(messageType, String.format(message, signature));
+        }
+    }
+
+    private void notifyFallback(String requestedVersion) {
+        if (lsClientLogger != null) {
+            String requestedSignature =
+                    String.format("%s/%s:%s", moduleInfo.org(), moduleInfo.packageName(), requestedVersion);
+            String resolvedSignature =
+                    String.format("%s/%s:%s", moduleInfo.org(), moduleInfo.packageName(), moduleInfo.version());
+            lsClientLogger.notifyClient(MessageType.Info,
+                    String.format(MODULE_FALLBACK_MESSAGE, requestedSignature, resolvedSignature));
         }
     }
 
