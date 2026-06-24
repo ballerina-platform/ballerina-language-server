@@ -447,7 +447,7 @@ public class PackageUtil {
             defaultBuilder.addCompilationCacheFactory(TempDirCompilationCache::from);
             BalaProject balaProject = BalaProject.loadProject(defaultBuilder, balaPath);
             return Optional.ofNullable(balaProject.currentPackage());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             return Optional.empty();
         }
     }
