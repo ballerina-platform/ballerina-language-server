@@ -252,6 +252,13 @@ public class ScannerService implements ExtendedLanguageServerService {
                         if (resultObj.has("excludedIssues")) {
                             excludedIssues = GSON.fromJson(resultObj.get("excludedIssues"), exclusionListType);
                         }
+                        if (resultObj.has("dependentPackageIssuesFound")) {
+                            boolean found = resultObj.get("dependentPackageIssuesFound").getAsBoolean();
+                            response.setDependentPackageIssuesFound(found);
+                            if (found) {
+                                ScannerUtils.logInfo("Security issues detected in external package dependencies.");
+                            }
+                        }
                     } else if (element.isJsonArray()) {
                         activeIssues = GSON.fromJson(jsonResult, listType);
                     }

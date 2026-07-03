@@ -32,6 +32,7 @@ public class ScanResponse extends BaseResponse {
 
     private List<ScannerIssueContext> activeIssues;
     private List<ScannerExclusionContext> excludedIssues;
+    private boolean dependentPackageIssuesFound;
 
     public ScanResponse() {
         this.activeIssues = new ArrayList<>();
@@ -52,5 +53,13 @@ public class ScanResponse extends BaseResponse {
 
     public void setExcludedIssues(List<ScannerExclusionContext> excludedIssues) {
         this.excludedIssues = (excludedIssues != null) ? new ArrayList<>(excludedIssues) : new ArrayList<>();
+    }
+
+    public boolean isDependentPackageIssuesFound() {
+        return dependentPackageIssuesFound;
+    }
+
+    public void setDependentPackageIssuesFound(boolean dependentPackageIssuesFound) {
+        this.dependentPackageIssuesFound = dependentPackageIssuesFound;
     }
 }
