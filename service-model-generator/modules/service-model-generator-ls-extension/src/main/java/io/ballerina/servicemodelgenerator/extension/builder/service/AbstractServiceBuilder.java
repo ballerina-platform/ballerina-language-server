@@ -323,7 +323,8 @@ public abstract class AbstractServiceBuilder implements ServiceNodeBuilder {
                     .setPlaceholder(property.placeholder())
                     .types(deserializeTypes(property.types()))
                     .enabled(true)
-                    .editable(true);
+                    .editable(true)
+                    .optional(ARG_TYPE_LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD.equals(property.sourceKind()));
             serviceInitModel.addProperty(property.keyName(), builder.build());
         }
 
