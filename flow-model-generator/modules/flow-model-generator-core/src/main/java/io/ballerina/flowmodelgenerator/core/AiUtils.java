@@ -981,6 +981,7 @@ public class AiUtils {
         switch (className) {
             case Ai.WSO2_MODEL_PROVIDER_NAME -> codedataBuilder.symbol(Ai.GET_DEFAULT_MODEL_PROVIDER_METHOD);
             case Ai.WSO2_EMBEDDING_PROVIDER_NAME -> codedataBuilder.symbol(Ai.GET_DEFAULT_EMBEDDING_PROVIDER_METHOD);
+            case Ai.DEVANT_CHUNKER_NAME -> codedataBuilder.symbol(Ai.GET_DEFAULT_DEVANT_CHUNKER_METHOD);
             default -> codedataBuilder.object(className).symbol(INIT_METHOD);
         }
         return new AvailableNode(metadata, codedataBuilder.build(), true);
@@ -1028,6 +1029,9 @@ public class AiUtils {
         }
         if (Ai.WSO2_EMBEDDING_PROVIDER_NAME.equals(className)) {
             return "Default Embedding Provider (WSO2)";
+        }
+        if (Ai.DEVANT_CHUNKER_NAME.equals(className)) {
+            return "Default Devant Chunker";
         }
 
         int lastDot = moduleName.lastIndexOf('.');
