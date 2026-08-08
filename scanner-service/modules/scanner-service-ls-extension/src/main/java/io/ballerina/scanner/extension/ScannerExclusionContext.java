@@ -1,0 +1,85 @@
+/*
+ *  Copyright (c) 2026, WSO2 LLC. (http://www.wso2.com)
+ *
+ *  WSO2 LLC. licenses this file to you under the Apache License,
+ *  Version 2.0 (the "License"); you may not use this file except
+ *  in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing,
+ *  software distributed under the License is distributed on an
+ *  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ *  KIND, either express or implied.  See the License for the
+ *  specific language governing permissions and limitations
+ *  under the License.
+ */
+
+package io.ballerina.scanner.extension;
+
+import com.google.gson.annotations.SerializedName;
+
+/**
+ * Data Transfer Object for scanner issue exclusions.
+ * Tracks excluded security issues with their exclusion scope (global or line-based)
+ * and associated metadata for filtering.
+ */
+public class ScannerExclusionContext {
+    private String filePath;
+    private String lineHash;
+    private String ruleId;
+    private String symbol;
+    @SerializedName("isGlobalExclusion")
+    private boolean isGlobalExclusion;
+    @SerializedName("issueContext")
+    private ScannerIssueContext issueContext;
+
+    public String getFilePath() {
+        return filePath;
+    }
+
+    public void setFilePath(String filePath) {
+        this.filePath = filePath;
+    }
+
+    public String getLineHash() {
+        return lineHash;
+    }
+
+    public void setLineHash(String lineHash) {
+        this.lineHash = lineHash;
+    }
+
+    public String getRuleId() {
+        return ruleId;
+    }
+
+    public void setRuleId(String ruleId) {
+        this.ruleId = ruleId;
+    }
+
+    public String getSymbol() {
+        return symbol;
+    }
+
+    public void setSymbol(String symbol) {
+        this.symbol = symbol;
+    }
+
+    public boolean isGlobalExclusion() {
+        return isGlobalExclusion;
+    }
+
+    public void setGlobalExclusion(boolean isGlobalExclusion) {
+        this.isGlobalExclusion = isGlobalExclusion;
+    }
+
+    public ScannerIssueContext getIssueContext() {
+        return issueContext;
+    }
+
+    public void setIssueContext(ScannerIssueContext issueContext) {
+        this.issueContext = issueContext;
+    }
+}

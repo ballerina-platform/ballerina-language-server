@@ -1,0 +1,476 @@
+/*
+ * Copyright (c) 2026, WSO2 LLC. (http://www.wso2.com)
+ *
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+package io.ballerina.scanner.extension;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.reflect.TypeToken;
+import io.ballerina.scanner.extension.request.AddGlobalExclusionRequest;
+import io.ballerina.scanner.extension.request.RemoveGlobalExclusionRequest;
+import io.ballerina.scanner.extension.request.ScanRequest;
+import io.ballerina.scanner.extension.response.AddGlobalExclusionResponse;
+import io.ballerina.scanner.extension.response.RemoveGlobalExclusionResponse;
+import io.ballerina.scanner.extension.response.ScanResponse;
+import org.ballerinalang.annotation.JavaSPIService;
+import org.ballerinalang.langserver.BallerinaLanguageServer;
+import org.ballerinalang.langserver.LSClientLogger;
+import org.ballerinalang.langserver.commons.LanguageServerContext;
+import org.ballerinalang.langserver.commons.client.ExtendedLanguageClient;
+import org.ballerinalang.langserver.commons.service.spi.ExtendedLanguageServerService;
+import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
+import org.eclipse.lsp4j.jsonrpc.services.JsonRequest;
+import org.eclipse.lsp4j.jsonrpc.services.JsonSegment;
+import org.eclipse.lsp4j.services.LanguageServer;
+
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Type;
+import java.net.URI;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Supplier;
+
+@JavaSPIService("org.ballerinalang.langserver.commons.service.spi.ExtendedLanguageServerService")
+@JsonSegment("scanner")
+public class ScannerService implements ExtendedLanguageServerService {
+
+    private static final Gson GSON = new Gson();
+
+    private LSClientLogger clientLogger;
+    private Supplier<ExtendedLanguageClient> languageClientSupplier;
+
+    // Scanner reflection
+    private URLClassLoader scannerLoader;
+    private Method scanMethod;
+    private Method addGlobalExclusionMethod;
+    private Method removeGlobalExclusionMethod;
+    private boolean scannerAvailable;
+    private final ReentrantLock scannerLoadLock = new ReentrantLock();
+
+    @Override
+    public void init(LanguageServer langServer,
+                     WorkspaceManager workspaceManager,
+                     LanguageServerContext serverContext) {
+        this.clientLogger = LSClientLogger.getInstance(serverContext);
+        ScannerUtils.setClientLogger(this.clientLogger);
+        this.languageClientSupplier = () -> {
+            ExtendedLanguageClient languageClient = serverContext.get(ExtendedLanguageClient.class);
+            if (languageClient != null) {
+                return languageClient;
+            }
+            if (langServer instanceof BallerinaLanguageServer ballerinaLanguageServer) {
+                return ballerinaLanguageServer.getClient();
+            }
+            return null;
+        };
+
+        loadScanner();
+    }
+
+    /**
+     * Loads the scanner JAR and resolves the ScanTool methods once.
+     *
+     * @return true if successfully loaded, false otherwise
+     */
+    private boolean loadScanner() {
+        scannerLoadLock.lock();
+        try {
+            if (this.scannerAvailable) {
+                return true;
+            }
+
+            File scannerJar = ScannerUtils.resolveScannerJar();
+            if (scannerJar == null || !scannerJar.exists()) {
+                ScannerUtils.logError("Scanner JAR not found. Scanner aborted.");
+                this.scannerAvailable = false;
+                return false;
+            }
+
+            URL[] urls = {scannerJar.toURI().toURL()};
+            URLClassLoader newScannerLoader = new URLClassLoader(urls, this.getClass().getClassLoader());
+
+            if (this.scannerLoader != null) {
+                try {
+                    this.scannerLoader.close();
+                } catch (IOException e) {
+                    ScannerUtils.logError("Failed to close previous scanner loader: " + e.getMessage());
+                }
+            }
+
+            this.scannerLoader = newScannerLoader;
+
+            Class<?> scanToolClass = this.scannerLoader.loadClass("io.ballerina.scan.internal.ScanLanguageServerTool");
+
+            this.scanMethod = scanToolClass.getMethod("runScan", String.class, Map.class);
+            this.addGlobalExclusionMethod = scanToolClass.getMethod("addGlobalExclusion",
+                    String.class, String.class);
+            this.removeGlobalExclusionMethod = scanToolClass.getMethod("removeGlobalExclusion",
+                    String.class, String.class);
+
+            this.scannerAvailable = true;
+            ScannerUtils.logInfo("Scanner JAR loaded successfully from: " + scannerJar.getAbsolutePath());
+
+            return true;
+
+        } catch (ReflectiveOperationException | IOException e) {
+            ScannerUtils.logError("Failed to initialize scanner: " + e.getMessage());
+            this.scannerAvailable = false;
+            this.scanMethod = null;
+            this.addGlobalExclusionMethod = null;
+            this.removeGlobalExclusionMethod = null;
+            if (this.scannerLoader != null) {
+                try {
+                    this.scannerLoader.close();
+                } catch (IOException closeException) {
+                    ScannerUtils.logError("Failed to close scanner loader after initialization error: "
+                            + closeException.getMessage());
+                }
+                this.scannerLoader = null;
+            }
+            return false;
+        } finally {
+            scannerLoadLock.unlock();
+        }
+    }
+
+    @Override
+    public void shutdown() {
+        scannerLoadLock.lock();
+        try {
+            if (this.scannerLoader != null) {
+                try {
+                    this.scannerLoader.close();
+                } catch (IOException e) {
+                    ScannerUtils.logError("Failed to close scanner loader on shutdown: " + e.getMessage());
+                }
+            }
+            this.scannerLoader = null;
+            this.scanMethod = null;
+            this.addGlobalExclusionMethod = null;
+            this.removeGlobalExclusionMethod = null;
+            this.scannerAvailable = false;
+        } finally {
+            scannerLoadLock.unlock();
+        }
+    }
+
+    @Override
+    public Class<?> getRemoteInterface() {
+        return getClass();
+    }
+
+    @JsonRequest
+    public CompletableFuture<ScanResponse> getVulnerabilities(ScanRequest request) {
+        return CompletableFuture.supplyAsync(() -> {
+            ScanResponse response = new ScanResponse();
+
+            ScannerUtils.logInfo("Received request for: " + request.getDocumentUri());
+
+            if (!scannerAvailable) {
+                if (!loadScanner()) {
+                    response.setError("Scanner tool not found. Pull it from Ballerina Central.");
+                    return response;
+                }
+            }
+
+            try {
+                Path filePath = getPathFromURI(request.getDocumentUri());
+                Path projectRoot = resolveProjectRoot(filePath);
+
+                Map<String, Boolean> buildOptionsMap = new java.util.HashMap<>();
+                buildOptionsMap.put("offline", request.isOffline());
+                buildOptionsMap.put("sticky", request.isSticky());
+                buildOptionsMap.put("skipTests", request.isSkipTests());
+                buildOptionsMap.put("applyUnsavedChanges", false);
+
+                ScannerUtils.logInfo("Invoking scanner...");
+
+                ClassLoader originalCL = Thread.currentThread().getContextClassLoader();
+                Object result;
+                try {
+                    Thread.currentThread().setContextClassLoader(scannerLoader);
+                    result = scanMethod.invoke(null, projectRoot.toString(), buildOptionsMap);
+                } finally {
+                    Thread.currentThread().setContextClassLoader(originalCL);
+                }
+
+                String jsonResult;
+                if (result instanceof String) {
+                    jsonResult = (String) result;
+                } else {
+                    ScannerUtils.logError("Unknown Error: Could not parse scanner tool result");
+                    response.setError("Unknown Error: Could not parse scanner tool result");
+                    return response;
+                }
+
+                Type listType = new TypeToken<List<ScannerIssueContext>>() { }.getType();
+                Type exclusionListType = new TypeToken<List<ScannerExclusionContext>>() { }.getType();
+
+                List<ScannerIssueContext> activeIssues = new java.util.ArrayList<>();
+                List<ScannerExclusionContext> excludedIssues = new java.util.ArrayList<>();
+
+                try {
+                    JsonElement element = com.google.gson.JsonParser.parseString(jsonResult);
+                    if (element.isJsonObject()) {
+                        JsonObject resultObj = element.getAsJsonObject();
+
+                        if (resultObj.has("success") && !resultObj.get("success").getAsBoolean()) {
+                            String errorMsg = resultObj.has("error") ? resultObj.get("error")
+                                                                            .getAsString() : "Unknown scanner error";
+                            ScannerUtils.logError("Scanner returned an error: " + errorMsg);
+                            response.setError(errorMsg);
+                            return response;
+                        }
+
+                        if (resultObj.has("activeIssues")) {
+                            activeIssues = GSON.fromJson(resultObj.get("activeIssues"), listType);
+                        }
+                        if (resultObj.has("excludedIssues")) {
+                            excludedIssues = GSON.fromJson(resultObj.get("excludedIssues"), exclusionListType);
+                        }
+                        if (resultObj.has("dependentPackageIssuesFound")) {
+                            boolean found = resultObj.get("dependentPackageIssuesFound").getAsBoolean();
+                            response.setDependentPackageIssuesFound(found);
+                            if (found) {
+                                ScannerUtils.logInfo("Security issues detected in external package dependencies.");
+                            }
+                        }
+                    } else if (element.isJsonArray()) {
+                        activeIssues = GSON.fromJson(jsonResult, listType);
+                    }
+                } catch (Exception e) {
+                    ScannerUtils.logError("Failed to parse scan result: " + e.getMessage());
+                    response.setError("Failed to parse scan result: " + e.getMessage());
+                }
+
+                if (activeIssues == null) {
+                    activeIssues = List.of();
+                }
+                if (excludedIssues == null) {
+                    excludedIssues = List.of();
+                }
+
+                if (request.isPublishDiagnostics()) {
+                    ExtendedLanguageClient languageClient =
+                            languageClientSupplier != null ? languageClientSupplier.get() : null;
+                    if (languageClient != null) {
+                        ScannerUtils.publishDiagnostics(activeIssues, languageClient);
+                        ScannerUtils.logInfo("Issues published.");
+                    }
+                }
+
+                response.setActiveIssues(activeIssues);
+                response.setExcludedIssues(excludedIssues);
+                ScannerUtils.logInfo("Scan complete. Active Issues: " + activeIssues.size()
+                        + ", Excluded Issues: " + excludedIssues.size());
+
+            } catch (java.lang.reflect.InvocationTargetException e) {
+                Throwable realCause = e.getCause() != null ? e.getCause() : e;
+                ScannerUtils.logError("Scanner Internal Error: "
+                                                    + realCause.getClass().getName() + ": " + realCause.getMessage());
+                response.setError(realCause);
+            } catch (Throwable e) {
+                ScannerUtils.logError("Scanner Execution Error: " + e.getMessage());
+                response.setError(e);
+            }
+            return response;
+        });
+    }
+
+    @JsonRequest
+    public CompletableFuture<AddGlobalExclusionResponse> addGlobalExclusion(AddGlobalExclusionRequest request) {
+        return CompletableFuture.supplyAsync(() -> {
+            AddGlobalExclusionResponse response = new AddGlobalExclusionResponse();
+
+            ScannerUtils.logInfo("Received addGlobalExclusion request for rule: "
+                + request.getRuleId() + " in " + request.getDocumentUri());
+
+            if (!scannerAvailable) {
+                if (!loadScanner()) {
+                    response.setError("Scanner tool not found. Pull it from Ballerina Central.");
+                    ScannerUtils.notifyError("Scanner tool not found. Pull it from Ballerina Central.");
+                    return response;
+                }
+            }
+
+            if (addGlobalExclusionMethod == null) {
+                response.setError("Method unavailable: addGlobalExclusion");
+                return response;
+            }
+
+            try {
+                Path filePath = getPathFromURI(request.getDocumentUri());
+                Path projectRoot = resolveProjectRoot(filePath);
+
+                ClassLoader originalCL = Thread.currentThread().getContextClassLoader();
+                Object result;
+                try {
+                    Thread.currentThread().setContextClassLoader(scannerLoader);
+                    result = addGlobalExclusionMethod.invoke(null, projectRoot.toString(), request.getRuleId());
+                } finally {
+                    Thread.currentThread().setContextClassLoader(originalCL);
+                }
+
+                if (result instanceof String jsonResult) {
+                    JsonObject resultObj = com.google.gson.JsonParser.parseString(jsonResult).getAsJsonObject();
+                    if (resultObj.has("success") && !resultObj.get("success").getAsBoolean()) {
+                        String errorMsg = resultObj.has("error") ? resultObj.get("error")
+                                                                            .getAsString() : "Unknown scanner error";
+                        ScannerUtils.logError("Scanner returned an error: " + errorMsg);
+                        response.setError(errorMsg);
+                        return response;
+                    }
+                    response = GSON.fromJson(jsonResult, AddGlobalExclusionResponse.class);
+                    ScannerUtils.logInfo("Global exclusion added for rule: " + request.getRuleId());
+                } else {
+                    response.setError("Invalid response from scanner tool.");
+                }
+
+            } catch (java.lang.reflect.InvocationTargetException e) {
+                Throwable realCause = e.getCause() != null ? e.getCause() : e;
+                ScannerUtils.logError("Scanner Internal Error: "
+                                                    + realCause.getClass().getName() + ": " + realCause.getMessage());
+                response.setError("Scanner Internal Error: " + realCause.getMessage());
+            } catch (Throwable e) {
+                ScannerUtils.logError("Scanner Execution Error: " + e.getMessage());
+                response.setError("Scanner Execution Error: " + e.getMessage());
+            }
+            return response;
+        });
+    }
+
+    @JsonRequest
+    public CompletableFuture<RemoveGlobalExclusionResponse> removeGlobalExclusion(
+            RemoveGlobalExclusionRequest request) {
+        return CompletableFuture.supplyAsync(() -> {
+            RemoveGlobalExclusionResponse response = new RemoveGlobalExclusionResponse();
+
+            ScannerUtils.logInfo("Received removeGlobalExclusion request for rule: "
+                + request.getRuleId() + " in " + request.getDocumentUri());
+
+            if (!scannerAvailable) {
+                if (!loadScanner()) {
+                    response.setError("Scanner tool not found. Pull it from Ballerina Central.");
+                    ScannerUtils.notifyError("Scanner tool not found. Pull it from Ballerina Central.");
+                    return response;
+                }
+            }
+
+            if (removeGlobalExclusionMethod == null) {
+                response.setError("Method unavailable: removeGlobalExclusion");
+                return response;
+            }
+
+            try {
+                Path filePath = getPathFromURI(request.getDocumentUri());
+                Path projectRoot = resolveProjectRoot(filePath);
+
+                ClassLoader originalCL = Thread.currentThread().getContextClassLoader();
+                Object result;
+                try {
+                    Thread.currentThread().setContextClassLoader(scannerLoader);
+                    result = removeGlobalExclusionMethod.invoke(null, projectRoot.toString(), request.getRuleId());
+                } finally {
+                    Thread.currentThread().setContextClassLoader(originalCL);
+                }
+
+                if (result instanceof String jsonResult) {
+                    JsonObject resultObj = com.google.gson.JsonParser.parseString(jsonResult).getAsJsonObject();
+                    if (resultObj.has("success") && !resultObj.get("success").getAsBoolean()) {
+                        String errorMsg = resultObj.has("error") ? resultObj.get("error")
+                                                                            .getAsString() : "Unknown scanner error";
+                        ScannerUtils.logError("Scanner returned an error: " + errorMsg);
+                        response.setError(errorMsg);
+                        return response;
+                    }
+                    response = GSON.fromJson(jsonResult, RemoveGlobalExclusionResponse.class);
+                    ScannerUtils.logInfo("Global exclusion removed for rule: " + request.getRuleId());
+                } else {
+                    response.setError("Invalid response from scanner tool.");
+                }
+
+            } catch (java.lang.reflect.InvocationTargetException e) {
+                Throwable realCause = e.getCause() != null ? e.getCause() : e;
+                ScannerUtils.logError("Scanner Internal Error: "
+                                                    + realCause.getClass().getName() + ": " + realCause.getMessage());
+                response.setError("Scanner Internal Error: " + realCause.getMessage());
+            } catch (Throwable e) {
+                ScannerUtils.logError("Scanner Execution Error: " + e.getMessage());
+                response.setError("Scanner Execution Error: " + e.getMessage());
+            }
+            return response;
+        });
+    }
+
+    // ===================================================================================
+    // HELPER METHODS
+    // ===================================================================================
+
+    /**
+     * Resolves the project root from the given file path.
+     *
+     * @param filePath file or directory path from the request URI
+     * @return the containing directory for a file path, or the directory itself
+     */
+    private static Path resolveProjectRoot(Path filePath) {
+        Path normalizedPath = filePath.toAbsolutePath().normalize();
+        if (java.nio.file.Files.isDirectory(normalizedPath)) {
+            return normalizedPath;
+        }
+        return normalizedPath.getParent();
+    }
+
+    private Path getPathFromURI(String uri) {
+        String normalizedUri = uri == null ? "" : uri.trim();
+
+        try {
+            // Encode unencoded spaces often sent by LSP clients before parsing.
+            URI parsedUri = URI.create(normalizedUri.replace(" ", "%20"));
+            if ("file".equalsIgnoreCase(parsedUri.getScheme())) {
+                return Paths.get(parsedUri);
+            }
+        } catch (Exception ignored) {
+            // Fall back to manual normalization for non-standard client inputs.
+        }
+
+        String decodedPath = java.net.URLDecoder.decode(
+                normalizedUri,
+                java.nio.charset.StandardCharsets.UTF_8
+        );
+
+        if (decodedPath.startsWith("file://")) {
+            decodedPath = decodedPath.substring("file://".length());
+        }
+
+        // Windows file URIs can become /C:/... after stripping file://.
+        if (decodedPath.startsWith("/") && decodedPath.length() > 2 && decodedPath.charAt(2) == ':') {
+            decodedPath = decodedPath.substring(1);
+        }
+
+        return Paths.get(decodedPath);
+    }
+}
