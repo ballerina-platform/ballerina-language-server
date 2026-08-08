@@ -282,72 +282,82 @@ public abstract class CallBuilder extends NodeBuilder {
                 continue;
             }
 
-            String unescapedParamName = ParamUtils.removeLeadingSingleQuote(paramResult.name());
-            Property.Builder<FormBuilder<NodeBuilder>> customPropBuilder = properties().custom();
-            String label = paramResult.label();
-            customPropBuilder
-                    .metadata()
-                        .label(label == null || label.isEmpty() ? unescapedParamName : label)
-                        .description(paramResult.description())
-                        .stepOut()
-                    .codedata()
-                        .kind(paramResult.kind().name())
-                        .originalName(paramResult.name())
-                        .stepOut()
-                    .placeholder(paramResult.placeholder())
-                    .defaultValue(paramResult.defaultValue())
-                    .imports(paramResult.importStatements())
-                    .editable()
-                    .defaultable(paramResult.optional());
-
-            switch (paramResult.kind()) {
-                case INCLUDED_RECORD_REST -> {
-                    if (hasOnlyRestParams) {
-                        customPropBuilder.defaultable(false);
-                    }
-                    unescapedParamName = "additionalValues";
-                    Property template = customPropBuilder.buildRepeatableTemplates(paramResult.typeSymbol(),
-                            semanticModel, moduleInfo);
-                    customPropBuilder.type()
-                            .fieldType(Property.ValueType.REPEATABLE_MAP)
-                            .ballerinaType(paramResult.type())
-                            .template(template)
-                            .selected(true)
-                            .stepOut();
-                }
-                case REST_PARAMETER -> {
-                    if (hasOnlyRestParams) {
-                        customPropBuilder.defaultable(false);
-                    }
-                    Property template = customPropBuilder.buildRepeatableTemplates(paramResult.typeSymbol(),
-                            semanticModel, moduleInfo);
-                    customPropBuilder.type()
-                            .fieldType(Property.ValueType.REPEATABLE_LIST)
-                            .ballerinaType(paramResult.type())
-                            .template(template)
-                            .selected(true)
-                            .stepOut();
-                }
-                default -> {
-                    // Add PROMPT field type for ai:Prompt parameters
-                    // TODO: Need an extension pattern to extract the following implementation out of the CallBuilder
-                    String typeSignature = CommonUtils.getTypeSignature(paramResult.typeSymbol(), moduleInfo);
-                    if (AiUtils.AI_PROMPT_TYPE.equals(typeSignature)) {
-                        customPropBuilder.type()
-                                .fieldType(Property.ValueType.PROMPT)
-                                .ballerinaType(AiUtils.AI_PROMPT_TYPE)
-                                .selected(true)
-                                .stepOut();
-                    }
-                    customPropBuilder.typeWithExpression(paramResult.typeSymbol(), moduleInfo,
-                            paramResult.defaultValue());
-                }
-            }
-
-            customPropBuilder
-                    .stepOut()
-                    .addProperty(FlowNodeUtil.getPropertyKey(unescapedParamName));
+            properties().build().put(getParameterPropertyKey(paramResult),
+                    buildParameterProperty(paramResult, module, hasOnlyRestParams));
         }
+    }
+
+    protected Property buildParameterProperty(ParameterData paramData, io.ballerina.projects.Module module,
+                                              boolean hasOnlyRestParams) {
+        String unescapedParamName = ParamUtils.removeLeadingSingleQuote(paramData.name());
+        Property.Builder<FormBuilder<NodeBuilder>> customPropBuilder = new Property.Builder<>(null);
+        String label = paramData.label();
+        customPropBuilder
+                .metadata()
+                    .label(label == null || label.isEmpty() ? unescapedParamName : label)
+                    .description(paramData.description())
+                    .stepOut()
+                .codedata()
+                    .kind(paramData.kind().name())
+                    .originalName(paramData.name())
+                    .stepOut()
+                .placeholder(paramData.placeholder())
+                .defaultValue(paramData.defaultValue())
+                .imports(paramData.importStatements())
+                .editable()
+                .defaultable(paramData.optional());
+
+        switch (paramData.kind()) {
+            case INCLUDED_RECORD_REST -> {
+                if (hasOnlyRestParams) {
+                    customPropBuilder.defaultable(false);
+                }
+                Property template = customPropBuilder.buildRepeatableTemplates(paramData.typeSymbol(),
+                        semanticModel, moduleInfo);
+                customPropBuilder.type()
+                        .fieldType(Property.ValueType.REPEATABLE_MAP)
+                        .ballerinaType(paramData.type())
+                        .template(template)
+                        .selected(true)
+                        .stepOut();
+            }
+            case REST_PARAMETER -> {
+                if (hasOnlyRestParams) {
+                    customPropBuilder.defaultable(false);
+                }
+                Property template = customPropBuilder.buildRepeatableTemplates(paramData.typeSymbol(),
+                        semanticModel, moduleInfo);
+                customPropBuilder.type()
+                        .fieldType(Property.ValueType.REPEATABLE_LIST)
+                        .ballerinaType(paramData.type())
+                        .template(template)
+                        .selected(true)
+                        .stepOut();
+            }
+            default -> {
+                // Add PROMPT field type for ai:Prompt parameters
+                // TODO: Need an extension pattern to extract the following implementation out of the CallBuilder
+                String typeSignature = CommonUtils.getTypeSignature(paramData.typeSymbol(), moduleInfo);
+                if (AiUtils.AI_PROMPT_TYPE.equals(typeSignature)) {
+                    customPropBuilder.type()
+                            .fieldType(Property.ValueType.PROMPT)
+                            .ballerinaType(AiUtils.AI_PROMPT_TYPE)
+                            .selected(true)
+                            .stepOut();
+                }
+                customPropBuilder.typeWithExpression(paramData.typeSymbol(), moduleInfo,
+                        paramData.defaultValue());
+            }
+        }
+
+        return customPropBuilder.build();
+    }
+
+    protected String getParameterPropertyKey(ParameterData paramData) {
+        if (paramData.kind() == ParameterData.Kind.INCLUDED_RECORD_REST) {
+            return "additionalValues";
+        }
+        return FlowNodeUtil.getPropertyKey(ParamUtils.removeLeadingSingleQuote(paramData.name()));
     }
 
     /**

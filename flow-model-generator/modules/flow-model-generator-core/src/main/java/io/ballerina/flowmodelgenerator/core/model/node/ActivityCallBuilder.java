@@ -29,7 +29,10 @@ import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.flowmodelgenerator.core.model.Codedata;
 import io.ballerina.flowmodelgenerator.core.model.FlowNode;
+import io.ballerina.flowmodelgenerator.core.model.ItemOption;
+import io.ballerina.flowmodelgenerator.core.model.NodeBuilder;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
+import io.ballerina.flowmodelgenerator.core.model.Option;
 import io.ballerina.flowmodelgenerator.core.model.Property;
 import io.ballerina.flowmodelgenerator.core.model.SourceBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.builtin.BuiltinActivityStrategy;
@@ -46,6 +49,7 @@ import io.ballerina.modelgenerator.commons.ModuleInfo;
 import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.modelgenerator.commons.ParameterData;
 import io.ballerina.projects.Module;
+import io.ballerina.projects.Project;
 import io.ballerina.tools.text.LineRange;
 import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.TextEdit;
@@ -89,13 +93,22 @@ public class ActivityCallBuilder extends CallBuilder {
     public static final String DEFAULT_RETURN_TYPE = "anydata";
     public static final String ADVANCE_CONFIGURATIONS = "Activity call configurations";
     public static final String CHECK_ERROR_KEY = "checkError";
+    public static final String RETRY_POLICY_PARAM = "retryPolicy";
+    public static final String NO_RETRY_VALUE = "NoRetry";
+    public static final String AUTO_RETRY_VALUE = "AutoRetry";
+    public static final String MANUAL_RETRY_VALUE = "ManualRetry";
+    public static final String MAX_RETRIES_KEY = "maxRetries";
+    public static final String RETRY_DELAY_KEY = "retryDelay";
+    public static final String RETRY_BACKOFF_KEY = "retryBackoff";
+    public static final String MAX_RETRY_DELAY_KEY = "maxRetryDelay";
+    // retryPolicy is excluded from ADVANCE_PARAM_LIST; it is added at root level as a DROPDOWN_CHOICE.
     public static final Set<String> EXCLUDED_CALL_ACTIVITY_PARAMS = Set.of("activityFunction", "args", "T",
-            CHECK_ERROR_KEY, Property.CONNECTION_KEY);
-
+            CHECK_ERROR_KEY, Property.CONNECTION_KEY, RETRY_POLICY_PARAM);
     private static final String NEW_CONNECTION_SENTINEL = "NEW_CONNECTION";
     private static final String ACTIVITY_MODULE_PREFIX = "activity";
     private static final String DEFAULT_REST_DATABINDING = "json";
     private static final String SOAP_RESPONSE_TYPE = "xml";
+    private static final String DATABINDING_LABEL = "Databinding";
 
     /**
      * Maps builtin activity function symbols to the strategy that handles their form and source generation.
@@ -108,6 +121,7 @@ public class ActivityCallBuilder extends CallBuilder {
     // Strategy resolved at setConcreteTemplateData time; used by processSpecialParameter
     // (called during super's parameter iteration) and buildBuiltinTemplate.
     private BuiltinActivityStrategy currentBuiltinStrategy;
+    private Module currentModule;
 
     @Override
     protected NodeKind getFunctionNodeKind() {
@@ -130,14 +144,23 @@ public class ActivityCallBuilder extends CallBuilder {
             buildBuiltinTemplate(context, codedata.symbol(), currentBuiltinStrategy);
         } else {
             super.setConcreteTemplateData(context);
+            addRetryPolicyFormProperties(this, NO_RETRY_VALUE, "", "", "", "");
             addAdvancedParameters(context, moduleInfo, this);
         }
     }
 
     /**
      * Builds the form template for a builtin activity (callRestAPI, callSoapAPI, sendEmail).
-     * Uses the strategy's setFormProperties instead of reading from the actual function signature,
-     * so the form can have rich UX (dropdowns, dual-type fields, dynamic fields).
+     *
+     * <p>For REST ({@code callRestAPI}): uses FunctionDataBuilder to load the real function
+     * signature from the compiler, then delegates each parameter to
+     * {@link #processSpecialParameter} (which routes REST-specific params to the strategy's
+     * override). Falls back to {@link BuiltinActivityStrategy#setFormProperties} when the
+     * workflow.activity module is unavailable in the project.
+     *
+     * <p>For SOAP and Email: continues to use the static {@link BuiltinActivityStrategy#setFormProperties}
+     * path, which provides richer UX (flattened EmailOptions fields, advanced SOAP fields)
+     * that cannot be replicated by default FunctionDataBuilder processing alone.
      */
     private void buildBuiltinTemplate(TemplateContext context, String symbol, BuiltinActivityStrategy strategy) {
         metadata().label(strategy.getLabel()).description(strategy.getDescription());
@@ -146,31 +169,76 @@ public class ActivityCallBuilder extends CallBuilder {
                 .module(ACTIVITY_MODULE)
                 .symbol(symbol);
 
-        properties().connectionSelector(NEW_CONNECTION_SENTINEL,
-                strategy.searchNodesKind(), strategy.connectors());
+        Project project = PackageUtil.loadProject(context.workspaceManager(), context.filePath());
+        if (strategy instanceof RestActivityStrategy) {
+            buildRestActivityTemplate(context, symbol, strategy, project);
+        } else {
+            properties().connectionSelector(NEW_CONNECTION_SENTINEL,
+                    strategy.searchNodesKind(), strategy.connectors());
+            strategy.setFormProperties(this, context);
+        }
 
-        strategy.setFormProperties(this, context);
         addBuiltinPostProperties(strategy, context);
+        if (strategy instanceof RestActivityStrategy) {
+            addRestInferredReturnTypeProperty(context, project, DEFAULT_REST_DATABINDING);
+        }
         addCheckErrorProperty();
-        addAdvancedParameters(context, moduleInfo, this);
+        addRetryPolicyFormProperties(this, NO_RETRY_VALUE, "", "", "", "");
+        addAdvancedParameters(context, moduleInfo, this, project);
+    }
+
+    /**
+     * Loads {@code callRestAPI} via FunctionDataBuilder and routes each parameter through
+     * {@link #processSpecialParameter}, which delegates REST-specific params (method, path,
+     * message, headers) to {@link RestActivityStrategy#processSpecialParameter} and handles
+     * {@code connection} centrally. Falls back to static form if the module is not resolved.
+     */
+    private void buildRestActivityTemplate(TemplateContext context, String symbol, BuiltinActivityStrategy strategy,
+                                           Project project) {
+        ModuleInfo activityModuleInfo = new ModuleInfo(WORKFLOW_ORG, WORKFLOW_MODULE, ACTIVITY_MODULE, null);
+        FunctionData functionData;
+        try {
+            functionData = new FunctionDataBuilder()
+                    .name(symbol)
+                    .moduleInfo(activityModuleInfo)
+                    .functionResultKind(FunctionData.Kind.FUNCTION)
+                    .project(project)
+                    .userModuleInfo(moduleInfo)
+                    .workspaceManager(context.workspaceManager())
+                    .filePath(context.filePath())
+                    .build();
+        } catch (IllegalStateException e) {
+            // workflow.activity not found in project (older dependency, missing import, or
+            // the function was not yet available in this version of workflow.activity)
+            properties().connectionSelector(NEW_CONNECTION_SENTINEL,
+                    strategy.searchNodesKind(), strategy.connectors());
+            strategy.setFormProperties(this, context);
+            return;
+        }
+
+        if (functionData == null || functionData.parameters() == null
+                || functionData.parameters().isEmpty()) {
+            // Null / empty guard — defensive fallback in case build() returns without throwing
+            properties().connectionSelector(NEW_CONNECTION_SENTINEL,
+                    strategy.searchNodesKind(), strategy.connectors());
+            strategy.setFormProperties(this, context);
+            return;
+        }
+
+        // Databinding TYPE_KEY and result variable are added by addBuiltinPostProperties — skip any
+        // PARAM_FOR_TYPE_INFER param (e.g., typedesc<T> t) to avoid a duplicate type selector.
+        LinkedHashMap<String, ParameterData> filteredParams = new LinkedHashMap<>(functionData.parameters());
+        filteredParams.values().removeIf(p -> p.kind() == ParameterData.Kind.PARAM_FOR_TYPE_INFER);
+        functionData.setParameters(filteredParams);
+
+        Module module = context.workspaceManager().module(context.filePath()).orElse(null);
+        currentModule = module;
+        setParameterProperties(functionData, module);
+        currentModule = null;
     }
 
     private void addBuiltinPostProperties(BuiltinActivityStrategy strategy, TemplateContext context) {
         if (strategy instanceof RestActivityStrategy) {
-            properties().custom()
-                    .metadata()
-                        .label("Databinding")
-                        .description("Response data binding type (e.g., json, xml, record type)")
-                        .stepOut()
-                    .value(DEFAULT_REST_DATABINDING)
-                    .type()
-                        .fieldType(Property.ValueType.TYPE)
-                        .selected(true)
-                        .stepOut()
-                    .editable(true)
-                    .stepOut()
-                    .addProperty(Property.TYPE_KEY);
-
             properties().data(Property.RESULT_NAME, context.getAllVisibleSymbolNames(),
                     Property.RESULT_NAME, Property.RESULT_DOC, false);
         } else if (strategy instanceof SoapActivityStrategy) {
@@ -178,6 +246,54 @@ public class ActivityCallBuilder extends CallBuilder {
                     Property.RESULT_NAME, Property.RESULT_DOC, false);
         }
         // Email (error? return): no result variable or type field.
+    }
+
+    private void addRestInferredReturnTypeProperty(TemplateContext context, Project project, String value) {
+        ModuleInfo workflowModuleInfo = new ModuleInfo(WORKFLOW_ORG, WORKFLOW_MODULE, WORKFLOW_MODULE, null);
+        FunctionData callActivityData = new FunctionDataBuilder()
+                .name(CALL_ACTIVITY_METHOD)
+                .moduleInfo(workflowModuleInfo)
+                .parentSymbolType(CONTEXT_CLASS_NAME)
+                .functionResultKind(FunctionData.Kind.REMOTE)
+                .project(project)
+                .userModuleInfo(moduleInfo)
+                .workspaceManager(context.workspaceManager())
+                .filePath(context.filePath())
+                .build();
+        Optional<ParameterData> inferredTypeParam = callActivityData.parameters().values().stream()
+                .filter(param -> param.kind() == ParameterData.Kind.PARAM_FOR_TYPE_INFER)
+                .findFirst();
+        Module module = context.workspaceManager().module(context.filePath()).orElse(null);
+        inferredTypeParam.ifPresent(param -> {
+            buildInferredTypeProperty(this, param, value, module);
+            relabelDatabindingProperty(ParamUtils.removeLeadingSingleQuote(param.name()));
+        });
+    }
+
+    /**
+     * Relabels the REST databinding (inferred return type) property so the form shows a meaningful
+     * "Databinding" label instead of the raw {@code callActivity} type-parameter name ("T"), and marks
+     * its {@code TYPE} entry as selected. {@link #buildInferredTypeProperty} falls back to the parameter
+     * name when the parameter has no doc label and leaves the type unselected; an unselected type entry
+     * makes the UI render a spurious second, empty type selector next to it.
+     *
+     * @param key the property key (the unescaped inferred type-parameter name)
+     */
+    private void relabelDatabindingProperty(String key) {
+        Map<String, Property> properties = properties().build();
+        Property existing = properties.get(key);
+        if (existing == null) {
+            return;
+        }
+        String ballerinaType = existing.types() != null && !existing.types().isEmpty()
+                ? existing.types().get(0).ballerinaType()
+                : DEFAULT_RETURN_TYPE;
+        Property relabeled = Property.Builder.copyFrom(existing)
+                .clearTypes()
+                .type().fieldType(Property.ValueType.TYPE).ballerinaType(ballerinaType).selected(true).stepOut()
+                .metadata().label(DATABINDING_LABEL).stepOut()
+                .build();
+        properties.put(key, relabeled);
     }
 
     private void addCheckErrorProperty() {
@@ -195,34 +311,228 @@ public class ActivityCallBuilder extends CallBuilder {
     }
 
     /**
-     * Intercepts the {@code connection} parameter of builtin activity functions and replaces it
-     * with a {@code CONNECTION}-type property so the UI renders a connection dropdown.
+     * Intercepts special parameters during {@link #setParameterProperties} to produce richer form fields:
+     * <ul>
+     *   <li>{@code retryPolicy} — rendered as a {@link Property.ValueType#DROPDOWN_CHOICE} with three
+     *       pre-filled options (No Retry, Auto Retry, Manual Retry) for all activity call nodes.</li>
+     *   <li>{@code connection} — replaced with a connection-selector property for builtin activities.</li>
+     * </ul>
      */
     @Override
     protected boolean processSpecialParameter(ParameterData paramData) {
+        String paramName = ParamUtils.removeLeadingSingleQuote(paramData.name());
+
         if (currentBuiltinStrategy == null) {
             return false;
         }
-        String paramName = ParamUtils.removeLeadingSingleQuote(paramData.name());
-        if (!Property.CONNECTION_KEY.equals(paramName)) {
-            return false;
+
+        if (Property.CONNECTION_KEY.equals(paramName)) {
+            properties().connectionSelector(
+                    NEW_CONNECTION_SENTINEL,
+                    currentBuiltinStrategy.searchNodesKind(),
+                    currentBuiltinStrategy.connectors());
+            return true;
         }
-        properties().connectionSelector(
-                NEW_CONNECTION_SENTINEL,
-                currentBuiltinStrategy.searchNodesKind(),
-                currentBuiltinStrategy.connectors());
-        return true;
+
+        if (currentBuiltinStrategy instanceof RestActivityStrategy) {
+            return processRestParameter(paramData, paramName);
+        }
+
+        // Delegate remaining params to the strategy.
+        return currentBuiltinStrategy.processSpecialParameter(paramData, this);
+    }
+
+    private boolean processRestParameter(ParameterData paramData, String paramName) {
+        Property baseProperty = buildParameterProperty(paramData, currentModule, false);
+        if (RestActivityStrategy.METHOD_KEY.equals(paramName)) {
+            List<Option> methodOptions = restMethodOptions();
+            Property messageSubProp = buildRestMessageSubProperty();
+            Map<String, Map<String, Property>> dynamicFields = new LinkedHashMap<>();
+            dynamicFields.put("GET", Map.of());
+            dynamicFields.put("POST", Map.of(RestActivityStrategy.MESSAGE_KEY, messageSubProp));
+            dynamicFields.put("PUT", Map.of(RestActivityStrategy.MESSAGE_KEY, messageSubProp));
+            dynamicFields.put("DELETE", Map.of());
+            dynamicFields.put("PATCH", Map.of(RestActivityStrategy.MESSAGE_KEY, messageSubProp));
+
+            Property methodProperty = Property.Builder.copyFrom(baseProperty)
+                    .clearTypes()
+                    .type()
+                        .fieldType(Property.ValueType.DROPDOWN_CHOICE)
+                        .options(methodOptions)
+                        .selected(true)
+                        .stepOut()
+                    .value("GET")
+                    .itemOptions(ItemOption.from(methodOptions))
+                    .dynamicFormFields(dynamicFields)
+                    .build();
+            properties().build().put(RestActivityStrategy.METHOD_KEY, methodProperty);
+            return true;
+        }
+
+        if (RestActivityStrategy.PATH_KEY.equals(paramName)) {
+            properties().build().put(RestActivityStrategy.PATH_KEY, Property.Builder.copyFrom(baseProperty)
+                    .value("")
+                    .placeholder("/users/1")
+                    .optional(true)
+                    .build());
+            return true;
+        }
+
+        if (RestActivityStrategy.MESSAGE_KEY.equals(paramName)) {
+            properties().build().put(RestActivityStrategy.MESSAGE_KEY, buildRestMessageProperty(baseProperty, ""));
+            return true;
+        }
+
+        if (RestActivityStrategy.HEADERS_KEY.equals(paramName)) {
+            properties().build().put(RestActivityStrategy.HEADERS_KEY, Property.Builder.copyFrom(baseProperty)
+                    .value("")
+                    .optional(true)
+                    .advanced(true)
+                    .build());
+            return true;
+        }
+
+        return false;
+    }
+
+    private static List<Option> restMethodOptions() {
+        return List.of(
+                new Option("GET", "GET"),
+                new Option("POST", "POST"),
+                new Option("PUT", "PUT"),
+                new Option("DELETE", "DELETE"),
+                new Option("PATCH", "PATCH"));
+    }
+
+    private static Property buildRestMessageProperty(Property baseProperty, String value) {
+        return Property.Builder.copyFrom(baseProperty)
+                .value(value)
+                .optional(true)
+                .hidden(true)
+                .build();
+    }
+
+    private static Property buildRestMessageSubProperty() {
+        return new Property.Builder<Void>(null)
+                .metadata()
+                    .label("Message")
+                    .description("Request body payload (for POST, PUT, PATCH)")
+                    .stepOut()
+                .type().fieldType(Property.ValueType.EXPRESSION)
+                    .ballerinaType("http:RequestMessage").selected(true).stepOut()
+                .value("")
+                .editable(true)
+                .build();
+    }
+
+    /**
+     * Adds the retryPolicy DROPDOWN_CHOICE and its hidden root sub-field properties to the given node builder.
+     * Must be called at ROOT level (outside any nested property scope) so the UI can render
+     * the DROPDOWN_CHOICE with dynamic sub-fields — nested scopes (ADVANCE_PARAM_LIST) do not
+     * support the DROPDOWN_CHOICE type.
+     *
+     * <p>Sub-properties inside {@code dynamicFormFields.AutoRetry} intentionally carry empty values.
+     * The UI reads the actual value from the matching root hidden property (by key name) and writes
+     * edits back there, exactly like the {@code method}/{@code message} pattern in
+     * {@link io.ballerina.flowmodelgenerator.core.model.node.builtin.RestActivityStrategy}.
+     */
+    public static void addRetryPolicyFormProperties(NodeBuilder nodeBuilder, String retryPolicyValue,
+                                                    String maxRetries, String retryDelay,
+                                                    String retryBackoff, String maxRetryDelay) {
+        List<Option> options = List.of(
+                new Option("No Retry", NO_RETRY_VALUE),
+                new Option("Auto Retry", AUTO_RETRY_VALUE),
+                new Option("Manual Retry", MANUAL_RETRY_VALUE));
+
+        // Sub-property definitions for the AutoRetry option. Empty values are intentional:
+        // the UI reads real values from the root hidden properties with matching keys.
+        Property maxRetriesSubProp = buildRetrySubProperty("Max Retries",
+                "Maximum number of retry attempts", "int");
+        Property retryDelaySubProp = buildRetrySubProperty("Retry Delay",
+                "Initial delay between retries in seconds", "decimal");
+        Property retryBackoffSubProp = buildRetrySubProperty("Retry Backoff",
+                "Exponential backoff multiplier (e.g. 2.0 doubles each delay)", "decimal");
+        Property maxRetryDelaySubProp = buildRetrySubProperty("Max Retry Delay",
+                "Maximum delay cap in seconds", "decimal");
+
+        Map<String, Map<String, Property>> dynamicFields = new LinkedHashMap<>();
+        dynamicFields.put(NO_RETRY_VALUE, Map.of());
+        dynamicFields.put(AUTO_RETRY_VALUE, Map.of(
+                MAX_RETRIES_KEY, maxRetriesSubProp,
+                RETRY_DELAY_KEY, retryDelaySubProp,
+                RETRY_BACKOFF_KEY, retryBackoffSubProp,
+                MAX_RETRY_DELAY_KEY, maxRetryDelaySubProp));
+        dynamicFields.put(MANUAL_RETRY_VALUE, Map.of());
+
+        nodeBuilder.properties().custom()
+                .metadata()
+                    .label("Retry Policy")
+                    .description("Retry strategy to apply when the activity call fails")
+                    .stepOut()
+                .type()
+                    .fieldType(Property.ValueType.DROPDOWN_CHOICE)
+                    .options(options)
+                    .selected(true)
+                    .stepOut()
+                .value(retryPolicyValue != null ? retryPolicyValue : NO_RETRY_VALUE)
+                .editable(true)
+                .itemOptions(ItemOption.from(options))
+                .dynamicFormFields(dynamicFields)
+                .stepOut()
+                .addProperty(RETRY_POLICY_PARAM);
+
+        // Root hidden properties: actual persistent storage for sub-field values.
+        addHiddenRetrySubFieldProperty(nodeBuilder, MAX_RETRIES_KEY,
+                "Max Retries", "Maximum number of retry attempts", "int", maxRetries);
+        addHiddenRetrySubFieldProperty(nodeBuilder, RETRY_DELAY_KEY,
+                "Retry Delay", "Initial delay between retries in seconds", "decimal", retryDelay);
+        addHiddenRetrySubFieldProperty(nodeBuilder, RETRY_BACKOFF_KEY,
+                "Retry Backoff", "Exponential backoff multiplier", "decimal", retryBackoff);
+        addHiddenRetrySubFieldProperty(nodeBuilder, MAX_RETRY_DELAY_KEY,
+                "Max Retry Delay", "Maximum delay cap in seconds", "decimal", maxRetryDelay);
+    }
+
+    private static Property buildRetrySubProperty(String label, String description, String ballerinaType) {
+        return new Property.Builder<Void>(null)
+                .metadata()
+                    .label(label)
+                    .description(description)
+                    .stepOut()
+                .type().fieldType(Property.ValueType.EXPRESSION)
+                    .ballerinaType(ballerinaType).selected(true).stepOut()
+                .value("")
+                .editable(true)
+                .build();
+    }
+
+    private static void addHiddenRetrySubFieldProperty(NodeBuilder nodeBuilder, String key,
+                                                       String label, String description,
+                                                       String ballerinaType, String value) {
+        nodeBuilder.properties().custom()
+                .metadata().label(label).description(description).stepOut()
+                .type().fieldType(Property.ValueType.EXPRESSION)
+                    .ballerinaType(ballerinaType).selected(true).stepOut()
+                .value(value != null ? value : "")
+                .editable(true).optional(true).hidden(true)
+                .stepOut()
+                .addProperty(key);
     }
 
     public static void addAdvancedParameters(TemplateContext context, ModuleInfo moduleInfo,
                                              CallBuilder builder) {
+        addAdvancedParameters(context, moduleInfo, builder,
+                PackageUtil.loadProject(context.workspaceManager(), context.filePath()));
+    }
+
+    public static void addAdvancedParameters(TemplateContext context, ModuleInfo moduleInfo,
+                                             CallBuilder builder, Project project) {
         ModuleInfo workflowModuleInfo = new ModuleInfo(WORKFLOW_ORG, WORKFLOW_MODULE, WORKFLOW_MODULE, null);
         FunctionData callActivityData = new FunctionDataBuilder()
                 .name(CALL_ACTIVITY_METHOD)
                 .moduleInfo(workflowModuleInfo)
                 .parentSymbolType(CONTEXT_CLASS_NAME)
                 .functionResultKind(FunctionData.Kind.REMOTE)
-                .project(PackageUtil.loadProject(context.workspaceManager(), context.filePath()))
+                .project(project)
                 .userModuleInfo(moduleInfo)
                 .workspaceManager(context.workspaceManager())
                 .filePath(context.filePath())
@@ -230,12 +540,19 @@ public class ActivityCallBuilder extends CallBuilder {
 
         LinkedHashMap<String, ParameterData> filteredParams = new LinkedHashMap<>(callActivityData.parameters());
         filteredParams.keySet().removeAll(EXCLUDED_CALL_ACTIVITY_PARAMS);
+        filteredParams.values().removeIf(p -> p.kind() == ParameterData.Kind.PARAM_FOR_TYPE_INFER);
         callActivityData.setParameters(filteredParams);
 
         Module module = context.workspaceManager().module(context.filePath()).orElse(null);
 
         builder.properties().nestedProperty();
+        if (builder instanceof ActivityCallBuilder activityCallBuilder) {
+            activityCallBuilder.currentModule = module;
+        }
         builder.setParameterProperties(callActivityData, module);
+        if (builder instanceof ActivityCallBuilder activityCallBuilder) {
+            activityCallBuilder.currentModule = null;
+        }
         builder.properties().endNestedProperty(Property.ValueType.ADVANCE_PARAM_LIST, ADVANCED_PARAM_KEY,
                 ADVANCE_CONFIGURATIONS, ADVANCE_CONFIGURATIONS);
     }
@@ -296,8 +613,10 @@ public class ActivityCallBuilder extends CallBuilder {
 
         Map<String, Property> properties = flowNode.properties();
         Set<String> excludedKeys = Set.of(Property.VARIABLE_KEY, Property.TYPE_KEY,
-                CHECK_ERROR_KEY, ADVANCED_PARAM_KEY);
+                CHECK_ERROR_KEY, ADVANCED_PARAM_KEY, RETRY_POLICY_PARAM,
+                MAX_RETRIES_KEY, RETRY_DELAY_KEY, RETRY_BACKOFF_KEY, MAX_RETRY_DELAY_KEY);
         populateActivityCallArg(sourceBuilder, properties, excludedKeys);
+        populateRetryPolicyArg(sourceBuilder, properties);
         populateAdvancedArgs(sourceBuilder, properties);
 
         sourceBuilder.token()
@@ -337,7 +656,7 @@ public class ActivityCallBuilder extends CallBuilder {
         String databindingType = null;
         boolean hasReturnValue;
         if (strategy instanceof RestActivityStrategy) {
-            databindingType = sourceBuilder.getProperty(Property.TYPE_KEY)
+            databindingType = sourceBuilder.getProperty("T")
                     .map(p -> p.value() != null && !p.value().toString().isEmpty()
                             ? p.value().toString()
                             : DEFAULT_REST_DATABINDING)
@@ -389,6 +708,7 @@ public class ActivityCallBuilder extends CallBuilder {
                 .keyword(SyntaxKind.OPEN_BRACE_TOKEN)
                 .name(String.join(", ", argEntries))
                 .keyword(SyntaxKind.CLOSE_BRACE_TOKEN);
+        populateRetryPolicyArg(sourceBuilder, sourceBuilder.flowNode.properties());
         populateAdvancedArgs(sourceBuilder, sourceBuilder.flowNode.properties());
         sourceBuilder.token()
                 .keyword(SyntaxKind.CLOSE_PAREN_TOKEN)
@@ -477,6 +797,59 @@ public class ActivityCallBuilder extends CallBuilder {
     /**
      * Emits activity call options as named arguments into the source builder.
      */
+    private static void populateRetryPolicyArg(SourceBuilder sourceBuilder, Map<String, Property> properties) {
+        if (properties == null) {
+            return;
+        }
+        Property retryPolicy = properties.get(RETRY_POLICY_PARAM);
+        if (retryPolicy == null || retryPolicy.value() == null || retryPolicy.value().toString().isEmpty()) {
+            return;
+        }
+        // NoRetry is the default; don't emit it explicitly to avoid cluttering source.
+        if (NO_RETRY_VALUE.equals(retryPolicy.value().toString())) {
+            return;
+        }
+        String retryPolicyExpr = retryPolicyExpression(retryPolicy, properties);
+        if (retryPolicyExpr == null || retryPolicyExpr.isEmpty()) {
+            return;
+        }
+        sourceBuilder.token()
+                .keyword(SyntaxKind.COMMA_TOKEN)
+                .name(RETRY_POLICY_PARAM)
+                .whiteSpace()
+                .keyword(SyntaxKind.EQUAL_TOKEN)
+                .name(retryPolicyExpr);
+    }
+
+    private static String retryPolicyExpression(Property retryPolicy, Map<String, Property> properties) {
+        String value = retryPolicy.value().toString();
+        if (AUTO_RETRY_VALUE.equals(value)) {
+            return autoRetryRecordLiteral(properties);
+        }
+        return switch (value) {
+            case NO_RETRY_VALUE -> "workflow:NoRetry";
+            case MANUAL_RETRY_VALUE -> "workflow:ManualRetry";
+            default -> value;
+        };
+    }
+
+    private static String autoRetryRecordLiteral(Map<String, Property> autoRetryFields) {
+        List<String> fields = new ArrayList<>();
+        addRecordField(fields, autoRetryFields, MAX_RETRIES_KEY);
+        addRecordField(fields, autoRetryFields, RETRY_DELAY_KEY);
+        addRecordField(fields, autoRetryFields, RETRY_BACKOFF_KEY);
+        addRecordField(fields, autoRetryFields, MAX_RETRY_DELAY_KEY);
+        return fields.isEmpty() ? "{}" : "{" + String.join(", ", fields) + "}";
+    }
+
+    private static void addRecordField(List<String> fields, Map<String, Property> properties, String key) {
+        Property property = properties.get(key);
+        if (property == null || property.value() == null || property.value().toString().isEmpty()) {
+            return;
+        }
+        fields.add(key + ": " + property.value());
+    }
+
     public static void populateAdvancedArgs(SourceBuilder sourceBuilder, Map<String, Property> properties) {
         if (properties == null) {
             return;
