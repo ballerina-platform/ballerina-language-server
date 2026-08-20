@@ -459,6 +459,11 @@
       "name": "jballerina.java",
       "version": "2201.13.2",
       "description": "This module provides library operations required for Java interoperability in Ballerina. It includes a set of"
+    },
+    {
+      "name": "zip",
+      "version": "0.9.0",
+      "description": "The `zip` library provides APIs to create and read ZIP archives from Ballerina."
     }
   ],
   "ballerinax": [

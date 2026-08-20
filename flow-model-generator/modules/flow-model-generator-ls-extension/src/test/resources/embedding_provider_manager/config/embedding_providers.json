@@ -11,7 +11,7 @@
             "metadata": {
               "label": "Default Embedding Provider (WSO2)",
               "description": "WSO2 embedding provider implementation that provides embedding capabilities using WSO2's AI service.",
-              "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.12.0.png"
+              "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.14.0.png"
             },
             "codedata": {
               "node": "EMBEDDING_PROVIDER",
@@ -25,8 +25,8 @@
           {
             "metadata": {
               "label": "Azure Embedding Provider",
-              "description": "EmbeddingProvider provides an interface for interacting with Azure OpenAI Embedding Models.",
-              "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai.azure_1.4.4.png"
+              "description": "EmbeddingProvider provides an interface for interacting with Azure OpenAI Embedding Models.\n\nThe concrete wire route depends on the shape of the `serviceUrl`: a URL ending with `/v1` targets the Azure OpenAI\n**v1 GA** surface (`POST {serviceUrl}/embeddings`, with the deployment sent as `model` in the body and no\n`api-version` required), while any other URL targets the **legacy** deployment-scoped route\n(`POST {legacyBase}/deployments/{deploymentId}/embeddings?api-version=...`) through the generated\n`ballerinax/azure.openai.embeddings` connector, where `legacyBase` is the `serviceUrl` completed with `/openai`\nwhen it is a bare origin and used verbatim when it already carries a path.",
+              "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai.azure_1.5.0.png"
             },
             "codedata": {
               "node": "EMBEDDING_PROVIDER",
@@ -58,7 +58,7 @@
             "metadata": {
               "label": "OpenAI Embedding Provider",
               "description": "EmbeddingProvider provides an interface for interacting with OpenAI Embedding Models.",
-              "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai.openai_1.3.5.png"
+              "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai.openai_1.4.0.png"
             },
             "codedata": {
               "node": "EMBEDDING_PROVIDER",

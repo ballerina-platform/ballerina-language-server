@@ -11,7 +11,7 @@
             "metadata": {
               "label": "Default Model Provider (WSO2)",
               "description": "WSO2 model provider implementation that provides chat completion capabilities using WSO2's AI services.",
-              "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.12.0.png"
+              "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.14.0.png"
             },
             "codedata": {
               "node": "MODEL_PROVIDER",
@@ -41,8 +41,8 @@
           {
             "metadata": {
               "label": "Azure OpenAI Model Provider",
-              "description": "OpenAiProvider is a client class that provides an interface for interacting with Azure-hosted OpenAI language models.",
-              "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai.azure_1.4.4.png"
+              "description": "`OpenAiModelProvider` is a client class that provides an interface for interacting with Azure-hosted OpenAI\nlanguage models.\n\nThe provider can target either the Azure OpenAI **Chat Completions API** (the default) or the **Responses API**,\nselected through the `apiType` parameter. The concrete wire route additionally depends on the shape of the\n`serviceUrl`: a URL ending with `/v1` targets the Azure OpenAI **v1 GA** surface through the generated\n`ballerinax/azure.openai.chat` / `ballerinax/azure.openai.responses` connectors, while any other URL targets the\n**legacy** route (`?api-version=...`) through a raw HTTP client. See the `ApiType` documentation for the full\nrouting matrix.",
+              "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai.azure_1.5.0.png"
             },
             "codedata": {
               "node": "MODEL_PROVIDER",
@@ -121,8 +121,8 @@
           {
             "metadata": {
               "label": "OpenAI Model Provider",
-              "description": "ModelProvider is a client class that provides an interface for interacting with OpenAI Large Language Models.",
-              "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai.openai_1.3.5.png"
+              "description": "ModelProvider is a client class that provides an interface for interacting with OpenAI Large Language Models.\nSupports both the Chat Completions API (default) and the Responses API, selected via the `apiType` configuration.",
+              "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai.openai_1.4.0.png"
             },
             "codedata": {
               "node": "MODEL_PROVIDER",
