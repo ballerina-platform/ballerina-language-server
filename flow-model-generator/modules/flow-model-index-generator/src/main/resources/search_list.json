@@ -3051,7 +3051,7 @@
     },
     {
       "name": "whatsapp.business",
-      "version": "1.5.1",
+      "version": "2.0.0",
       "description": "Connects to [WhatsApp Business](https://developers.facebook.com/docs/whatsapp/) from Ballerina",
       "keywords": [
         "Communication/Call \u0026 SMS",
