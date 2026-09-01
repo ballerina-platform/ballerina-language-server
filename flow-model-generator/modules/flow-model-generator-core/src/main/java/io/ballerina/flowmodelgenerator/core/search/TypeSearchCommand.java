@@ -42,10 +42,13 @@ import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.modelgenerator.commons.SearchResult;
 import io.ballerina.projects.Module;
+import io.ballerina.projects.ModuleDependency;
 import io.ballerina.projects.ModuleName;
 import io.ballerina.projects.Package;
+import io.ballerina.projects.PackageDependencyScope;
 import io.ballerina.projects.PackageName;
 import io.ballerina.projects.Project;
+import io.ballerina.projects.ResolvedPackageDependency;
 import io.ballerina.projects.directory.BuildProject;
 import io.ballerina.projects.directory.WorkspaceProject;
 import io.ballerina.tools.text.LineRange;
@@ -54,10 +57,16 @@ import org.ballerinalang.langserver.common.utils.SymbolUtil;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Represents a command to search for types within a module. This class extends SearchCommand and provides functionality
@@ -80,34 +89,83 @@ import java.util.Optional;
  */
 class TypeSearchCommand extends SearchCommand {
 
-    private final List<String> moduleNames;
+    private static final Logger LOGGER = Logger.getLogger(TypeSearchCommand.class.getName());
+
+    private final Set<String> moduleNameSet;
+    private final Map<String, String> moduleOrgByName;
 
     public TypeSearchCommand(Project project, LineRange position, Map<String, String> queryMap) {
         super(project, position, queryMap);
 
-        // Obtain the imported project names
+        // Collect dependencies from every module, not just the default one, so a connector imported only by a
+        // submodule isn't missed. TreeSet keeps the order stable across compilations. Same-package and workspace
+        // sibling dependencies are excluded: those are already surfaced by buildWorkspaceNodes/
+        // buildImportedLocalModules and would otherwise be emitted twice; non-default scope (e.g. testonly)
+        // dependencies aren't real imported dependencies of the integration.
         Package currentPackage = project.currentPackage();
         PackageUtil.getCompilation(currentPackage);
-        moduleNames = currentPackage.getDefaultModule().moduleDependencies().stream()
-                .map(moduleDependency -> {
-                    ModuleName name = moduleDependency.descriptor().name();
-                    if (Objects.nonNull(name.moduleNamePart()) && !name.moduleNamePart().isEmpty()) {
-                        return name.packageName().value() + "." + name.moduleNamePart();
-                    }
-                    return name.packageName().value();
-                })
-                .toList();
+        Set<String> importedModuleNames = new TreeSet<>();
+        Map<String, String> orgByModuleName = new HashMap<>();
+        for (Module module : currentPackage.modules()) {
+            for (ModuleDependency moduleDependency : module.moduleDependencies()) {
+                if (!isDefaultScope(moduleDependency) || isWorkspaceMember(project, currentPackage, moduleDependency)) {
+                    continue;
+                }
+                String moduleKey = toModuleKey(moduleDependency.descriptor().name());
+                importedModuleNames.add(moduleKey);
+                orgByModuleName.put(moduleKey, moduleDependency.descriptor().org().value());
+            }
+        }
+        moduleNameSet = Set.copyOf(importedModuleNames);
+        moduleOrgByName = Map.copyOf(orgByModuleName);
+    }
+
+    private static boolean isDefaultScope(ModuleDependency moduleDependency) {
+        return moduleDependency.packageDependency().scope() == PackageDependencyScope.DEFAULT;
+    }
+
+    private static boolean isSamePackage(Package currentPackage, ModuleDependency moduleDependency) {
+        return moduleDependency.descriptor().org().value().equals(currentPackage.packageOrg().value())
+                && moduleDependency.descriptor().packageName().value().equals(currentPackage.packageName().value());
+    }
+
+    /**
+     * Returns true if the dependency resolves to the current package or to another package in the same
+     * {@link WorkspaceProject}. Workspace siblings are already listed under {@code CURRENT_WORKSPACE} by
+     * {@link #buildWorkspaceNodes()}, so treating them as "imported" here would emit their types twice.
+     */
+    private static boolean isWorkspaceMember(Project project, Package currentPackage,
+                                             ModuleDependency moduleDependency) {
+        if (isSamePackage(currentPackage, moduleDependency)) {
+            return true;
+        }
+        Optional<WorkspaceProject> workspaceProject = project.workspaceProject();
+        if (workspaceProject.isEmpty()) {
+            return false;
+        }
+        for (BuildProject siblingProject : workspaceProject.get().projects()) {
+            if (isSamePackage(siblingProject.currentPackage(), moduleDependency)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
     protected List<Item> defaultView() {
         buildWorkspaceNodes();
         List<SearchResult> searchResults = new ArrayList<>();
-        if (!moduleNames.isEmpty()) {
-            searchResults.addAll(dbManager.searchTypesByPackages(moduleNames, limit, offset));
+        int indexedCapacity = 0;
+        if (!moduleNameSet.isEmpty()) {
+            searchResults.addAll(dbManager.searchTypesByPackages(moduleOrgByName, limit, offset));
+            indexedCapacity = dbManager.countIndexedTypes(moduleOrgByName);
         }
 
-        buildLibraryNodes(searchResults);
+        int importedCount = buildLibraryNodes(searchResults);
+        // The fair-share indexed pool has a fixed capacity that can be exhausted well before offset catches up
+        // (unlike search()'s global FTS query below, whose window keeps growing with the whole library), so only
+        // the portion of offset beyond that capacity should be skipped from the live-compiled fallback pool.
+        buildLiveDependencyTypes(importedCount, Math.max(0, offset - indexedCapacity));
         buildImportedLocalModules();
         return rootBuilder.build().items();
     }
@@ -116,9 +174,183 @@ class TypeSearchCommand extends SearchCommand {
     protected List<Item> search() {
         buildWorkspaceNodes();
         List<SearchResult> typeSearchList = dbManager.searchTypes(query, limit, offset);
-        buildLibraryNodes(typeSearchList);
+        int importedCount = buildLibraryNodes(typeSearchList);
+        buildLiveDependencyTypes(importedCount, offset);
         buildImportedLocalModules();
         return rootBuilder.build().items();
+    }
+
+    /**
+     * Converts a {@link ModuleName} into the "packageName[.moduleNamePart]" key format used to identify modules
+     * throughout this class.
+     */
+    private static String toModuleKey(ModuleName name) {
+        return (Objects.nonNull(name.moduleNamePart()) && !name.moduleNamePart().isEmpty())
+                ? name.packageName().value() + "." + name.moduleNamePart()
+                : name.packageName().value();
+    }
+
+    /**
+     * Falls back to the compiled semantic model for dependency modules missing from the search index
+     * (e.g. a connector that was published recently and hasn't been indexed yet). Matches from every missing
+     * module are ranked together before paging, so a strong match in one module isn't pushed to a later page by
+     * weaker matches from a module visited earlier.
+     *
+     * @param consumedFromIndexed how many {@code IMPORTED_TYPES} slots the indexed results already filled this page
+     * @param liveSkip            how many matches to skip within the live-compiled pool before taking results,
+     *                            i.e. the portion of the page's offset not already accounted for by the indexed
+     *                            pool
+     */
+    private void buildLiveDependencyTypes(int consumedFromIndexed, int liveSkip) {
+        if (moduleNameSet.isEmpty()) {
+            return;
+        }
+
+        int remainingLimit = limit - consumedFromIndexed;
+        if (remainingLimit <= 0) {
+            return;
+        }
+
+        // Unpaginated check - a module can be fully indexed but still miss the page if other modules filled it.
+        Set<String> indexedModuleNames = dbManager.findIndexedModuleNames(moduleOrgByName);
+
+        Set<String> missingModuleNames = new HashSet<>();
+        for (String moduleName : moduleNameSet) {
+            if (!indexedModuleNames.contains(moduleName)) {
+                missingModuleNames.add(moduleName);
+            }
+        }
+        if (missingModuleNames.isEmpty()) {
+            return;
+        }
+
+        Package currentPackage = project.currentPackage();
+        if (currentPackage.getResolution() == null || currentPackage.getResolution().dependencyGraph() == null) {
+            return;
+        }
+
+        // getNodes() returns a HashMap keySet ordered by a UUID-derived hash, so it's not stable across
+        // re-resolutions; sort via ResolvedPackageDependency's natural (descriptor-based) order instead.
+        List<ResolvedPackageDependency> sortedDependencies =
+                new ArrayList<>(currentPackage.getResolution().dependencyGraph().getNodes());
+        Collections.sort(sortedDependencies);
+
+        List<LiveTypeMatch> allMatches = new ArrayList<>();
+        Set<String> resolvedModuleNames = new HashSet<>();
+        outer:
+        for (ResolvedPackageDependency dependency : sortedDependencies) {
+            Package dependencyPackage = dependency.packageInstance();
+            if (dependencyPackage == null) {
+                continue;
+            }
+            for (Module module : dependencyPackage.modules()) {
+                String moduleName = toModuleKey(module.moduleName());
+                if (missingModuleNames.contains(moduleName) && resolvedModuleNames.add(moduleName)) {
+                    allMatches.addAll(collectLiveModuleTypes(module, moduleName, dependencyPackage));
+                    if (resolvedModuleNames.size() >= missingModuleNames.size()) {
+                        break outer;
+                    }
+                }
+            }
+        }
+
+        allMatches.sort(Comparator.comparingInt(LiveTypeMatch::score).reversed()
+                .thenComparing(LiveTypeMatch::typeName));
+
+        Category.Builder importedTypesBuilder = rootBuilder.stepIn(Category.Name.IMPORTED_TYPES);
+        int remainingToSkip = liveSkip;
+        for (LiveTypeMatch match : allMatches) {
+            if (remainingToSkip > 0) {
+                remainingToSkip--;
+                continue;
+            }
+            if (remainingLimit <= 0) {
+                break;
+            }
+            String icon = CommonUtils.generateIcon(match.orgName(), match.packageName(), match.version());
+            Metadata metadata = new Metadata.Builder<>(null)
+                    .label(match.typeName())
+                    .description(match.description())
+                    .icon(icon)
+                    .build();
+            Codedata codedata = new Codedata.Builder<>(null)
+                    .node(NodeKind.TYPEDESC)
+                    .org(match.orgName())
+                    .module(match.moduleName())
+                    .packageName(match.packageName())
+                    .symbol(match.typeName())
+                    .version(match.version())
+                    .build();
+            importedTypesBuilder.stepIn(match.moduleName(), "", List.of())
+                    .node(new AvailableNode(metadata, codedata, true));
+            remainingLimit--;
+        }
+    }
+
+    /**
+     * A type match found via live compilation, carrying enough context to build its {@link AvailableNode}
+     * once matches from every missing module have been collected and ranked together.
+     *
+     * @param moduleName  the module key ("packageName[.moduleNamePart]") the type was found in
+     * @param orgName     the org of the dependency package
+     * @param packageName the name of the dependency package
+     * @param version     the version of the dependency package
+     * @param typeName    the name of the matched type
+     * @param description the description of the matched type
+     * @param score       the relevance score for ranking
+     */
+    private record LiveTypeMatch(String moduleName, String orgName, String packageName, String version,
+                                 String typeName, String description, int score) {
+    }
+
+    private List<LiveTypeMatch> collectLiveModuleTypes(Module module, String moduleName, Package dependencyPackage) {
+        SemanticModel semanticModel;
+        try {
+            semanticModel = PackageUtil.getCompilation(module.packageInstance()).getSemanticModel(module.moduleId());
+        } catch (RuntimeException e) {
+            // Expected for generated/testonly modules with no semantic model, but also catches genuine compiler
+            // errors, so log a breadcrumb rather than failing completely silently.
+            LOGGER.log(Level.FINE, "Failed to compile dependency module for live type search: " + moduleName, e);
+            return List.of();
+        }
+        if (semanticModel == null) {
+            return List.of();
+        }
+
+        String orgName = dependencyPackage.packageOrg().toString();
+        String packageName = dependencyPackage.packageName().toString();
+        String version = dependencyPackage.packageVersion().toString();
+
+        List<LiveTypeMatch> matches = new ArrayList<>();
+        for (Symbol symbol : semanticModel.moduleSymbols()) {
+            if (!(symbol instanceof TypeDefinitionSymbol) && !(symbol instanceof ClassSymbol)) {
+                continue;
+            }
+            // symbol is guaranteed Qualifiable here: both TypeDefinitionSymbol and ClassSymbol implement it
+            Qualifiable qualifiable = (Qualifiable) symbol;
+            if (!qualifiable.qualifiers().contains(Qualifier.PUBLIC)) {
+                continue;
+            }
+            // client classes are Connectors, not Types (mirrors SearchIndexGenerator's exclusion)
+            if (symbol instanceof ClassSymbol && qualifiable.qualifiers().contains(Qualifier.CLIENT)) {
+                continue;
+            }
+            if (symbol.getName().isEmpty()) {
+                continue;
+            }
+            String typeName = symbol.getName().get();
+            String description = "";
+            if (symbol instanceof Documentable documentable) {
+                Documentation documentation = documentable.documentation().orElse(null);
+                description = documentation != null ? documentation.description().orElse("") : "";
+            }
+            int score = RelevanceCalculator.calculateFuzzyRelevanceScore(typeName, description, query);
+            if (score > 0) {
+                matches.add(new LiveTypeMatch(moduleName, orgName, packageName, version, typeName, description,
+                        score));
+            }
+        }
+        return matches;
     }
 
     @Override
@@ -255,11 +487,15 @@ class TypeSearchCommand extends SearchCommand {
         projectBuilder.items(availableNodes);
     }
 
-    private void buildLibraryNodes(List<SearchResult> typeSearchList) {
+    /**
+     * @return the number of entries routed to {@code IMPORTED_TYPES}
+     */
+    private int buildLibraryNodes(List<SearchResult> typeSearchList) {
         // Set the categories based on available flags
         Category.Builder importedTypesBuilder = rootBuilder.stepIn(Category.Name.IMPORTED_TYPES);
         Category.Builder availableTypesBuilder = rootBuilder.stepIn(Category.Name.STANDARD_LIBRARY);
 
+        int importedCount = 0;
         // Add the library types
         for (SearchResult searchResult : typeSearchList) {
             SearchResult.Package packageInfo = searchResult.packageInfo();
@@ -279,9 +515,13 @@ class TypeSearchCommand extends SearchCommand {
                     .symbol(searchResult.name())
                     .version(packageInfo.version())
                     .build();
+            // Org-aware: search() sources typeSearchList from a global FTS query with no org filtering, so a
+            // same-named package from a different org (e.g. ballerina/copybook vs ballerinax/copybook) must not
+            // be misclassified as imported just because the name matches.
             Category.Builder builder;
-            if (moduleNames.contains(packageInfo.moduleName())) {
+            if (packageInfo.org().equals(moduleOrgByName.get(packageInfo.moduleName()))) {
                 builder = importedTypesBuilder;
+                importedCount++;
             } else {
                 builder = availableTypesBuilder;
             }
@@ -290,6 +530,7 @@ class TypeSearchCommand extends SearchCommand {
                         .node(new AvailableNode(metadata, codedata, true));
             }
         }
+        return importedCount;
     }
 
     private void buildImportedLocalModules() {

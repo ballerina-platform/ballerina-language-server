@@ -177,8 +177,8 @@
           "items": [
             {
               "metadata": {
-                "label": "ExecutionStep",
-                "description": "Execution step information",
+                "label": "AdditionInfoFlags",
+                "description": "Defines additional information to be extracted from the OpenAPI specification.",
                 "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.11.2.png"
               },
               "codedata": {
@@ -186,15 +186,15 @@
                 "org": "ballerina",
                 "module": "ai",
                 "packageName": "ai",
-                "symbol": "ExecutionStep",
+                "symbol": "AdditionInfoFlags",
                 "version": "1.11.2"
               },
               "enabled": true
             },
             {
               "metadata": {
-                "label": "FunctionCall",
-                "description": "Function call record",
+                "label": "Agent",
+                "description": "Represents an agent.",
                 "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.11.2.png"
               },
               "codedata": {
@@ -202,503 +202,7 @@
                 "org": "ballerina",
                 "module": "ai",
                 "packageName": "ai",
-                "symbol": "FunctionCall",
-                "version": "1.11.2"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "Context",
-                "description": "Represents a contextual storage object used to pass additional data to tools during agent execution.",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.11.2.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerina",
-                "module": "ai",
-                "packageName": "ai",
-                "symbol": "Context",
-                "version": "1.11.2"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "Cloneable",
-                "description": "Represents a non-error type that can be cloned.",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.11.2.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerina",
-                "module": "ai",
-                "packageName": "ai",
-                "symbol": "Cloneable",
-                "version": "1.11.2"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "ContextEntry",
-                "description": "Represents the type of a value stored in the `Context` object.",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.11.2.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerina",
-                "module": "ai",
-                "packageName": "ai",
-                "symbol": "ContextEntry",
-                "version": "1.11.2"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "ChatUserMessage",
-                "description": "User chat message record.",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.11.2.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerina",
-                "module": "ai",
-                "packageName": "ai",
-                "symbol": "ChatUserMessage",
-                "version": "1.11.2"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "Prompt",
-                "description": "Raw template type for prompts.",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.11.2.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerina",
-                "module": "ai",
-                "packageName": "ai",
-                "symbol": "Prompt",
-                "version": "1.11.2"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "Document",
-                "description": "Represents the common structure for all document types",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.11.2.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerina",
-                "module": "ai",
-                "packageName": "ai",
-                "symbol": "Document",
-                "version": "1.11.2"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "Metadata",
-                "description": "Represents additional metadata associated with documents or nodes.",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.11.2.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerina",
-                "module": "ai",
-                "packageName": "ai",
-                "symbol": "Metadata",
-                "version": "1.11.2"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "Chunk",
-                "description": "Represents a chunk of a document.",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.11.2.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerina",
-                "module": "ai",
-                "packageName": "ai",
-                "symbol": "Chunk",
-                "version": "1.11.2"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "ChatSystemMessage",
-                "description": "System chat message record.",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.11.2.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerina",
-                "module": "ai",
-                "packageName": "ai",
-                "symbol": "ChatSystemMessage",
-                "version": "1.11.2"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "ChatAssistantMessage",
-                "description": "Assistant chat message record.",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.11.2.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerina",
-                "module": "ai",
-                "packageName": "ai",
-                "symbol": "ChatAssistantMessage",
-                "version": "1.11.2"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "ChatFunctionMessage",
-                "description": "Function message record.",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.11.2.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerina",
-                "module": "ai",
-                "packageName": "ai",
-                "symbol": "ChatFunctionMessage",
-                "version": "1.11.2"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "ChatMessage",
-                "description": "Chat message record.",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.11.2.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerina",
-                "module": "ai",
-                "packageName": "ai",
-                "symbol": "ChatMessage",
-                "version": "1.11.2"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "ExecutionResult",
-                "description": "Execution step information",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.11.2.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerina",
-                "module": "ai",
-                "packageName": "ai",
-                "symbol": "ExecutionResult",
-                "version": "1.11.2"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "LlmToolResponse",
-                "description": "Tool selected by LLM to be performed by the agent",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.11.2.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerina",
-                "module": "ai",
-                "packageName": "ai",
-                "symbol": "LlmToolResponse",
-                "version": "1.11.2"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "ExecutionError",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.11.2.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerina",
-                "module": "ai",
-                "packageName": "ai",
-                "symbol": "ExecutionError",
-                "version": "1.11.2"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "Error",
-                "description": "Defines the common error type for the module.",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.11.2.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerina",
-                "module": "ai",
-                "packageName": "ai",
-                "symbol": "Error",
-                "version": "1.11.2"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "LlmError",
-                "description": "Any error occurred during LLM generation is classified under this error type.",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.11.2.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerina",
-                "module": "ai",
-                "packageName": "ai",
-                "symbol": "LlmError",
-                "version": "1.11.2"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "LlmInvalidGenerationError",
-                "description": "Errors occurred due to invalid LLM generation.",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.11.2.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerina",
-                "module": "ai",
-                "packageName": "ai",
-                "symbol": "LlmInvalidGenerationError",
-                "version": "1.11.2"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "ToolExecutionError",
-                "description": "Errors during tool execution.",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.11.2.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerina",
-                "module": "ai",
-                "packageName": "ai",
-                "symbol": "ToolExecutionError",
-                "version": "1.11.2"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "MemoryError",
-                "description": "Represents errors that occur during memory-related operations.  ",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.11.2.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerina",
-                "module": "ai",
-                "packageName": "ai",
-                "symbol": "MemoryError",
-                "version": "1.11.2"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "UnauthorizedError",
-                "description": "Error returned when the request is unauthorized.",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.11.2.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerina",
-                "module": "ai",
-                "packageName": "ai",
-                "symbol": "UnauthorizedError",
-                "version": "1.11.2"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "ToolOutput",
-                "description": "Output from executing an action",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.11.2.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerina",
-                "module": "ai",
-                "packageName": "ai",
-                "symbol": "ToolOutput",
-                "version": "1.11.2"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "ModelProvider",
-                "description": "Represents an extendable client for interacting with an AI model.",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.11.2.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerina",
-                "module": "ai",
-                "packageName": "ai",
-                "symbol": "ModelProvider",
-                "version": "1.11.2"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "ToolStore",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.11.2.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerina",
-                "module": "ai",
-                "packageName": "ai",
-                "symbol": "ToolStore",
-                "version": "1.11.2"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "Tool",
-                "description": "This is the tool used by LLMs during reasoning.\nThis tool is same as the Tool record, but it has a clear separation between the variables that should be generated with the help of the LLMs and the constants that are defined by the users. ",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.11.2.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerina",
-                "module": "ai",
-                "packageName": "ai",
-                "symbol": "Tool",
-                "version": "1.11.2"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "AgentIdAuthConfig",
-                "description": "Represents the OAuth 2.0 client configuration required to interact\nwith an external Authorization Server and validate issued access tokens.",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.11.2.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerina",
-                "module": "ai",
-                "packageName": "ai",
-                "symbol": "AgentIdAuthConfig",
-                "version": "1.11.2"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "Scopes",
-                "description": "Represents the OAuth scopes required for invoking a tool.",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.11.2.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerina",
-                "module": "ai",
-                "packageName": "ai",
-                "symbol": "Scopes",
-                "version": "1.11.2"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "Memory",
-                "description": "Represents the memory interface for the agents.",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.11.2.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerina",
-                "module": "ai",
-                "packageName": "ai",
-                "symbol": "Memory",
-                "version": "1.11.2"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "Credential",
-                "description": "Represents the authentication credentials of an autonomous agent.",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.11.2.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerina",
-                "module": "ai",
-                "packageName": "ai",
-                "symbol": "Credential",
-                "version": "1.11.2"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "SystemPrompt",
-                "description": "Represents the system prompt given to the agent.",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.11.2.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerina",
-                "module": "ai",
-                "packageName": "ai",
-                "symbol": "SystemPrompt",
-                "version": "1.11.2"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "AgentType",
-                "description": "Represents the different types of agents supported by the module.",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.11.2.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerina",
-                "module": "ai",
-                "packageName": "ai",
-                "symbol": "AgentType",
+                "symbol": "Agent",
                 "version": "1.11.2"
               },
               "enabled": true
@@ -721,8 +225,8 @@
             },
             {
               "metadata": {
-                "label": "BaseToolKit",
-                "description": "Allows implmenting custom toolkits by extending this type. Toolkits can help to define new types of tools so that agent can understand them.",
+                "label": "AgentIdAuthConfig",
+                "description": "Represents the OAuth 2.0 client configuration required to interact\nwith an external Authorization Server and validate issued access tokens.",
                 "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.11.2.png"
               },
               "codedata": {
@@ -730,15 +234,15 @@
                 "org": "ballerina",
                 "module": "ai",
                 "packageName": "ai",
-                "symbol": "BaseToolKit",
+                "symbol": "AgentIdAuthConfig",
                 "version": "1.11.2"
               },
               "enabled": true
             },
             {
               "metadata": {
-                "label": "ToolConfig",
-                "description": "Defines a tool. This is the only tool type directly understood by the agent. All other tool types are converted to this type using toolkits.",
+                "label": "AgentType",
+                "description": "Represents the different types of agents supported by the module.",
                 "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.11.2.png"
               },
               "codedata": {
@@ -746,15 +250,15 @@
                 "org": "ballerina",
                 "module": "ai",
                 "packageName": "ai",
-                "symbol": "ToolConfig",
+                "symbol": "AgentType",
                 "version": "1.11.2"
               },
               "enabled": true
             },
             {
               "metadata": {
-                "label": "FunctionTool",
-                "description": "Represents a type alias for an isolated function, representing a function tool.",
+                "label": "AllOfInputSchema",
+                "description": "Defines an `allOf` input field in the schema. Follows OpenAPI 3.x specification.",
                 "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.11.2.png"
               },
               "codedata": {
@@ -762,15 +266,15 @@
                 "org": "ballerina",
                 "module": "ai",
                 "packageName": "ai",
-                "symbol": "FunctionTool",
+                "symbol": "AllOfInputSchema",
                 "version": "1.11.2"
               },
               "enabled": true
             },
             {
               "metadata": {
-                "label": "ToolLoadingStrategy",
-                "description": "Defines the strategies for loading tool schemas into an Agent.",
+                "label": "AllOfSchema",
+                "description": "All of schema object.",
                 "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.11.2.png"
               },
               "codedata": {
@@ -778,15 +282,15 @@
                 "org": "ballerina",
                 "module": "ai",
                 "packageName": "ai",
-                "symbol": "ToolLoadingStrategy",
+                "symbol": "AllOfSchema",
                 "version": "1.11.2"
               },
               "enabled": true
             },
             {
               "metadata": {
-                "label": "Chunker",
-                "description": "Represents a chunker that can process documents and return chunks.",
+                "label": "AnyOfInputSchema",
+                "description": "Defines an `anyOf` input field in the schema. Follows OpenAPI 3.x specification.",
                 "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.11.2.png"
               },
               "codedata": {
@@ -794,15 +298,15 @@
                 "org": "ballerina",
                 "module": "ai",
                 "packageName": "ai",
-                "symbol": "Chunker",
+                "symbol": "AnyOfInputSchema",
                 "version": "1.11.2"
               },
               "enabled": true
             },
             {
               "metadata": {
-                "label": "RecursiveChunkStrategy",
-                "description": "Represents the available strategies for recursively chunking a document.\n\nEach strategy attempts to include as much content as possible using a specific unit (such as paragraph or sentence).\nIf the content exceeds the defined `maxChunkSize` in `RecursiveChunker`, the strategy recursively falls back\nto a finer-grained unit until the content fits within the limit.",
+                "label": "AnyOfSchema",
+                "description": "Any of schema object.",
                 "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.11.2.png"
               },
               "codedata": {
@@ -810,15 +314,15 @@
                 "org": "ballerina",
                 "module": "ai",
                 "packageName": "ai",
-                "symbol": "RecursiveChunkStrategy",
+                "symbol": "AnyOfSchema",
                 "version": "1.11.2"
               },
               "enabled": true
             },
             {
               "metadata": {
-                "label": "MarkdownChunkStrategy",
-                "description": "Represents the available strategies for chunking a markdown document.\n\nEach strategy attempts to include as much content as possible using a specific unit (such as paragraph or sentence).\nIf the content exceeds the defined `maxChunkSize` the strategy recursively falls back to a finer-grained unit until\nthe content fits within the limit.",
+                "label": "ArrayInputSchema",
+                "description": "Defines an array input field in the schema.",
                 "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.11.2.png"
               },
               "codedata": {
@@ -826,15 +330,15 @@
                 "org": "ballerina",
                 "module": "ai",
                 "packageName": "ai",
-                "symbol": "MarkdownChunkStrategy",
+                "symbol": "ArrayInputSchema",
                 "version": "1.11.2"
               },
               "enabled": true
             },
             {
               "metadata": {
-                "label": "HtmlChunkStrategy",
-                "description": "Represents the available strategies for chunking a HTML document.\n\nEach strategy attempts to include as much content as possible using a specific unit (such as paragraph or sentence).\nIf the content exceeds the defined `maxChunkSize` the strategy recursively falls back to a finer-grained unit until\nthe content fits within the limit.",
+                "label": "ArraySchema",
+                "description": "Array schema object.",
                 "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.11.2.png"
               },
               "codedata": {
@@ -842,136 +346,668 @@
                 "org": "ballerina",
                 "module": "ai",
                 "packageName": "ai",
-                "symbol": "HtmlChunkStrategy",
+                "symbol": "ArraySchema",
                 "version": "1.11.2"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "data.jsondata",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "Error",
+                "description": "Represents the error type of the ballerina/data.jsondata module. This error type represents any error that can occur\nduring the execution of jsondata APIs.",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_data.jsondata_1.1.3.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerina",
+                "module": "data.jsondata",
+                "packageName": "data.jsondata",
+                "symbol": "Error",
+                "version": "1.1.3"
               },
               "enabled": true
             },
             {
               "metadata": {
-                "label": "DataLoader",
-                "description": "Represents a data loader that can load documents from various sources.",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.11.2.png"
+                "label": "JsonPathRawTemplate",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_data.jsondata_1.1.3.png"
               },
               "codedata": {
                 "node": "TYPEDESC",
                 "org": "ballerina",
-                "module": "ai",
-                "packageName": "ai",
-                "symbol": "DataLoader",
-                "version": "1.11.2"
+                "module": "data.jsondata",
+                "packageName": "data.jsondata",
+                "symbol": "JsonPathRawTemplate",
+                "version": "1.1.3"
               },
               "enabled": true
             },
             {
               "metadata": {
-                "label": "TextDocument",
-                "description": "Represents documents containing plain text content",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.11.2.png"
+                "label": "JsonPathValue",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_data.jsondata_1.1.3.png"
               },
               "codedata": {
                 "node": "TYPEDESC",
                 "org": "ballerina",
-                "module": "ai",
-                "packageName": "ai",
-                "symbol": "TextDocument",
-                "version": "1.11.2"
+                "module": "data.jsondata",
+                "packageName": "data.jsondata",
+                "symbol": "JsonPathValue",
+                "version": "1.1.3"
               },
               "enabled": true
             },
             {
               "metadata": {
-                "label": "TextChunk",
-                "description": "Represents a chunk of text within a document.",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.11.2.png"
+                "label": "NameConfig",
+                "description": "Defines the name of the JSON Object key.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_data.jsondata_1.1.3.png"
               },
               "codedata": {
                 "node": "TYPEDESC",
                 "org": "ballerina",
-                "module": "ai",
-                "packageName": "ai",
-                "symbol": "TextChunk",
-                "version": "1.11.2"
+                "module": "data.jsondata",
+                "packageName": "data.jsondata",
+                "symbol": "NameConfig",
+                "version": "1.1.3"
               },
               "enabled": true
             },
             {
               "metadata": {
-                "label": "Url",
-                "description": "Represents a URL.",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.11.2.png"
+                "label": "Options",
+                "description": "Represent the options that can be used to modify the behaviour of the projection.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_data.jsondata_1.1.3.png"
               },
               "codedata": {
                 "node": "TYPEDESC",
                 "org": "ballerina",
-                "module": "ai",
-                "packageName": "ai",
-                "symbol": "Url",
-                "version": "1.11.2"
+                "module": "data.jsondata",
+                "packageName": "data.jsondata",
+                "symbol": "Options",
+                "version": "1.1.3"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "http",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "Accepted",
+                "description": "The status code response record of `Accepted`.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.16.3.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerina",
+                "module": "http",
+                "packageName": "http",
+                "symbol": "Accepted",
+                "version": "2.16.3"
               },
               "enabled": true
             },
             {
               "metadata": {
-                "label": "ImageDocument",
-                "description": "Represents an image document.",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.11.2.png"
+                "label": "AccessLogConfiguration",
+                "description": "Represents HTTP access log configuration.",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.16.3.png"
               },
               "codedata": {
                 "node": "TYPEDESC",
                 "org": "ballerina",
-                "module": "ai",
-                "packageName": "ai",
-                "symbol": "ImageDocument",
-                "version": "1.11.2"
+                "module": "http",
+                "packageName": "http",
+                "symbol": "AccessLogConfiguration",
+                "version": "2.16.3"
               },
               "enabled": true
             },
             {
               "metadata": {
-                "label": "AudioDocument",
-                "description": "Represents an audio document.",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.11.2.png"
+                "label": "AllLoadBalanceEndpointsFailedError",
+                "description": "Represents a client error that occurred due to all the load balance endpoint failure.",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.16.3.png"
               },
               "codedata": {
                 "node": "TYPEDESC",
                 "org": "ballerina",
-                "module": "ai",
-                "packageName": "ai",
-                "symbol": "AudioDocument",
-                "version": "1.11.2"
+                "module": "http",
+                "packageName": "http",
+                "symbol": "AllLoadBalanceEndpointsFailedError",
+                "version": "2.16.3"
               },
               "enabled": true
             },
             {
               "metadata": {
-                "label": "FileId",
-                "description": "Represents an ID referring to a file.",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.11.2.png"
+                "label": "AllRetryAttemptsFailed",
+                "description": "Represents a client error that occurred due to all the the retry attempts failure.",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.16.3.png"
               },
               "codedata": {
                 "node": "TYPEDESC",
                 "org": "ballerina",
-                "module": "ai",
-                "packageName": "ai",
-                "symbol": "FileId",
-                "version": "1.11.2"
+                "module": "http",
+                "packageName": "http",
+                "symbol": "AllRetryAttemptsFailed",
+                "version": "2.16.3"
               },
               "enabled": true
             },
             {
               "metadata": {
-                "label": "FileDocument",
-                "description": "Represents a generic file document.",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.11.2.png"
+                "label": "AlreadyReported",
+                "description": "The status code response record of `AlreadyReported`.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.16.3.png"
               },
               "codedata": {
                 "node": "TYPEDESC",
                 "org": "ballerina",
-                "module": "ai",
-                "packageName": "ai",
-                "symbol": "FileDocument",
-                "version": "1.11.2"
+                "module": "http",
+                "packageName": "http",
+                "symbol": "AlreadyReported",
+                "version": "2.16.3"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "ApplicationResponseError",
+                "description": "Represents both 4XX and 5XX application response client error.",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.16.3.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerina",
+                "module": "http",
+                "packageName": "http",
+                "symbol": "ApplicationResponseError",
+                "version": "2.16.3"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "BadGateway",
+                "description": "The status code response record of `BadGateway`.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.16.3.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerina",
+                "module": "http",
+                "packageName": "http",
+                "symbol": "BadGateway",
+                "version": "2.16.3"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "BadMatrixParamError",
+                "description": "Represents Bad Matrix Parameter in the request error.",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.16.3.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerina",
+                "module": "http",
+                "packageName": "http",
+                "symbol": "BadMatrixParamError",
+                "version": "2.16.3"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "BadRequest",
+                "description": "The status code response record of `BadRequest`.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.16.3.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerina",
+                "module": "http",
+                "packageName": "http",
+                "symbol": "BadRequest",
+                "version": "2.16.3"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "BearerTokenConfig",
+                "description": "Represents token for Bearer token authentication.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.16.3.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerina",
+                "module": "http",
+                "packageName": "http",
+                "symbol": "BearerTokenConfig",
+                "version": "2.16.3"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "Bucket",
+                "description": "Represents a discrete sub-part of the time window (Bucket).\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.16.3.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerina",
+                "module": "http",
+                "packageName": "http",
+                "symbol": "Bucket",
+                "version": "2.16.3"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "io",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "AccessDeniedError",
+                "description": "This will get returned due to file permission issues.",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_io_1.8.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerina",
+                "module": "io",
+                "packageName": "io",
+                "symbol": "AccessDeniedError",
+                "version": "1.8.1"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "Block",
+                "description": "The read-only byte array that is used to read the byte content from the streams.",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_io_1.8.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerina",
+                "module": "io",
+                "packageName": "io",
+                "symbol": "Block",
+                "version": "1.8.1"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "BlockStream",
+                "description": "A stream of `Block` objects that is used to read the byte content from the streams.",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_io_1.8.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerina",
+                "module": "io",
+                "packageName": "io",
+                "symbol": "BlockStream",
+                "version": "1.8.1"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "ByteOrder",
+                "description": "Represents network byte order.\n\nBIG_ENDIAN - specifies the bytes to be in the order of most significant byte first.\n\nLITTLE_ENDIAN - specifies the byte order to be the least significant byte first.",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_io_1.8.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerina",
+                "module": "io",
+                "packageName": "io",
+                "symbol": "ByteOrder",
+                "version": "1.8.1"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "CSVStream",
+                "description": "A stream of CSV records that is used to read the CSV content from the streams.",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_io_1.8.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerina",
+                "module": "io",
+                "packageName": "io",
+                "symbol": "CSVStream",
+                "version": "1.8.1"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "ConfigurationError",
+                "description": "This will get returned if there is an invalid configuration.",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_io_1.8.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerina",
+                "module": "io",
+                "packageName": "io",
+                "symbol": "ConfigurationError",
+                "version": "1.8.1"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "ConnectionTimedOutError",
+                "description": "This will return when connection timed out happen when try to connect to a remote host.",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_io_1.8.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerina",
+                "module": "io",
+                "packageName": "io",
+                "symbol": "ConnectionTimedOutError",
+                "version": "1.8.1"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "CsvIterator",
+                "description": "The iterator for the stream returned in `readFileCsvAsStream` function.",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_io_1.8.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerina",
+                "module": "io",
+                "packageName": "io",
+                "symbol": "CsvIterator",
+                "version": "1.8.1"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "EofError",
+                "description": "This will get returned if read operations are performed on a channel after it closed.",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_io_1.8.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerina",
+                "module": "io",
+                "packageName": "io",
+                "symbol": "EofError",
+                "version": "1.8.1"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "Error",
+                "description": "Represents IO module related errors.",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_io_1.8.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerina",
+                "module": "io",
+                "packageName": "io",
+                "symbol": "Error",
+                "version": "1.8.1"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "FileNotFoundError",
+                "description": "This will get returned if the file is not available in the given file path.",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_io_1.8.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerina",
+                "module": "io",
+                "packageName": "io",
+                "symbol": "FileNotFoundError",
+                "version": "1.8.1"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "time",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "Civil",
+                "description": "Time within some region relative to a\ntime scale stipulated by civilian authorities.",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_time_2.8.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerina",
+                "module": "time",
+                "packageName": "time",
+                "symbol": "Civil",
+                "version": "2.8.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "Date",
+                "description": "Date in proleptic Gregorian calendar.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_time_2.8.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerina",
+                "module": "time",
+                "packageName": "time",
+                "symbol": "Date",
+                "version": "2.8.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "DayOfWeek",
+                "description": "The day of week according to the US convention.",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_time_2.8.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerina",
+                "module": "time",
+                "packageName": "time",
+                "symbol": "DayOfWeek",
+                "version": "2.8.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "Duration",
+                "description": "Represents the time duration used to adjust a civil date-time value by a specified amount.\nThe duration can be added to or subtracted from the civil time.\nFields in the record can be negative, in which case the duration is subtracted.",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_time_2.8.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerina",
+                "module": "time",
+                "packageName": "time",
+                "symbol": "Duration",
+                "version": "2.8.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "Error",
+                "description": "The generic module level error.",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_time_2.8.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerina",
+                "module": "time",
+                "packageName": "time",
+                "symbol": "Error",
+                "version": "2.8.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "FormatError",
+                "description": "The error to be returned when arguments are invalid.",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_time_2.8.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerina",
+                "module": "time",
+                "packageName": "time",
+                "symbol": "FormatError",
+                "version": "2.8.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "HeaderZoneHandling",
+                "description": "Indicate how to handle both `zoneOffset` and `timeAbbrev`.",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_time_2.8.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerina",
+                "module": "time",
+                "packageName": "time",
+                "symbol": "HeaderZoneHandling",
+                "version": "2.8.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "Seconds",
+                "description": "Holds the seconds as a decimal value.  ",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_time_2.8.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerina",
+                "module": "time",
+                "packageName": "time",
+                "symbol": "Seconds",
+                "version": "2.8.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "TimeOfDay",
+                "description": "Time within a day\nNot always duration from midnight.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_time_2.8.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerina",
+                "module": "time",
+                "packageName": "time",
+                "symbol": "TimeOfDay",
+                "version": "2.8.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "TimeZone",
+                "description": "Localized time zone implementation to handle time zones.  ",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_time_2.8.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerina",
+                "module": "time",
+                "packageName": "time",
+                "symbol": "TimeZone",
+                "version": "2.8.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "Utc",
+                "description": "Point on UTC time-scale.\nThis is represented by a tuple of length 2.\nThe tuple is an ordered type and so the values can be\ncompared using the Ballerina <, <=, >, >= operators.\nThe first member of the tuple is int representing an integral number of\nseconds from the epoch.\nEpoch is the traditional UNIX epoch of `1970-01-01T00:00:00Z`.\nThe second member of the tuple is a decimal giving the fraction of\na second.\nFor times before the epoch, n is negative and f is\nnon-negative. In other words, the UTC time represented\nis on or after the second specified by n.\nLeap seconds are handled as follows. The first member\nof the tuple ignores leap seconds: it assumes that every day\nhas 86400 seconds. The second member of the tuple is >= 0.\nand is < 1 except during positive leaps seconds in which it\nis >= 1 and < 2. So given a tuple [n,f] after the epoch,\nn / 86400 gives the day number, and (n % 86400) + f gives the\ntime in seconds since midnight UTC (for which the limit is\n86401 on day with a positive leap second).",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_time_2.8.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerina",
+                "module": "time",
+                "packageName": "time",
+                "symbol": "Utc",
+                "version": "2.8.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "UtcZoneHandling",
+                "description": "Default zone value representation in different formats.",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_time_2.8.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerina",
+                "module": "time",
+                "packageName": "time",
+                "symbol": "UtcZoneHandling",
+                "version": "2.8.0"
               },
               "enabled": true
             }

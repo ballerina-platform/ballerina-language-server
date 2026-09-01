@@ -314,31 +314,6 @@
         },
         {
           "metadata": {
-            "label": "peoplehr",
-            "description": "",
-            "keywords": []
-          },
-          "items": [
-            {
-              "metadata": {
-                "label": "ConnectionConfig",
-                "description": "Client configuration details.",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_peoplehr_2.2.1.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "peoplehr",
-                "packageName": "peoplehr",
-                "symbol": "ConnectionConfig",
-                "version": "2.2.1"
-              },
-              "enabled": true
-            }
-          ]
-        },
-        {
-          "metadata": {
             "label": "soap",
             "description": "",
             "keywords": []
@@ -364,7 +339,7 @@
         },
         {
           "metadata": {
-            "label": "microsoft.onenote",
+            "label": "peoplehr",
             "description": "",
             "keywords": []
           },
@@ -373,15 +348,15 @@
               "metadata": {
                 "label": "ConnectionConfig",
                 "description": "Client configuration details.",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_microsoft.onenote_2.4.0.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_peoplehr_2.2.1.png"
               },
               "codedata": {
                 "node": "TYPEDESC",
                 "org": "ballerinax",
-                "module": "microsoft.onenote",
-                "packageName": "microsoft.onenote",
+                "module": "peoplehr",
+                "packageName": "peoplehr",
                 "symbol": "ConnectionConfig",
-                "version": "2.4.0"
+                "version": "2.2.1"
               },
               "enabled": true
             }
@@ -389,24 +364,24 @@
         },
         {
           "metadata": {
-            "label": "salesforce.soap",
+            "label": "ftp",
             "description": "",
             "keywords": []
           },
           "items": [
             {
               "metadata": {
-                "label": "ConnectionConfig",
-                "description": "Salesforce client configuration.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_salesforce_8.7.0.png"
+                "label": "ClientConfiguration",
+                "description": "Configuration for FTP client.",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ftp_2.20.1.png"
               },
               "codedata": {
                 "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "salesforce.soap",
-                "packageName": "salesforce",
-                "symbol": "ConnectionConfig",
-                "version": "8.7.0"
+                "org": "ballerina",
+                "module": "ftp",
+                "packageName": "ftp",
+                "symbol": "ClientConfiguration",
+                "version": "2.20.1"
               },
               "enabled": true
             }
@@ -414,49 +389,24 @@
         },
         {
           "metadata": {
-            "label": "salesforce.bulk",
+            "label": "smb",
             "description": "",
             "keywords": []
           },
           "items": [
             {
               "metadata": {
-                "label": "ConnectionConfig",
-                "description": "Salesforce client configuration.",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_salesforce_8.7.0.png"
+                "label": "ClientConfiguration",
+                "description": "Configuration for SMB client.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_smb_1.0.2.png"
               },
               "codedata": {
                 "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "salesforce.bulk",
-                "packageName": "salesforce",
-                "symbol": "ConnectionConfig",
-                "version": "8.7.0"
-              },
-              "enabled": true
-            }
-          ]
-        },
-        {
-          "metadata": {
-            "label": "googleapis.calendar",
-            "description": "",
-            "keywords": []
-          },
-          "items": [
-            {
-              "metadata": {
-                "label": "ConnectionConfig",
-                "description": "Client configuration details.",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_googleapis.calendar_3.2.1.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "googleapis.calendar",
-                "packageName": "googleapis.calendar",
-                "symbol": "ConnectionConfig",
-                "version": "3.2.1"
+                "org": "ballerina",
+                "module": "smb",
+                "packageName": "smb",
+                "symbol": "ClientConfiguration",
+                "version": "1.0.2"
               },
               "enabled": true
             }
@@ -482,6 +432,31 @@
                 "packageName": "azure.ad",
                 "symbol": "ConnectionConfig",
                 "version": "2.5.0"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "googleapis.calendar",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "ConnectionConfig",
+                "description": "Client configuration details.",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_googleapis.calendar_3.2.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "googleapis.calendar",
+                "packageName": "googleapis.calendar",
+                "symbol": "ConnectionConfig",
+                "version": "3.2.1"
               },
               "enabled": true
             }
@@ -555,6 +530,31 @@
                 "org": "ballerinax",
                 "module": "microsoft.excel",
                 "packageName": "microsoft.excel",
+                "symbol": "ConnectionConfig",
+                "version": "2.4.0"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "microsoft.onenote",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "ConnectionConfig",
+                "description": "Client configuration details.",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_microsoft.onenote_2.4.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "microsoft.onenote",
+                "packageName": "microsoft.onenote",
                 "symbol": "ConnectionConfig",
                 "version": "2.4.0"
               },
